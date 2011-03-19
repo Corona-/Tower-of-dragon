@@ -1,0 +1,34 @@
+by py2exe
+(have problems if easygui is used)
+
+Add new module into pygame2exe.py
+	on includes: add the name of module
+If new pictures or audios are added, need to move them
+	inside the dist folder
+
+
+1. Come to this directory by the console (command prompt)
+
+2.run pygame2exe.py
+
+3.Move 'ƒrƒ‹ƒhŽž‘«‚·‚à‚Ì'into dist folder
+
+4. move 'enduser_license' and 'ipag' into dist folder 
+
+by pyinstaller
+
+1.Create folder and include all files in the folder
+
+2.on command line: Makespec.py --onefile --windowed --tk tower_of_dragonvxxx\tower_of_dragon.py
+
+(2.5 to add file : 
+	collect = COLLECT(a.binaries +
+          [('readme', '/my/project/readme', 'DATA')], ...)
+)
+
+
+3.on command line: Build.py tower_of_dragon\tower_of_dragon.spec
+
+4.move 'enduser_license and 'ipag' in the folder with .exe
+
+5.move all necessary folder and files in the folder
