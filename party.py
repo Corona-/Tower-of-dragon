@@ -37,10 +37,15 @@ class Party:
         #if > 0 it stores level of the house
         self.house = 0
 
+        self.alignment = 0
+
         self.bar_donate = 0
         self.shop_donate = 0
         self.temple_donate = 0
         self.castle_donate = 0
+
+        self.inn_item = []
+        self.house_item = []
 
         self.menu_font = pygame.font.Font("ipag.ttf", 20)
 

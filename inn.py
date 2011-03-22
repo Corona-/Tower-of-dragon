@@ -53,6 +53,10 @@ class Inn:
         self.save_confirm = system_notify.Confirm_window(Rect(150, 150, 200, 110), 100)
         self.load_confirm = system_notify.Confirm_window(Rect(150, 150, 200, 110), 101)
 
+        self.item_out_window = system_notify.System_notify_window(Rect(200,120,340, 240), 6)
+        self.item_in_window = system_notify.System_notify_window(Rect(200,120,340, 240), 7)
+
+                
         self.music = 0
 
     def update(self):
@@ -117,6 +121,10 @@ class Inn:
         self.save_confirm.draw(screen, game_self, None)
         self.load_confirm.draw(screen, game_self, None)
 
+        self.item_out_window.draw(screen, game_self)
+        self.item_in_window.draw(screen, game_self)
+                
+
 def inn_handler(self, event):
     """event handler of inn"""
 
@@ -128,6 +136,12 @@ def inn_handler(self, event):
         return
     elif self.inn.load_confirm.is_visible:
         self.inn.load_confirm.confirm_window_handler(self, event, None)
+        return
+    elif self.inn.item_out_window.is_visible:
+        self.inn.item_out_window.system_notify_window_handler( event, self, self.party.member)
+        return
+    elif self.inn.item_in_window.is_visible:
+        self.inn.item_in_window.system_notify_window_handler(event, self, self.party.member)
         return
 
     
@@ -150,10 +164,10 @@ def inn_handler(self, event):
                 self.inn.inn_window.is_visible = True
         elif self.inn.menu == Inn.ITEM_OUT:
             if len(self.party.member) > 0:
-                pass
+                self.inn.item_out_window.is_visible = True
         elif self.inn.menu == Inn.ITEM_IN:
             if len(self.party.member) > 0:
-                pass
+                self.inn.item_in_window.is_visible = True
         elif self.inn.menu == Inn.SAVE:
             self.inn.save_confirm.is_visible = True
         elif self.inn.menu == Inn.LOAD:

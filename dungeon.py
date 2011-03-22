@@ -485,25 +485,25 @@ class Dungeon:
                 elif (game_self.party.direction == 3):
                     if( self.vertical_wall[y][x] == 0):
                         character.coordinate[0] = decrement(character.coordinate[0],1)
-            self.battle_encount( 30, game_self.party.member[0] )
+            self.battle_encount( 10, game_self.party.member[0] )
             
         if event.type == KEYUP and (event.key ==K_DOWN):
             game_self.party.direction -= 2
             if game_self.party.direction < 0:
                 game_self.party.direction += 4
-            self.battle_encount( 10, game_self.party.member[0] )
+            self.battle_encount( 5, game_self.party.member[0] )
 
         if event.type == KEYUP and (event.key ==K_LEFT):
             game_self.party.direction -= 1
             if game_self.party.direction < 0:
                 game_self.party.direction = 3
-            self.battle_encount( 10, game_self.party.member[0] )
+            self.battle_encount( 5, game_self.party.member[0] )
 
         if event.type == KEYUP and (event.key ==K_RIGHT):
             game_self.party.direction += 1
             if game_self.party.direction > 3:
                 game_self.party.direction = 0
-            self.battle_encount( 30, game_self.party.member[0] )
+            self.battle_encount( 5, game_self.party.member[0] )
 
 
       #print game_self.party.member[0].coordinate

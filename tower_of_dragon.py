@@ -63,7 +63,28 @@ class tower_of_dragon:
         self.select_se = pygame.mixer.Sound("SE/decide.wav")
         self.cancel_se = pygame.mixer.Sound("SE/se_sab07.wav")
 
+        self.item_data = []
+        temp = []
+        file = "Data/item_data.csv"
+        fp = open(file, "r")
+
+        for line in fp:
+            temp = line[:-1].split(',')
+            self.item_data.append(temp)
+
+        self.magic_data = []
+        temp = []
+        file = "Data/magic_data.csv"
+        fp = open(file, "r")
+
+        for line in fp:
+            temp = line[:-1].split(',')
+            self.magic_data.append(temp)
+            
+
         self.mainloop()
+
+        
 
 
 

@@ -6,6 +6,8 @@ import window
 import rest
 
 import save
+import shop_window
+import item
 
 
 COLOR_WHITE = (255,255,255)
@@ -18,6 +20,8 @@ HOUSE = 11
 class System_notify_window(window.Window):
 
     SHARE, DONATE, CURSE, PAY, REST = 0, 1, 2, 3, 4
+    SELL = 5
+    ITEM_OUT, ITEM_IN = 6, 7
     
     def __init__(self, rectangle, instruction):
         window.Window.__init__(self, rectangle)
@@ -39,7 +43,11 @@ class System_notify_window(window.Window):
         self.inn_not_enough = Donate_finish_window(Rect(150, 160 ,300, 50), Donate_finish_window.NOT_ENOUGH)
         self.resting_window = Rest_window(Rect(100, 160 ,400, 50), Rest_window.REST)
         self.house_buy_message = Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.BUY_HOUSE)                
-        self.house_reform_message = Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.REFORM_HOUSE)                
+        self.house_reform_message = Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.REFORM_HOUSE)
+        self.character_sell_window = shop_window.Sell_window(Rect(120, 50, 400, 360))
+
+        self.item_hold_window = Item_select_window( Rect(120, 50, 400, 360), 0)
+        self.item_receive_window = Item_select_window( Rect(120, 50, 400, 360), 1) 
 
     def draw(self, screen, character):
             """draw the window on the screen"""
@@ -66,7 +74,7 @@ class System_notify_window(window.Window):
                             chara.money += 1
                             money_left -= 1
 
-            if self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST:
+            if self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL:
 
                 if self.instruction == self.DONATE:
                     top_font = self.menu_font.render( u"誰が寄付をしますか？", True, COLOR_WHITE)      
@@ -80,9 +88,9 @@ class System_notify_window(window.Window):
                 elif self.instruction == self.REST:
                     top_font = self.menu_font.render( u"誰が泊まりますか？", True, COLOR_WHITE)      
                     screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))
-                    
-
-                    
+                elif self.instruction == self.SELL:
+                    top_font = self.menu_font.render( u"誰が売ってくれるんだい？", True, COLOR_WHITE)      
+                    screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))                    
 
                 #set cursors of menu items
                 if len(character) > 0:
@@ -100,7 +108,37 @@ class System_notify_window(window.Window):
                 self.inn_not_enough.draw(screen)
                 self.house_buy_message.draw(screen)
                 self.house_reform_message.draw(screen)
+                self.character_sell_window.draw(screen, character[self.menu]) 
+
+
+            elif self.instruction == self.ITEM_OUT or self.instruction == self.ITEM_IN:
+
+                game_self = character
+                character = character.party.member
     
+                if self.instruction == self.ITEM_OUT:
+                    top_font = self.menu_font.render( u"誰のアイテムを預かればいいんだ？", True, COLOR_WHITE)      
+                    screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))
+                elif self.instruction == self.ITEM_IN:
+                    top_font = self.menu_font.render( u"誰が引き出すんだ？", True, COLOR_WHITE)      
+                    screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))
+
+
+                #set cursors of menu items
+                if len(character) > 0:
+                    pygame.draw.rect(screen, COLOR_GLAY, Rect(self.left+4, self.top+45+30*self.menu, self.right-self.left-8,30), 0)
+
+                i = 0
+                for chara in character:
+                    name_font =  self.menu_font.render( chara.name , True, COLOR_WHITE) 
+                    screen.blit(name_font, (self.centerx - name_font.get_width()/2, self.top+50+i*30))
+                    i+= 1
+
+
+                #for items it passes game_self for character
+                self.item_hold_window.draw(screen, game_self) 
+                self.item_receive_window.draw(screen, game_self) 
+                       
 
 
 
@@ -121,12 +159,23 @@ class System_notify_window(window.Window):
         elif self.house_reform_message.is_visible:
             self.house_reform_message.donate_finish_window_handler(event, game_self)
             return
+        elif self.character_sell_window.is_visible:
+            self.character_sell_window.character_sell_window_handler( event, game_self)
+            return
+        elif self.item_hold_window.is_visible:
+            self.item_hold_window.item_select_window_handler( event, game_self)
+            return
+        elif self.item_receive_window.is_visible:
+            self.item_receive_window.item_select_window_handler( event, game_self)
+            return
+
+        
         
         if self.instruction == self.SHARE:        
             if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
                 self.is_visible = False
 
-        elif self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST:
+        elif self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL or self.instruction == self.ITEM_OUT or self.instruction == self.ITEM_IN:
             
             if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
                 if self.instruction == self.DONATE:
@@ -138,9 +187,18 @@ class System_notify_window(window.Window):
 
                     #reform the house
                     if game_self.game_state == HOUSE:
-                        if game_self.party.member[self.menu].money > 0:
+                        payment = 0
+                        if game_self.party.house == 1:
+                            payment = 50000
+                        if game_self.party.house == 2:
+                            payment = 100000
+                        if game_self.party.house == 3:
+                            payment = 200000
+                        if game_self.party.house == 4:
+                            payment = 500000
+                        if game_self.party.member[self.menu].money > payment:
                             game_self.party.house += 1
-                            game_self.party.member[self.menu].money -= 0
+                            game_self.party.member[self.menu].money -= payment
                             game_self.house.house_change.who_pay_window.house_reform_message.is_visible = True
                         else:
                             self.inn_not_enough.is_visible = True
@@ -148,7 +206,7 @@ class System_notify_window(window.Window):
                     # buy a house with 10000                    
                     if game_self.party.member[self.menu].money > 0:#10000:
                         game_self.party.house = 1
-                        game_self.party.member[self.menu].money -= 0 #10000
+                        game_self.party.member[self.menu].money -= 0#10000
                         game_self.shop.buy_house.who_pay_window.house_buy_message.is_visible = True
                     else:
                         self.inn_not_enough.is_visible = True
@@ -187,6 +245,13 @@ class System_notify_window(window.Window):
                         self.resting_window.is_visible = True
                         pass
                     #print change
+
+                elif self.instruction == self.SELL:
+                    self.character_sell_window.is_visible = True
+                elif self.instruction == self.ITEM_OUT:
+                    self.item_hold_window.is_visible = True
+                elif self.instruction == self.ITEM_IN:
+                    self.item_receive_window.is_visible = True
 
             if event.type == KEYUP and event.key == K_x:
                 self.menu = 0
@@ -409,6 +474,9 @@ class Donate_finish_window(window.Window):
 
     NOT_ENOUGH, FINISH = 0, 1
     BUY_HOUSE, REFORM_HOUSE = 2, 3
+    BUY_ITEM = 4
+    TOO_MUCH_ITEM = 5
+    SOLD_ITEM = 6
     
     def __init__(self, rectangle, instruction):
         window.Window.__init__(self, rectangle)
@@ -444,6 +512,15 @@ class Donate_finish_window(window.Window):
             elif self.instruction == self.REFORM_HOUSE:
                 enough_font = self.menu_font.render( u"*家を改装しました*", True, COLOR_WHITE)      
                 screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
+            elif self.instruction == self.BUY_ITEM:
+                enough_font = self.menu_font.render( u"*きっとお気に召しますよ*", True, COLOR_WHITE)      
+                screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
+            elif self.instruction == self.TOO_MUCH_ITEM:
+                enough_font = self.menu_font.render( u"*持ち物が一杯で持てません*", True, COLOR_WHITE)      
+                screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
+            elif self.instruction == self.SOLD_ITEM:
+                enough_font = self.menu_font.render( u"*ありがとうよ*", True, COLOR_WHITE)      
+                screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
 
 
     def donate_finish_window_handler(self, event, game_self):
@@ -477,6 +554,16 @@ class Donate_finish_window(window.Window):
                 #move the cursor to correct spot
                 if game_self.party.house == 5:
                     game_self.house.menu += 1
+                    
+        elif self.instruction == self.TOO_MUCH_ITEM or self.instruction == self.SOLD_ITEM:
+            if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+                self.is_visible = False
+
+        elif self.instruction == self.BUY_ITEM:
+            if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+                self.is_visible = False
+                if game_self.shop.shop_window.buy_window.character_select.no_more == 1:
+                    game_self.shop.shop_window.buy_window.character_select.is_visible = False
 
 
 class Rest_window(window.Window):
@@ -810,4 +897,216 @@ class level_up_window(window.Window):
                 game_self.house.who_rest.resting_window = Rest_window(Rect(100, 160 ,400, 50), Rest_window.REST)
                 self.is_visible = False
        
+
+
+class Item_select_window(window.Window):
+
+    ITEM_OUT, ITEM_IN = 0,1
+
+    MENU_MAX = 9
+
+    def __init__(self, rectangle, instruction ):
+
+        window.Window.__init__(self, rectangle)
+        self.is_visible = False
+
+        self.menu = 0
+        self.page = 0
+
+        self.instruction = instruction
+
+        self.top = rectangle.top
+        self.left = rectangle.left
+        self.right = rectangle.right
+        self.centerx = rectangle.centerx
+
+        self.menu_font = pygame.font.Font("ipag.ttf", 20)
+
+        self.top_font = self.menu_font.render( u"の持ち物:", True, COLOR_WHITE) 
+
+        self.hold_item_window = Donate_finish_window( Rect(150, 160 ,300, 50), 6)
+        self.receive_item_window = Donate_finish_window( Rect(150, 160 ,300, 50), 6)
+
+
+
+    def draw( self, screen, game_self):
+        """draw the shop window on screen"""
+
+        if self.is_visible == False: return
+        
+        window.Window.draw(self, screen)
+
+        if self.instruction == 0:
+            if game_self.game_state == INN:            
+                character = game_self.party.member[game_self.inn.item_out_window.menu]
+                name_font = self.menu_font.render( character.name, True, COLOR_WHITE)
+            if game_self.game_state == HOUSE:
+                character = game_self.party.member[game_self.house.item_out_window.menu]
+                name_font = self.menu_font.render( character.name, True, COLOR_WHITE)
+        else:
+            if game_self.game_state == INN:
+                character = game_self.party.member[game_self.inn.item_in_window.menu]            
+                name_font = self.menu_font.render( u"宿屋", True, COLOR_WHITE)
+            if game_self.game_state == HOUSE:
+                character = game_self.party.member[game_self.house.item_in_window.menu]            
+                name_font = self.menu_font.render( u"自宅", True, COLOR_WHITE)                
+
+
+        screen.blit( name_font, (self.left+20, self.top+20))
+        screen.blit( self.top_font, (self.left+20+name_font.get_width(), self.top+20))
+
+        if self.instruction == self.ITEM_OUT:
+            #draw the box on item selected
+            if character.items != []:
+                #draws rectangle on the menu item size of rectangle has width of window rectangle - edge_length*2
+                #the height depends on the size of font
+                pygame.draw.rect(screen, COLOR_GLAY, Rect( self.left+4, self.top+55 + 30*self.menu,(self.right-self.left)-8,30), 0)
+
+
+            i = 0
+            for item in character.items:
+                item_font = self.menu_font.render( item.name, True, COLOR_WHITE)
+                screen.blit ( item_font, (self.centerx - item_font.get_width()/2, self.top+60+i*30))
+                i += 1
+
+        if self.instruction == self.ITEM_IN:
+
+            if game_self.game_state == INN:
+                item_list = game_self.party.inn_item
+            elif game_self.game_state == HOUSE:
+                item_list = game_self.party.house_item
+
+            if item_list != []:
+                pygame.draw.rect(screen, COLOR_GLAY,  Rect( self.left+4, self.top+55 + 30*self.menu,(self.right-self.left)-8,30), 0)
+
+            i = 0
+            for item_id in item_list[self.page*10:(self.page+1)*10]:
+                item_font = game_self.item_data[item_id][0].strip("\"")
+                item_font = unicode(item_font, encoding="sjis")
+                item_font = self.menu_font.render( item_font, True, COLOR_WHITE)
+                screen.blit( item_font, (self.centerx - item_font.get_width()/2, self.top+60+i*30))
+                i+=1
+        
+                
+
+
+        self.hold_item_window.draw(screen)
+        self.receive_item_window.draw(screen)
+
+    def item_select_window_handler( self, event, game_self):
+
+        if self.hold_item_window.is_visible == True:
+            self.hold_item_window.donate_finish_window_handler( event, game_self)
+            return
+        if self.receive_item_window.is_visible == True:
+            self.receive_item_window.donate_finish_window_handler( event, game_self)
+            return
+
+        if self.instruction == self.ITEM_OUT:
+            if game_self.game_state == INN:
+                character = game_self.party.member[game_self.inn.item_out_window.menu]
+            elif game_self.game_state == HOUSE:
+                character = game_self.party.member[game_self.house.item_out_window.menu]                
+        elif self.instruction == self.ITEM_IN:
+            if game_self.game_state == INN:
+                character = game_self.party.member[game_self.inn.item_in_window.menu]
+            elif game_self.game_state == HOUSE:
+                character = game_self.party.member[game_self.house.item_in_window.menu]
+        #moves back to shop
+        if event.type == KEYUP and event.key == K_x:
+            game_self.cancel_se.play()
+            self.menu = 0
+            self.page = 0
+            self.is_visible =False
+
+        #moves the cursor up
+        elif event.type == KEYUP and event.key == K_UP:
+            game_self.cursor_se.play()
+            self.menu -= 1
+            if self.menu < 0:
+                self.menu = 0 
+                
+        #moves the cursor down
+        elif event.type == KEYUP and event.key == K_DOWN:
+            game_self.cursor_se.play()
+            if self.instruction == self.ITEM_OUT:
+                if len(character.items) > self.menu+1:
+                    self.menu += 1
+                    if self.menu > self.MENU_MAX:
+                        self.menu = self.MENU_MAX
+                        
+
+            if self.instruction == self.ITEM_IN:
+                if game_self.game_state == INN:
+                    if len(game_self.party.inn_item) > self.menu+self.page*10+1:
+                        self.menu+=1
+                        if self.menu > self.MENU_MAX:
+                            self.menu = self.MENU_MAX
+                if game_self.game_state == HOUSE:
+                    if len(game_self.party.house_item) > self.menu+self.page*10+1:
+                        self.menu+=1
+                        if self.menu > self.MENU_MAX:
+                            self.menu = self.MENU_MAX
+
+
+        elif event.type == KEYUP and event.key == K_RIGHT:
+            if self.instruction == self.ITEM_IN:
+                if game_self.game_state == INN:
+                    if len(game_self.party.inn_item) > (self.page+1)*10:
+                        game_self.cursor_se.play()
+                        self.page += 1
+                        self.menu = 0
+                if game_self.game_state == HOUSE:
+                    if len(game_self.party.house_item) > (self.page+1)*10:
+                        game_self.cursor_se.play()
+                        self.page += 1
+                        self.menu = 0
+                
+        elif event.type == KEYUP and event.key == K_LEFT:
+            if self.instruction == self.ITEM_IN:
+                if self.page > 0:
+                    game_self.cursor_se.play()
+                    self.page -= 1
+                    self.menu = 0
+
+
+        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+            if self.instruction == self.ITEM_OUT:
+                #max item to store for inn is 20
+                if game_self.game_state == INN:
+                    if len(game_self.party.inn_item) == 20:
+                        return
+                if game_self.game_state == HOUSE:
+                    if len(game_self.party.house_item) == 10*game_self.party.house:
+                        return
+                    
+                if len(character.items) > 0:
+
+                    self.hold_item_window.is_visible = True
+                    if game_self.game_state == INN:
+                        game_self.party.inn_item.append( character.items[self.menu].id )
+                    elif game_self.game_state == HOUSE:
+                        game_self.party.house_item.append( character.items[self.menu].id )
+                    del character.items[self.menu]
+                    if self.menu+1 > len(character.items):
+                        self.menu -=1
+
+            if self.instruction == self.ITEM_IN:
+
+                if len(character.items) == 10:
+                    return
+                if game_self.game_state == INN:
+                    if len(game_self.party.inn_item) > 0:
+                        character.items.append( item.Item( game_self.item_data[game_self.party.inn_item[self.menu+self.page*10]]))
+                        del game_self.party.inn_item[self.menu+self.page*10]
+                        self.receive_item_window.is_visible = True
+                        if self.menu+self.page*10+1 > len(game_self.party.inn_item):
+                            self.menu-=1
+                elif game_self.game_state == HOUSE:
+                    if len(game_self.party.house_item) > 0:
+                        character.items.append( item.Item( game_self.item_data[game_self.party.house_item[self.menu+self.page*10]]))
+                        del game_self.party.house_item[self.menu+self.page*10]
+                        self.receive_item_window.is_visible = True
+                        if self.menu+self.page*10+1 > len(game_self.party.house_item):
+                            self.menu-=1
 

@@ -52,6 +52,10 @@ class House:
         self.house_change = system_notify.Confirm_window(Rect(180, 80 ,360, 110), self.REFORM + 5)
         self.save_confirm = system_notify.Confirm_window(Rect(150, 150, 200, 110), 100)
         self.load_confirm = system_notify.Confirm_window(Rect(150, 150, 200, 110), 101)
+
+        self.item_out_window = system_notify.System_notify_window(Rect(200,120,340, 240), 6)
+        self.item_in_window = system_notify.System_notify_window(Rect(200,120,340, 240), 7)
+
  
 
     def update(self):
@@ -131,6 +135,9 @@ class House:
         self.save_confirm.draw(screen, game_self, None)
         self.load_confirm.draw(screen, game_self, None)
 
+        self.item_out_window.draw(screen,game_self)
+        self.item_in_window.draw(screen,game_self)
+
     
     def house_handler(self, game_self, event):
         """event handler for house"""
@@ -146,6 +153,12 @@ class House:
             return
         elif self.load_confirm.is_visible:
             self.load_confirm.confirm_window_handler(game_self, event, None)
+            return
+        elif self.item_out_window.is_visible:
+            self.item_out_window.system_notify_window_handler(event, game_self, game_self.party.member)
+            return
+        elif self.item_in_window.is_visible:
+            self.item_in_window.system_notify_window_handler(event, game_self, game_self.party.member)
             return
 
   
@@ -175,10 +188,10 @@ class House:
                     self.who_rest.is_visible = True
             elif self.menu == self.ITEM_OUT:
                 if len(game_self.party.member) > 0:
-                    pass
+                    self.item_out_window.is_visible = True
             elif self.menu == self.ITEM_IN:
                 if len(game_self.party.member) > 0:
-                    pass
+                    self.item_in_window.is_visible = True
             elif self.menu == self.SAVE:
                 self.save_confirm.is_visible = True
             elif self.menu == self.LOAD:

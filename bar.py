@@ -23,7 +23,7 @@ MENU_MAX = 5
 
 class Bar:
     #menu items
-    ADD, REMOVE, CHECK, SHARE, DONATE, BACK = 0 , 1, 2, 3, 4, 5
+    ADD, REMOVE, CHECK, SHARE, DONATE, COLLECT, BACK = 0 , 1, 2, 3, 4, 5, 6
     
     
     def __init__(self):
@@ -39,6 +39,7 @@ class Bar:
         self.remove_font = self.menu_font.render(u"仲間から外す", True, COLOR_WHITE)
         self.check_font = self.menu_font.render(u"仲間を見る", True, COLOR_WHITE)
         self.share_font = self.menu_font.render(u"山分けする", True, COLOR_WHITE)
+        self.collect_font = self.menu_font.render(u"お金を集める", True, COLOR_WHITE)
         self.donate_font = self.menu_font.render(u"寄付をする", True, COLOR_WHITE)
         self.back_font = self.menu_font.render(u"街に戻る", True, COLOR_WHITE)
 
@@ -47,6 +48,7 @@ class Bar:
         self.no_remove_font = self.menu_font.render(u"仲間から外す", True, COLOR_GLAY)
         self.no_check_font = self.menu_font.render(u"仲間を見る", True, COLOR_GLAY)
         self.no_share_font = self.menu_font.render(u"山分けする", True, COLOR_GLAY)
+        self.no_collect_font = self.menu_font.render(u"お金を集める", True, COLOR_GLAY)
         self.no_donate_font = self.menu_font.render(u"寄付をする", True, COLOR_GLAY)
 
         self.music = 0

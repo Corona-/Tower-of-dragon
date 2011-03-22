@@ -172,6 +172,7 @@ class Character_view(window.Window):
             elif self.instruction == self.ADD:
                 if len(game_self.party.member) < 6:
                     game_self.party.member.append(game_self.characters[game_self.bar.party_add.menu + game_self.bar.party_add.page*10])
+                    game_self.party.alignment += game_self.characters[game_self.bar.party_add.menu + game_self.bar.party_add.page*10].alignment
                     del game_self.characters[game_self.bar.party_add.menu + game_self.bar.party_add.page*10]
                     if (game_self.bar.party_add.menu + game_self.bar.party_add.page*10)+1 > len(character):
                         game_self.bar.party_add.menu -=1
@@ -182,6 +183,7 @@ class Character_view(window.Window):
             elif self.instruction == self.REMOVE:
                 if len(game_self.party.member) > 0:
                     game_self.characters.append(game_self.party.member[game_self.bar.party_remove.menu + game_self.bar.party_remove.page*10])
+                    game_self.party.alignment -= game_self.party.member[game_self.bar.party_remove.menu + game_self.bar.party_remove.page*10].alignment
                     del game_self.party.member[game_self.bar.party_remove.menu + game_self.bar.party_remove.page*10]
                     if (game_self.bar.party_remove.menu + game_self.bar.party_remove.page*10)+1 > len(character):
                         game_self.bar.party_remove.menu -=1
@@ -397,23 +399,31 @@ class Status_view_window(window.Window):
 
     def status_view_window_handler(self, game_self, event, character):
 
-        if event.type == KEYUP and event.key == K_RIGHT:
-            self.menu += 1
-            game_self.bar.character_check.menu+=1
-            if self.menu >= len(character):
-                self.menu = 0
-                game_self.bar.character_check.menu = 0
-                
-        elif event.type == KEYUP and event.key == K_LEFT:
-            self.menu -= 1
-            game_self.bar.character_check.menu -= 1
-            if self.menu < 0:
-                self.menu = len(character)-1
-                game_self.bar.character_check.menu = len(character)-1
+        if game_self.game_state == BAR:
 
-        elif event.type == KEYUP and event.key == K_x:
-            self.is_visible = False
-        #menu?         
-        #elif  event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
-       
+            if event.type == KEYUP and event.key == K_RIGHT:
+                self.menu += 1
+                game_self.bar.character_check.menu+=1
+                if self.menu >= len(character):
+                    self.menu = 0
+                    game_self.bar.character_check.menu = 0
+                    
+            elif event.type == KEYUP and event.key == K_LEFT:
+                self.menu -= 1
+                game_self.bar.character_check.menu -= 1
+                if self.menu < 0:
+                    self.menu = len(character)-1
+                    game_self.bar.character_check.menu = len(character)-1
+
+            elif event.type == KEYUP and event.key == K_x:
+                self.is_visible = False
+            #menu?         
+            #elif  event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+           
+
+
+        if game_self.game_state == SHOP:
+
+            if event.type == KEYUP and (event.key == K_LSHIFT or event.key == K_x):
+                self.is_visible = False
 

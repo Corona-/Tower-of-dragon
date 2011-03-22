@@ -6,6 +6,7 @@ import window
 import system_notify
 
 import character_view
+import shop_window
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -24,7 +25,6 @@ MENU_MAX = 5
 class Shop:
 
     BUY, SELL, CURSE, DONATE, BUY_HOUSE, BACK = 0, 1, 2, 3, 4, 5
-    ITEM, WEAPON, ARMOR, HAT, GLOVE, ACCESSORY = 0, 1, 2, 3, 4, 5
     
     def __init__(self):
         #set the menu item
@@ -42,19 +42,40 @@ class Shop:
         self.buy_house_font = self.menu_font.render(u"家を購入する", True, COLOR_WHITE)
         self.back_font = self.menu_font.render(u"街に戻る", True, COLOR_WHITE)
                         
-        self.weapon_font = self.menu_font.render(u"武器", True, COLOR_WHITE)
-        self.armor_font = self.menu_font.render(u"鎧", True, COLOR_WHITE)
-        self.hat_font = self.menu_font.render(u"兜", True, COLOR_WHITE)
-        self.glove_font = self.menu_font.render(u"篭手", True, COLOR_WHITE)
-        self.accessory_font = self.menu_font.render(u"アクセサリー", True, COLOR_WHITE)
-        self.item_font = self.menu_font.render(u"アイテム", True, COLOR_WHITE)
-
-        self.cursor = self.menu_font.render(u"⇒", True, COLOR_WHITE)
-
         #setup extra windows
         self.donate_money = system_notify.System_notify_window(Rect(200, 120 ,240, 240), self.DONATE - 2)
         self.remove_curse = system_notify.System_notify_window(Rect(150, 120, 340, 240), self.CURSE )
         self.buy_house = system_notify.Confirm_window(Rect(100, 160, 300, 120), self.BUY_HOUSE - 4)
+
+        self.shop_window = shop_window.Shop_window(Rect(200, 50, 240, 380))
+        self.sell_window = system_notify.System_notify_window(Rect(200,120,340, 240), 5)
+
+
+        #it stores, item id, number left, ...
+        self.stock = []
+        sword_stock = [Shop_item(100,6), Shop_item(101, 3)]
+        katana_stock = [Shop_item(150, 6), Shop_item(151, 3)]
+        blunt_stock = [Shop_item(200, 6), Shop_item(201, 3)]
+        gun_stock = [Shop_item(250, 6), Shop_item(251, 3)]
+        throw_stock = [Shop_item(300, 6), Shop_item(301, 3)]
+        shield_stock = [Shop_item(350, 6)]
+        armor_stock = [Shop_item(400, 6), Shop_item(401, 3), Shop_item(402, 1), Shop_item(403, 6), Shop_item(405, 3)]
+        helmet_stock = [Shop_item(450, 1)]
+        gauntlet_stock = []
+        accessory_stock = [Shop_item(550,1),Shop_item(551,1),Shop_item(552,1)]
+        item_stock = [Shop_item(1,8),Shop_item(4,5),Shop_item(5,5), Shop_item(6,7)]
+        
+        self.stock.append(sword_stock)
+        self.stock.append(katana_stock)
+        self.stock.append(blunt_stock)
+        self.stock.append(gun_stock)
+        self.stock.append(throw_stock)
+        self.stock.append(shield_stock)
+        self.stock.append(armor_stock)
+        self.stock.append(helmet_stock)
+        self.stock.append(gauntlet_stock)
+        self.stock.append(accessory_stock)
+        self.stock.append(item_stock)
 
         self.music = 0
 
@@ -119,6 +140,9 @@ class Shop:
         self.donate_money.draw(screen, game_self.party.member)
         self.remove_curse.draw(screen, game_self.party.member)
         self.buy_house.draw(screen, game_self, game_self.party.member)
+        self.sell_window.draw(screen, game_self.party.member)
+
+        self.shop_window.draw( screen, game_self)
 
 
 def shop_handler(self,event):
@@ -133,7 +157,14 @@ def shop_handler(self,event):
     elif self.shop.buy_house.is_visible:
         self.shop.buy_house.confirm_window_handler( self, event, self.party.member)
         return
-    
+    elif self.shop.shop_window.is_visible:
+        self.shop.shop_window.shop_window_handler( event, self)
+        return
+    elif self.shop.sell_window.is_visible:
+        self.shop.sell_window.system_notify_window_handler( event, self, self.party.member)
+        return
+
+        
     #moves the cursor up
     if event.type == KEYUP and event.key == K_UP:
         self.cursor_se.play()
@@ -153,9 +184,9 @@ def shop_handler(self,event):
     #select the menu items
     if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         if self.shop.menu == Shop.BUY:
-            pass
+            self.shop.shop_window.is_visible = True
         elif self.shop.menu == Shop.SELL:
-            pass
+            self.shop.sell_window.is_visible = True
         elif self.shop.menu == Shop.CURSE:
             self.shop.remove_curse.is_visible = True
         elif self.shop.menu == Shop.DONATE:
@@ -174,3 +205,10 @@ def shop_handler(self,event):
         self.shop.music = 0
         self.cancel_se.play()
         
+
+class Shop_item:
+
+    def __init__(self, item_id, stock_number):
+
+        self.id = item_id
+        self.stock = stock_number
