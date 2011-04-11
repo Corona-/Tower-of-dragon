@@ -55,33 +55,37 @@ class Enemy:
         if int(enemy[11]) > 0:
             self.extra_attack.append(int(enemy[11]))
             self.extra_attack.append(int(enemy[12]))
-            attack_name = enemy[13]
+            self.extra_attack.append(int(enemy[13]))
+            attack_name = enemy[14]
             attack_name = attack_name.strip("\"")
             attack_name = unicode(attack_name, encoding="sjis")
             self.extra_attack.append(attack_name)
 
 
 
-        if int(enemy[14]) > 0:
-            self.extra_attack.append(int(enemy[14]))
+        if int(enemy[15]) > 0:
             self.extra_attack.append(int(enemy[15]))
-            attack_name = enemy[16]
-            attack_name = attack_name.strip("\"")
-            attack_name = unicode(attack_name, encoding="sjis")
-            self.extra_attack.append(attack_name)
-
-        if int(enemy[17]) > 0:
+            self.extra_attack.append(int(enemy[16]))
             self.extra_attack.append(int(enemy[17]))
-            self.extra_attack.append(int(enemy[18]))
-            attack_name = enemy[19]
+            attack_name = enemy[18]
             attack_name = attack_name.strip("\"")
             attack_name = unicode(attack_name, encoding="sjis")
             self.extra_attack.append(attack_name)
 
-        if int(enemy[20]) > 0:
+        if int(enemy[19]) > 0:
+            self.extra_attack.append(int(enemy[19]))
             self.extra_attack.append(int(enemy[20]))
             self.extra_attack.append(int(enemy[21]))
             attack_name = enemy[22]
+            attack_name = attack_name.strip("\"")
+            attack_name = unicode(attack_name, encoding="sjis")
+            self.extra_attack.append(attack_name)
+
+        if int(enemy[23]) > 0:
+            self.extra_attack.append(int(enemy[23]))
+            self.extra_attack.append(int(enemy[24]))
+            self.extra_attack.append(int(enemy[25]))
+            attack_name = enemy[26]
             attack_name = attack_name.strip("\"")
             attack_name = unicode(attack_name, encoding="sjis")
             self.extra_attack.append(attack_name)
@@ -90,40 +94,42 @@ class Enemy:
         #           and the name of the item
         self.drop_item = []
 
-        if int(enemy[23]) > 0:
-            self.extra_attack.append(int(enemy[23]))
-            item_name = enemy[24]
-            item_name = item_name.strip("\"")
-            item_name = unicode(item_name, encoding="sjis")
-            self.drop_item.append(item_name)
- 
-        if int(enemy[25]) > 0:
-            self.extra_attack.append(int(enemy[25]))
-            item_name = enemy[26]
-            item_name = item_name.strip("\"")
-            item_name = unicode(item_name, encoding="sjis")
-            self.drop_item.append(item_name)
-
         if int(enemy[27]) > 0:
-            self.extra_attack.append(int(enemy[27]))
+            self.drop_item.append(int(enemy[27]))
             item_name = enemy[28]
             item_name = item_name.strip("\"")
             item_name = unicode(item_name, encoding="sjis")
             self.drop_item.append(item_name)
+ 
+        if int(enemy[29]) > 0:
+            self.drop_item.append(int(enemy[29]))
+            item_name = enemy[30]
+            item_name = item_name.strip("\"")
+            item_name = unicode(item_name, encoding="sjis")
+            self.drop_item.append(item_name)
+
+        if int(enemy[31]) > 0:
+            self.drop_item.append(int(enemy[31]))
+            item_name = enemy[32]
+            item_name = item_name.strip("\"")
+            item_name = unicode(item_name, encoding="sjis")
+            self.drop_item.append(item_name)
          
-        self.drop_gold = int(enemy[29])
-        self.exp = int(enemy[30])
+        self.drop_gold = int(enemy[33])
+        self.exp = int(enemy[34])
 
-        self.magic_resistance = int(enemy[31])
+        self.magic_resistance = int(enemy[35])
 
-        self.wood_resistance = int(enemy[32])
-        self.fire_resistance = int(enemy[33])
-        self.earth_resistance = int(enemy[34])
-        self.metal_resistance = int(enemy[35])
-        self.water_resistance = int(enemy[36])
-        self.light_resistance = int(enemy[37])
-        self.dark_resistance = int(enemy[38])
-        self.none_resistance = int(enemy[39])
+        self.wood_resistance = int(enemy[36])
+        self.fire_resistance = int(enemy[37])
+        self.earth_resistance = int(enemy[38])
+        self.metal_resistance = int(enemy[39])
+        self.water_resistance = int(enemy[40])
+        self.light_resistance = int(enemy[41])
+        self.dark_resistance = int(enemy[42])
+        self.none_resistance = int(enemy[43])
+
+        self.attack_range = int(enemy[44])
 
         
 

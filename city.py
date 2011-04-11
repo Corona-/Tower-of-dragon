@@ -7,6 +7,7 @@ import window
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 HOUSE = 11
+MENU = 12
 
 CHARACTER_MAKE = 10
 NO_EXTRA, CHARACTER_VIEW, PARTY_REMOVE, CHARACTER_CHECK = 100, 101, 102, 103
@@ -190,5 +191,8 @@ def city_handler(self, event):
                 self.game_state = TOWER
 
 
+    elif event.type == KEYUP and event.key == K_x:
+
+        self.game_state = MENU
 
 

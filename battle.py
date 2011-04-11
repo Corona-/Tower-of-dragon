@@ -7,6 +7,8 @@ import window
 import enemy
 import random
 import battle_command
+import character
+import item
 
 import battle_window
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
@@ -72,6 +74,38 @@ class Battle:
         self.selected = 0
 
         self.party_movement = []
+        self.enemy_movement = []
+        self.total_movement = []
+
+        #decides if damage is set or not
+        self.damage_set = 0
+        #actual damage
+        self.damage = 0
+        #number to need keyboard until next command comes up
+        self.group_access = 0
+
+        #decides for some probability
+        self.probability = 0
+        #decides if probability is set or not
+        self.probability_set = 0
+
+        #only do this once in the instruction
+        self.check = 0
+
+        #exp and gold gained by this battle
+        self.exp = 0 
+        self.gold = 0
+
+        #if escape successed it would be 1
+        self.escape_flag = 0
+
+        self.target_font = ""
+        self.target_group = []
+        self.target_font_set = 0
+
+        #if monster died, it needs to store name
+        self.dead_set = 0
+        self.dead_font = ""
      
     def update(self):
         if self.state == self.COMMAND:
@@ -144,15 +178,210 @@ class Battle:
                 screen.blit(group_font, (340, 20+count*20))
                 count+=1
 
-    
-             
+        if self.state == self.BATTLE:
 
+            battle_window = window.Window(Rect(10, 10, 620, 150))
+            battle_window.draw(screen)
+
+            battle_command = self.total_movement[0]
+    
+
+            battle_font1 = None
+            battle_font2 = None
+            battle_font3 = None
+            battle_font4 = None
+
+            #print battle_command.character.name + "　" + str(battle_command.target) + " " + str(battle_command.movement) + " " + str(battle_command.speed)
+
+            target = battle_command.target
+
+            if self.target_font_set == 0:
+                if isinstance( battle_command.character, character.Character):
+                    if target < 4:
+                        self.target_font = self.enemyList[target][0].name
+                        self.target_group = self.enemyList[target]
+                    else:
+                        self.target_font = self.enemyListBack[target][0].name
+                        self.target_group = self.enemyListBack[target]
+                else:
+                    self.target_font = game_self.party.member[target].name
+                    self.target_group = game_self.party.member
+                self.target_font_set = 1
+
+            #0 is normal attack
+            if battle_command.movement == self.FIGHT:
+                battle_font1 = battle_command.character.name + u"は" + self.target_font + u"を" + u"突き刺した"
+
+                #calculate hit times
+                hit_times = calculate_hit_time(battle_command.character)
+
+                battle_font2 = str(hit_times) + u"回当たり"
+
+                #calculate damage
+                if (self.damage_set == 0):
+                    self.damage = calculate_damage(battle_command.character)
+                    self.damage_set = 1
+                    #need to select target on enemy in random
+                    if isinstance( self.target_group[0], character.Character):
+                        self.target_group[target].hp -= self.damage
+                        if self.target_group[target].hp <= 0:
+                            self.target_group[target].hp = 0
+                            self.target_group[target].status = "DEAD"
+                            self.target_group[target].rip += 1
+                            temp = self.target_group[target]
+                            self.dead_set = 1
+                            self.dead_font = self.target_group[target].name
+                            #delete command of dead person
+                            i = 0
+                            for command in self.total_movement:
+                                if isinstance(command.character, character.Character):
+                                    if self.target_group[target] == command.character:
+                                        print command.character.name
+                                        del self.total_movement[i]
+                                i+=1
+
+
+                            i = 0
+                            to_delete = []
+                            for command in self.total_movement:
+                                if isinstance(command.character, enemy.Enemy):
+                                    if target == command.target:
+                                        if i!= 0:
+                                            to_delete.insert(0,i)                                        
+                                    i+=1
+                                
+                            for i in to_delete:
+                                del self.total_movement[i]
+                            
+                                    
+                            #move the person to end of party
+                            del self.target_group[target]
+                            self.target_group.append(temp)
+
+
+                            
+                    else:
+                        offset = random.randint(0, len(self.target_group)-1)
+                        self.target_group[offset].hp -= self.damage
+                        if self.target_group[offset].hp <= 0:
+                            self.exp += self.target_group[offset].exp
+                            self.gold += self.target_group[offset].drop_gold
+                            battle_command.character.marks += 1
+
+                            #delete command of the dead enemy
+                            i=0
+                            for command in self.total_movement:
+                                if isinstance(command.character, enemy.Enemy):
+                                    if self.target_group[offset] == command.character:
+                                        del self.total_movement[i]
+ 
+                            del self.target_group[offset]
+
+                            #delete command of party targeted at thoses enemy
+                            if self.target_group == []:                                
+                                i = 0
+
+                                to_delete = []
+                                for command in self.total_movement:
+                                    if isinstance(command.character, character.Character):
+                                        if target == command.target:
+                                            #first one would be deleted at end of command so ignore
+                                            if i != 0:
+                                                to_delete.insert(0,i)                                            
+                                    i+=1
+                                for i in to_delete:
+                                    del self.total_movement[i]
+                                
+                                del self.enemyList[target]
+                            self.dead_set = 1
+                            self.dead_font = self.target_font
+                            print self.enemyList
+
+                    
+                battle_font2 += str(self.damage) + u"のダメージ"
+
+                if self.dead_set == 1:                    
+                    battle_font3 = self.dead_font + u"は死んだ！"
+
+
+            if battle_command.movement == self.DEFEND:
+                battle_font1 = battle_command.character.name + u"は" + u"身を守っている"
+               
+            if battle_command.movement == self.ITEM:
+                pass
+            if battle_command.movement == self.CURSE:
+                battle_font1 = battle_command.character.name + u"は" + self.target_font + u"の呪いを解いた"
+
+                if self.check == 0:
+                    self.group_access = len(self.target_group)
+                    self.check = 1
+
+
+                if self.probability_set == 0:
+                    self.probability = random.randint(1,100)
+                    self.probability_set = 1
+                    #category 1 is undead
+                    if self.target_group[0].category != 1:
+                        self.probability = 0
+
+                    #TO-DO set the probability
+                    if self.probability >= 50:
+                        del self.target_group[ len(self.target_group)-self.group_access]
+
+                #only set the font
+                if self.probability < 50:
+                    #nothing happens
+                    battle_font2 = self.target_font + u"は影響が無い"
+                else:
+                    battle_font2 = self.target_font + u"は成仏した"
+                    #enemy dissapears
+                    
+            if battle_command.movement == self.MAGIC:
+                pass
+            if battle_command.movement == self.ESCAPE:
+                battle_font1 = battle_command.character.name + u"は" + u"逃げ出した"
+                if self.probability_set == 0:
+                    self.probability = random.randint(1, 100)
+                    self.probability_set = 1
+                #TO-DO calculate escape probability
+                if self.probability < 10:
+                    self.escape_flag = 1
+                else:            
+                    battle_font3 = u"しかし逃げられなかった"
+            
+            if battle_font1 != None:
+                battle_font1 = self.menu_font.render( battle_font1, True, COLOR_WHITE)
+                screen.blit(battle_font1, ( 320 - battle_font1.get_width()/2, 20))
+
+            if battle_font2 != None:
+                battle_font2 = self.menu_font.render( battle_font2, True, COLOR_WHITE)
+                screen.blit(battle_font2, ( 320 - battle_font2.get_width()/2, 50))
+
+            if battle_font3 != None:
+                battle_font3 = self.menu_font.render( battle_font3, True, COLOR_WHITE)
+                screen.blit(battle_font3, ( 320 - battle_font3.get_width()/2, 80))
+
+            if battle_font4 != None:
+                battle_font4 = self.menu_font.render( battle_font4, True, COLOR_WHITE)
+                screen.blit(battle_font4, ( 320 - battle_font4.get_width()/2, 110))
+                  
     def battle_handler(self, game_self, event):
         
         if self.enemy_select_window.is_visible == True:
             self.enemy_select_window.enemy_select_window_handler( game_self, event)
             if self.selected == len(game_self.party.member):
                 self.state = self.BATTLE
+
+                self.enemy_movement = enemy_movement( self.enemyList, self.enemyListBack, game_self)
+
+                for element in self.party_movement:
+                    self.total_movement.append(element)
+                for element in self.enemy_movement:
+                    self.total_movement.append(element)
+
+                #sort the elements by speed, highest first
+                self.total_movement.sort(cmp=lambda x, y: cmp(x.speed,y.speed), reverse=True)                
+
             return
         
 
@@ -184,19 +413,25 @@ class Battle:
                 if self.menu == self.MAGIC:
                     pass
                 if self.menu == self.ESCAPE:
-                    probability = random.randint(1, 100)
-                    if probability < 50:
-                        game_self.dungeon.battle_flag = 0
-                        game_self.dungeon.battle = None
-                        game_self.dungeon.music = 0
-                    else:
-                        self.state = self.BATTLE
-                        
+                    self.party_movement.append( battle_command.Battle_command( character, self.ESCAPE, 0))
+                    self.selected+=1               
 
+                        
                 if self.selected == len(game_self.party.member):
                     self.state = self.BATTLE
-                    return
 
+                    self.enemy_movement = enemy_movement( self.enemyList, self.enemyListBack, game_self)
+
+                    for element in self.party_movement:
+                        self.total_movement.append(element)
+                    for element in self.enemy_movement:
+                        self.total_movement.append(element)
+
+                    #sort the elements by speed, highest first
+                    self.total_movement.sort(cmp=lambda x, y: cmp(x.speed,y.speed), reverse=True)                
+
+                return
+            
             if event.type == KEYUP and event.key == K_UP: #moves the cursor up
                 game_self.cursor_se.play()
                 self.menu -= 1
@@ -238,12 +473,74 @@ class Battle:
 
         elif self.state == self.BATTLE:
 
-            if event.type == KEYUP and event.key == K_x:
+            if event.type == KEYUP and (event.key == K_x or event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+                #game_self.dungeon.battle_flag = 0
+                #game_self.dungeon.battle = None
+                #ugame_self.dungeon.music = 0
+
+                if self.escape_flag == 1:
+                    game_self.dungeon.battle_flag = 0
+                    game_self.dungeon.battle = None
+                    game_self.dungeon.music = 0
+                    self.party_movement = []
+                    self.enemy_movement = []
+                    self.total_movement = []
+                    self.menu = self.FIGHT
+                    self.selected = 0
+                    self.probability_set = 0
+                    self.damage_set = 0
+                    self.check = 0
+                    self.escape_flag = 0
+                    self.target_font_set = 0
+                    self.dead_set = 0
+                    return
+
+                if self.group_access > 0:
+                    self.group_access -= 1
+                    self.probability_set = 0
+                    self.dead_set = 0
+
+
+                if self.enemyList == [] and self.enemyListBack == []:
+                    print "BATTLE END"
+                    self.state = self.END
+                    return
+                    #this is for battle end
+                    #need one for game_over
+
+                if player_count_movable( game_self.party.member)== 0:
+                    print "GAME OVER"
+                    self.state = self.END
+                    return
+                    #game_over
+            
+
+
+
+                if self.group_access == 0:
+                    del self.total_movement[0]
+                    self.damage_set = 0
+                    self.probability_set = 0
+                    self.check = 0
+                    self.target_font_set = 0
+                    self.dead_set = 0
+
+
+
+                    if self.total_movement == []:
+                        self.party_movement = []
+                        self.enemy_movement = []
+                        self.menu = self.FIGHT
+                        self.selected = 0
+                        self.state = self.COMMAND
+
+        elif self.state == self.END:
+            
+            if event.type == KEYUP and (event.key == K_x or event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
                 game_self.dungeon.battle_flag = 0
                 game_self.dungeon.battle = None
                 game_self.dungeon.music = 0
-
-
+            
 
 
 
@@ -252,7 +549,15 @@ def count_movable( enemy_group ):
 
     movable_count = 0
     for enemy_status in enemy_group:
-        if enemy_status.status == "OK":
+        if enemy_status.status == "OK" or enemy_status.status == "POISON":
+            movable_count += 1
+    return movable_count
+
+#used by monster selecting target
+def player_count_movable ( player_group):
+    movable_count = 0
+    for player in player_group:
+        if player.status == "OK" or player.status == "POISON" or player.status == "SLEEP":
             movable_count += 1
     return movable_count
 
@@ -283,3 +588,157 @@ def select_enemy( enemy_data, floor ):
 
     return enemy_total
             
+
+def calculate_hit_time( chara ):
+
+    hit_time = 1
+
+    return hit_time
+
+def calculate_damage( chara):
+
+    damage = 0
+
+    if isinstance( chara, character.Character):
+        damage = chara.strength
+        if isinstance( chara.equip[0], item.Item):
+            damage += chara.equip[0].power
+        if isinstance( chara.equip[1], item.Item):
+            damage += chara.equip[1].power
+
+    if isinstance( chara,enemy.Enemy):
+        damage = chara.strength
+
+    damage = random.randint(1, damage)
+
+    return damage
+
+
+def enemy_movement( enemyList, enemyListBack, game_self):
+
+    enemy_command = []
+
+    for group in enemyList:
+        for enemy in group:
+            if enemy.status == "OK" or enemy.status == "POISON":
+                movement = random.randint(1,100)
+                player_movable = player_count_movable(game_self.party.member)
+                
+                if enemy.extra_attack != []:
+                    if movement < enemy.extra_attack[0]:
+                        if enemy.extra_attack[2] == 1:
+                            if player_movable > 3:
+                                target = random.randint(0, 2)
+                            else:
+                                target = random.randint(0, player_movable-1)
+                        if enemy.extra_attack[2] == 2:
+                            target = random.randint(0, player_movable-1)                  
+                        if enemy.extra_attack[2] == 3:
+                            target = random.randint(0, player_movable-1)
+                        
+                        enemy_command.append( battle_command.Battle_command( enemy, 0, target))
+                    elif movement < enemy.extra_attack[4]:
+                        if enemy.extra_attack[6] == 1:
+                            if player_movable > 3:
+                                target = random.randint(0,2)
+                            else:
+                                target = random.randint(0, player_movable-1)
+                        if enemy.extra_attack[6] == 2:
+                            target = random.randint(0, player_movable-1)                  
+                        if enemy.extra_attack[6] == 3:
+                            target = random.randint(0, player_movable-1)
+                        enemy_command.append( battle_command.Battle_command( enemy, 3, target))
+                    elif movement < enemy.extra_attack[8]:
+                        if enemy.extra_attack[10] == 1:
+                            if player_movable > 3:
+                                target = random.randint(0,2)
+                            else:
+                                target = random.randint(0, player_movable-1)
+                        if enemy.extra_attack[10] == 2:
+                            target = random.randint(0, player_movable-1)                  
+                        if enemy.extra_attack[10] == 3:
+                            target = random.randint(0, player_movable-1)
+                        enemy_command.append( battle_command.Battle_command( enemy, 6, target))
+                    elif movement < enemy.extra_attack[12]:
+                        if enemy.extra_attack[14] == 1:
+                            if player_movable > 3:
+                                target = random.randint(0,2)
+                            else:
+                                target = random.randint(0, player_movable-1)
+                        if enemy.extra_attack[14] == 2:
+                            target = random.randint(0, player_movable-1)                  
+                        if enemy.extra_attack[14] == 3:
+                            target = random.randint(0, player_movable-1)
+                        enemy_command.append( battle_command.Battle_command( enemy, 9, target))
+                else:
+                    if enemy.attack_range == 0:
+                        if player_movable > 3:
+                            target = random.randint(0,2)
+                        else:
+                            target = random.randint(0, player_movable-1)
+                    enemy_command.append( battle_command.Battle_command( enemy, 0, target))
+
+    for group in enemyListBack:
+        for enemy in group:
+            if enemy.status == "OK":
+                movement = random.randint(1,100)
+                player_movable = player_count_movable(game_self.party.member)
+
+                if enemy.extra_attack != []:
+                    if movement < enemy.extra_attack[0]:
+                        if enemy.extra_attack[2] == 1:
+                            if player_movable > 3:
+                                target = random.randint(0, 2)
+                            else:
+                                target = random.randint(0, player_movable-1)
+                        if enemy.extra_attack[2] == 2:
+                            target = random.randint(0, player_movable-1)                  
+                        if enemy.extra_attack[2] == 3:
+                            target = random.randint(0, player_movable-1)
+                        
+                        enemy_command.append( battle_command.Battle_command( enemy, 0, target))
+                    elif movement < enemy.extra_attack[4]:
+                        if enemy.extra_attack[6] == 1:
+                            if player_movable > 3:
+                                target = random.randint(0,2)
+                            else:
+                                target = random.randint(0, player_movable-1)
+                        if enemy.extra_attack[6] == 2:
+                            target = random.randint(0, player_movable-1)                  
+                        if enemy.extra_attack[6] == 3:
+                            target = random.randint(0, player_movable-1)
+                        enemy_command.append( battle_command.Battle_command( enemy, 3, target))
+                    elif movement < enemy.extra_attack[8]:
+                        if enemy.extra_attack[10] == 1:
+                            if player_movable > 3:
+                                target = random.randint(0,2)
+                            else:
+                                target = random.randint(0, player_movable-1)
+                        if enemy.extra_attack[10] == 2:
+                            target = random.randint(0, player_movable-1)                  
+                        if enemy.extra_attack[10] == 3:
+                            target = random.randint(0, player_movable-1)
+                        enemy_command.append( battle_command.Battle_command( enemy, 6, target))
+                    elif movement < enemy.extra_attack[12]:
+                        if enemy.extra_attack[14] == 1:
+                            if player_movable > 3:
+                                target = random.randint(0,2)
+                            else:
+                                target = random.randint(0, player_movable-1)
+                        if enemy.extra_attack[14] == 2:
+                            target = random.randint(0, player_movable-1)                  
+                        if enemy.extra_attack[14] == 3:
+                            target = random.randint(0, player_movable-1)
+                        enemy_command.append( battle_command.Battle_command( enemy, 9, target))
+                else:
+                    pass
+                    #if range is 0, it cannot reach character so do not yet.
+                    #if enemy.attack_range == 0:
+                    #    if len(game_self.party.member) > 3:
+                    #        target = random.randint(0,2)
+                    #    else:
+                    #        target = random.randint(0, len(game_self.party.member)-1)
+                    #enemy_command.append( battle_command.Battle_command( enemy, 10, target))
+
+                
+    return enemy_command

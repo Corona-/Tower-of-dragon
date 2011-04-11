@@ -20,6 +20,12 @@ class Party:
 
     GOOD, NEUTRAL, EVIL = 1, 0, -1
     WARRIOR, FIGHTER, MAGICIAN, PRIEST, THIEF, MERCHANT = 0, 1, 2, 3, 4, 5
+    LORD, SWORDMASTER, MADOVERLORD = 10,11,12
+    MASTERSWORDSMAN, GENERAL, MURDERER = 13,14,15
+    RUNESWORDSMAN, SAGE, SORCERER = 16,17,18
+    POPE, BISHOP, FANATIC = 19,20,21
+    GUILDMASTER, ARMEDMERCHANT, MONEYLENDER = 22, 23,24
+    CHIVALROUSTHIEF, PHANTOMTHIEF, NINJA = 25,26,27
     
     def __init__(self):
         self.member = []
@@ -46,6 +52,8 @@ class Party:
 
         self.inn_item = []
         self.house_item = []
+
+        self.party_name = u"パーティ"
 
         self.menu_font = pygame.font.Font("ipag.ttf", 20)
 
@@ -95,10 +103,50 @@ class Party:
                     job_font = self.menu_font.render( "THI", True, COLOR_WHITE)
                 elif character.job == self.MERCHANT:
                     job_font = self.menu_font.render( "MER", True, COLOR_WHITE)
+                elif character.job == self.LORD:  
+                    job_font = self.menu_font.render( "LOR", True, COLOR_WHITE)
+                elif character.job == self.SWORDMASTER:
+                    job_font = self.menu_font.render( "SWO", True, COLOR_WHITE)
+                elif character.job == self.MADOVERLORD:
+                    job_font = self.menu_font.render( "MAD", True, COLOR_WHITE)
+                elif character.job == self.MASTERSWORDSMAN:
+                    job_font = self.menu_font.render( "MAS", True, COLOR_WHITE)
+                elif character.job == self.GENERAL:
+                    job_font = self.menu_font.render( "GEN", True, COLOR_WHITE)
+                elif character.job == self.MURDERER:
+                    job_font = self.menu_font.render( "MUR", True, COLOR_WHITE)
+                elif character.job == self.RUNESWORDSMAN:  
+                    job_font = self.menu_font.render( "RUN", True, COLOR_WHITE)
+                elif character.job == self.SAGE:
+                    job_font = self.menu_font.render( "SAG", True, COLOR_WHITE)
+                elif character.job == self.SORCERER:
+                    job_font = self.menu_font.render( "SOR", True, COLOR_WHITE)
+                elif character.job == self.POPE:
+                    job_font = self.menu_font.render( "POP", True, COLOR_WHITE)
+                elif character.job == self.BISHOP:
+                    job_font = self.menu_font.render( "BIS", True, COLOR_WHITE)
+                elif character.job == self.FANATIC:
+                    job_font = self.menu_font.render( "FAN", True, COLOR_WHITE)
+                elif character.job == self.GUILDMASTER:  
+                    job_font = self.menu_font.render( "GUI", True, COLOR_WHITE)
+                elif character.job == self.ARMEDMERCHANT:
+                    job_font = self.menu_font.render( "ARM", True, COLOR_WHITE)
+                elif character.job == self.MONEYLENDER:
+                    job_font = self.menu_font.render( "MON", True, COLOR_WHITE)
+                elif character.job == self.CHIVALROUSTHIEF:
+                    job_font = self.menu_font.render( "CHI", True, COLOR_WHITE)
+                elif character.job == self.PHANTOMTHIEF:
+                    job_font = self.menu_font.render( "PHA", True, COLOR_WHITE)
+                elif character.job == self.NINJA:
+                    job_font = self.menu_font.render( "NIN", True, COLOR_WHITE)
 
                 character_ac_font = self.menu_font.render( "".join(str(character.ac)), True, COLOR_WHITE)
                 character_hits_font = self.menu_font.render( "".join(str(character.hp)), True, COLOR_WHITE)
-                character_status_font = self.menu_font.render( "".join(str(character.max_hp)), True, COLOR_WHITE)
+
+                if character.status == "OK":
+                    character_status_font = self.menu_font.render( "".join(str(character.max_hp)), True, COLOR_WHITE)
+                else:
+                    character_status_font = self.menu_font.render( character.status , True, COLOR_WHITE)
                  
 
                 screen.blit(alignment_font, (SCREEN_RECTANGLE.width/2-130,SCREEN_RECTANGLE.height/2+100+i*20))

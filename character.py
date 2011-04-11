@@ -53,8 +53,8 @@ class Character:
         self.items = []
         self.item_max = 10
 
-        #right, left, body, and accessory
-        self.equip = [0, 0, 0, 0]
+        #right, left, body, helmet, gauntlet and accessory
+        self.equip = [0, 0, 0, 0, 0, 0]
 
         #where the character is in the tower
         #-1,-1, -1 is in the bar

@@ -53,6 +53,7 @@ class Castle:
         self.delete_confirm = character_view.Delete_confirm_window(Rect(200, 160, 240, 120))
         self.character_rename = character_view.Character_view(Rect(80, 60, 480, 360), self.NAME_CHANGE - 1)
         self.donate_money = system_notify.System_notify_window(Rect(200,120,240,240), self.DONATE - 3)
+        self.change_job_window = Change_job_window(Rect(80,60,480,360))
         
     def update(self):
         if self.music == 0:
@@ -122,6 +123,7 @@ class Castle:
         self.delete_confirm.draw(screen)
         self.character_rename.draw(screen, characters)
         self.donate_money.draw(screen, game_self.party.member)
+        self.change_job_window.draw(screen,game_self)
 
 def castle_handler(self, event):
     """event handler of castle"""
@@ -137,6 +139,9 @@ def castle_handler(self, event):
         return
     elif self.castle.donate_money.is_visible:
         self.castle.donate_money.system_notify_window_handler( event, self, self.party.member)
+        return
+    elif self.castle.change_job_window.is_visible:
+        self.castle.change_job_window.change_job_window_handler( self, event)
         return
     
     
@@ -162,7 +167,7 @@ def castle_handler(self, event):
                 self.castle.character_rename.is_visible = True
         elif self.castle.menu == Castle.JOB_CHANGE:
             if len(self.party.member) > 0:
-                pass
+                self.castle.change_job_window.is_visible = True
         elif self.castle.menu == Castle.DONATE:
             if len(self.party.member) > 0:
                 self.castle.donate_money.is_visible = True
@@ -177,3 +182,162 @@ def castle_handler(self, event):
         self.castle.menu = Castle.NEW
         self.castle.music = 0
         self.cancel_se.play()
+
+
+class Change_job_window(window.Window):
+
+    GOOD, NEUTRAL, EVIL = 1, 0, -1
+    WARRIOR, FIGHTER, MAGICIAN,PRIEST, THIEF, MERCHANT = 0, 1, 2, 3, 4, 5
+
+
+    def __init__(self, rectangle):
+        window.Window.__init__(self,rectangle)
+        self.is_visible = False
+
+        self.menu = 0
+        #if job change includes character in bar
+        self.page = 0
+
+        self.top = rectangle.top
+        self.left = rectangle.left
+        self.right = rectangle.right
+        self.centerx = rectangle.centerx
+
+        self.menu_font = pygame.font.Font("ipag.ttf", 20)
+
+        #find all characters that could change job
+        self.possible_characters = []
+
+    def draw(self, screen, game_self):
+        """draw the window on the screen"""
+        window.Window.draw(self, screen)        
+        if self.is_visible == False: return
+
+        instruction_font = self.menu_font.render( u"誰が転職しますか？", True, COLOR_WHITE)      
+        instruction_window = window.Window(Rect(20,20, 30+instruction_font.get_width(), 50))
+        instruction_window.draw(screen)
+        screen.blit(instruction_font, ( 35 , 35))
+
+        top_font = self.menu_font.render( u"転職可能な冒険者", True, COLOR_WHITE)      
+        screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+20))
+
+        for character in game_self.party.member:
+            if character.job == self.WARRIOR:
+                if game_self.party.castle_donate > 100000 and charcter.level > 20:
+                    self.possible_characters.append(character)
+            elif character.job == self.FIGHTER:
+                if character.marks > 2000 and charcter.level> 20:
+                    self.possible_characters.append(character)
+            elif character.job == self.MAGICIAN:
+                if game_self.party.house > 3 and charcter.level > 20:
+                    self.possible_characters.append(character)
+            elif character.job == self.PRIEST:
+                if game_self.party.temple_donate > 100000 and charcter.level > 20:
+                    self.possible_characters.append(character)
+            elif character.job == self.THIEF:
+                if game_self.party.shop_donate > 100000 and charcter.level > 20:
+                    self.possible_characters.append(character)
+            elif character.job == self.MERCHANT:
+                if game_self.party.bar_donate > 100000 and charcter.level > 20:
+                    self.possible_characters.append(character)
+            
+            pass
+
+        if self.possible_characters != []:
+            #draws rectangle on the menu item size of rectangle has width of window rectangle - edge_length*2
+            #the height depends on the size of font
+            pygame.draw.rect(screen, COLOR_GLAY, Rect( self.left+4, self.top+47+30*self.menu,(self.right-self.left)-8,25), 0)
+
+        i = 0
+        for character in self.possible_characters:
+            
+            character_font = self.menu_font.render(character.name, True, COLOR_WHITE)
+            screen.blit(character_font, (self.left+20, self.top+50+(i%10)*30))                                         
+
+            job_font = None
+            new_job_font = None
+            if character.job == self.WARRIOR:
+                job_font = u"戦士"
+                if character.alignment == self.GOOD:
+                    new_job_font = u"君主"
+                elif character.alignment == self.NEUTRAL:
+                    new_job_font = u"ソードマスター"
+                elif character.alignment == self.EVIL:
+                    new_job_font = u"狂王"
+
+            elif character.job == self.FIGHTER:
+                job_font = u"武士"
+                if character.alignment == self.GOOD:
+                    new_job_font = u"剣聖"
+                elif character.alignment == self.NEUTRAL:
+                    new_job_font = u"大将"
+                elif character.alignment == self.EVIL:
+                    new_job_font = u"ヒトキリ"
+            elif character.job == self.MAGICIAN:
+                job_font = u"魔術師"
+                if character.alignment == self.GOOD:
+                    new_job_font = u"魔法戦士"
+                elif character.alignment == self.NEUTRAL:
+                    new_job_font = u"大魔導"
+                elif character.alignment == self.EVIL:
+                    new_job_font = u"邪術師"
+            elif character.job == self.PRIEST:
+                job_font = u"僧侶"
+                if character.alignment == self.GOOD:
+                    new_job_font = u"法王"
+                elif character.alignment == self.NEUTRAL:
+                    new_job_font = u"司祭"
+                elif character.alignment == self.EVIL:
+                    new_job_font = u"狂信者"
+            elif character.job == self.THIEF:
+                job_font = u"盗賊"
+                if character.alignment == self.GOOD:
+                    new_job_font = u"義賊"
+                elif character.alignment == self.NEUTRAL:
+                    new_job_font = u"怪盗"
+                elif character.alignment == self.EVIL:
+                    new_job_font = u"忍者"
+            elif character.job == self.MERCHANT:
+                job_font = u"商人"
+                if character.alignment == self.GOOD:
+                    new_job_font = u"ギルドマスター"
+                elif character.alignment == self.NEUTRAL:
+                    new_job_font = u"武装商人"
+                elif character.alignment == self.EVIL:
+                    new_job_font = u"高利貸し"
+
+            total_font = job_font + " -> "  + new_job_font
+            total_font = self.menu_font.render(total_font, True, COLOR_WHITE)
+            screen.blit(total_font, (self.centerx-40, self.top+50+(i%10)*30))              
+            i+=1
+ 
+
+    def change_job_window_handler(self, game_self, event):
+
+        if event.type == KEYUP and event.key == K_x:
+            self.menu = 0
+            self.page = 0
+            self.is_visible = False
+
+        if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+            self.menu -= 1
+            if self.menu < 0:
+                self.menu = 0
+        elif event.type == KEYUP and event.key == K_DOWN:
+            if len(self.possible_characters) > self.menu+self.page*10+1:
+                self.menu += 1
+                if self.menu > len(self.possible_characters)-1:
+                    self.menu = len(self.possible_characters)-1
+        elif event.type == KEYUP and event.key == K_RIGHT:
+            if len(game_self.party.member) > (self.page+1)*10:
+                self.page += 1
+                self.menu = 0
+        elif event.type == KEYUP and event.key == K_LEFT:
+            if self.page > 0:
+                self.page -= 1
+                self.menu = 0
+
+        #TO-DO add enter and change job
+
+        pass
+        

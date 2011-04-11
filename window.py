@@ -18,11 +18,13 @@ class Window:
         #inner black rectange
         self.inner_rectangle = self.rectangle.inflate( -self.EDGE_WIDTH*2, -self.EDGE_WIDTH*2 ) 
 
+
         self.is_visible = True
         
     def draw(self, screen):
         """draw the window on the screen"""
         if self.is_visible == False: return
+        
         pygame.draw.rect(screen, COLOR_WHITE, self.rectangle, 0)
         pygame.draw.rect(screen, COLOR_BLACK, self.inner_rectangle, 0)
     def show(self):

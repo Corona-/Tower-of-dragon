@@ -9,6 +9,7 @@ import random
 import battle
 import codecs
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+MENU=12
 
 CHARACTER_MAKE = 10
 
@@ -510,10 +511,10 @@ class Dungeon:
 
 
         if event.type == KEYUP and (event.key ==K_x):
-            game_self.game_state = TOWER
-            for character in game_self.party.member:
-                character.coordinate = [-1,-1,-1]
-            self.music = 0
+            game_self.game_state = MENU
+            #for character in game_self.party.member:
+            #    character.coordinate = [-1,-1,-1]
+            #self.music = 0
 
         if event.type == KEYUP and (event.key ==K_z or event.key == K_SPACE or event.key == K_RETURN):
             if game_self.party.direction == 0:

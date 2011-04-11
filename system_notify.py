@@ -8,7 +8,8 @@ import rest
 import save
 import shop_window
 import item
-
+import character_view
+import random
 
 COLOR_WHITE = (255,255,255)
 COLOR_GLAY = (128,128,128)
@@ -22,6 +23,11 @@ class System_notify_window(window.Window):
     SHARE, DONATE, CURSE, PAY, REST = 0, 1, 2, 3, 4
     SELL = 5
     ITEM_OUT, ITEM_IN = 6, 7
+    COLLECT = 8
+    USE_ITEM = 9
+    USE_MAGIC = 10
+    VIEW_STATUS = 11
+    CHANGE_PARTY = 12
     
     def __init__(self, rectangle, instruction):
         window.Window.__init__(self, rectangle)
@@ -45,9 +51,16 @@ class System_notify_window(window.Window):
         self.house_buy_message = Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.BUY_HOUSE)                
         self.house_reform_message = Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.REFORM_HOUSE)
         self.character_sell_window = shop_window.Sell_window(Rect(120, 50, 400, 360))
+        self.collect_message = Donate_finish_window(Rect(150, 160, 300, 50), Donate_finish_window.COLLECT)
+
 
         self.item_hold_window = Item_select_window( Rect(120, 50, 400, 360), 0)
         self.item_receive_window = Item_select_window( Rect(120, 50, 400, 360), 1) 
+
+        self.status_view = character_view.Status_view_window(Rect(20, 20, 600, 440))
+
+        self.item_view = Item_view(Rect(120, 50, 400, 360))
+        self.magic_all_view = Magic_all_view(Rect(80, 50, 280 ,120))
 
     def draw(self, screen, character):
             """draw the window on the screen"""
@@ -74,7 +87,7 @@ class System_notify_window(window.Window):
                             chara.money += 1
                             money_left -= 1
 
-            if self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL:
+            if self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL or self.instruction == self.COLLECT or self.instruction == self.USE_ITEM or self.instruction == self.USE_MAGIC or self.instruction == self.VIEW_STATUS or self.instruction == self.CHANGE_PARTY:
 
                 if self.instruction == self.DONATE:
                     top_font = self.menu_font.render( u"誰が寄付をしますか？", True, COLOR_WHITE)      
@@ -90,6 +103,25 @@ class System_notify_window(window.Window):
                     screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))
                 elif self.instruction == self.SELL:
                     top_font = self.menu_font.render( u"誰が売ってくれるんだい？", True, COLOR_WHITE)      
+                    screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))                    
+                elif self.instruction == self.COLLECT:
+                    top_font = self.menu_font.render( u"誰にお金を集めますか？", True, COLOR_WHITE)      
+                    screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))                    
+                elif self.instruction == self.USE_ITEM:
+                    top_font = self.menu_font.render( u"誰のアイテムを使いますか？", True, COLOR_WHITE)      
+                    screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))
+                    game_self = character
+                    character = game_self.party.member
+                elif self.instruction == self.USE_MAGIC:
+                    top_font = self.menu_font.render( u"誰の魔法を使いますか？", True, COLOR_WHITE)      
+                    screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))
+                    game_self = character
+                    character = game_self.party.member
+                elif self.instruction == self.VIEW_STATUS:
+                    top_font = self.menu_font.render( u"誰の状態を見ますか？", True, COLOR_WHITE)      
+                    screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))                    
+                elif self.instruction == self.CHANGE_PARTY:
+                    top_font = self.menu_font.render( u"順番に並べ替えてください", True, COLOR_WHITE)      
                     screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))                    
 
                 #set cursors of menu items
@@ -109,7 +141,15 @@ class System_notify_window(window.Window):
                 self.house_buy_message.draw(screen)
                 self.house_reform_message.draw(screen)
                 self.character_sell_window.draw(screen, character[self.menu]) 
+                self.collect_message.draw(screen)
 
+                self.status_view.draw(screen, character)
+
+                if self.instruction == self.USE_ITEM:
+                    self.item_view.draw(screen, game_self)
+
+                if self.instruction == self.USE_MAGIC:
+                    self.magic_all_view.draw(screen, game_self)
 
             elif self.instruction == self.ITEM_OUT or self.instruction == self.ITEM_IN:
 
@@ -168,14 +208,25 @@ class System_notify_window(window.Window):
         elif self.item_receive_window.is_visible:
             self.item_receive_window.item_select_window_handler( event, game_self)
             return
-
-        
+        elif self.collect_message.is_visible:
+            self.collect_message.donate_finish_window_handler(event, game_self)
+            return
+        elif self.status_view.is_visible:
+            self.status_view.status_view_window_handler(game_self, event, game_self.party.member)
+            return
+        elif self.item_view.is_visible:
+            self.item_view.item_view_handler(event, game_self)
+            return
+        elif self.magic_all_view.is_visible:
+            self.magic_all_view.magic_all_view_handler(event, game_self)
+            return
+           
         
         if self.instruction == self.SHARE:        
             if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
                 self.is_visible = False
 
-        elif self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL or self.instruction == self.ITEM_OUT or self.instruction == self.ITEM_IN:
+        elif self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL or self.instruction == self.ITEM_OUT or self.instruction == self.ITEM_IN or self.instruction == self.COLLECT or self.instruction == self.USE_ITEM or self.instruction == self.USE_MAGIC or self.instruction == self.VIEW_STATUS or self.instruction == self.CHANGE_PARTY:
             
             if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
                 if self.instruction == self.DONATE:
@@ -204,9 +255,9 @@ class System_notify_window(window.Window):
                             self.inn_not_enough.is_visible = True
                         return
                     # buy a house with 10000                    
-                    if game_self.party.member[self.menu].money > 0:#10000:
+                    if game_self.party.member[self.menu].money > 10000:
                         game_self.party.house = 1
-                        game_self.party.member[self.menu].money -= 0#10000
+                        game_self.party.member[self.menu].money -= 10000
                         game_self.shop.buy_house.who_pay_window.house_buy_message.is_visible = True
                     else:
                         self.inn_not_enough.is_visible = True
@@ -252,6 +303,37 @@ class System_notify_window(window.Window):
                     self.item_hold_window.is_visible = True
                 elif self.instruction == self.ITEM_IN:
                     self.item_receive_window.is_visible = True
+                elif self.instruction == self.COLLECT:
+                    self.collect_message.is_visible = True
+                    total_money = 0
+                    for character in game_self.party.member:
+                        total_money += character.money
+                        character.money = 0
+                    game_self.party.member[self.menu].money = total_money
+                elif self.instruction == self.USE_ITEM:
+                    self.item_view.is_visible = True
+                elif self.instruction == self.USE_MAGIC:
+                    self.magic_all_view.is_visible = True
+                elif self.instruction == self.VIEW_STATUS:
+                    self.status_view.menu = self.menu
+                    self.status_view.is_visible = True          
+                elif self.instruction == self.CHANGE_PARTY:
+                    game_self.menu.temp_party2.append(game_self.menu.temp_party1[self.menu])
+                    del game_self.menu.temp_party1[self.menu]
+                    if self.menu+1 > len(game_self.menu.temp_party1):
+                        self.menu -= 1
+                    if self.menu < 0:
+                        game_self.party.member = []
+                        for character in game_self.menu.temp_party2:
+                            game_self.party.member.append(character)
+                        self.is_visible = False
+                        self.menu = 0
+                        game_self.menu.temp_party1 = []
+                        game_self.menu.temp_party2 = []
+                        
+                
+                
+            
 
             if event.type == KEYUP and event.key == K_x:
                 self.menu = 0
@@ -477,6 +559,7 @@ class Donate_finish_window(window.Window):
     BUY_ITEM = 4
     TOO_MUCH_ITEM = 5
     SOLD_ITEM = 6
+    COLLECT = 7
     
     def __init__(self, rectangle, instruction):
         window.Window.__init__(self, rectangle)
@@ -521,6 +604,9 @@ class Donate_finish_window(window.Window):
             elif self.instruction == self.SOLD_ITEM:
                 enough_font = self.menu_font.render( u"*ありがとうよ*", True, COLOR_WHITE)      
                 screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
+            elif self.instruction == self.COLLECT:
+                enough_font = self.menu_font.render( u"*お金を集めました*", True, COLOR_WHITE)      
+                screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
 
 
     def donate_finish_window_handler(self, event, game_self):
@@ -555,7 +641,7 @@ class Donate_finish_window(window.Window):
                 if game_self.party.house == 5:
                     game_self.house.menu += 1
                     
-        elif self.instruction == self.TOO_MUCH_ITEM or self.instruction == self.SOLD_ITEM:
+        elif self.instruction == self.TOO_MUCH_ITEM or self.instruction == self.SOLD_ITEM or self.instruction == self.COLLECT:
             if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
 
@@ -1110,3 +1196,421 @@ class Item_select_window(window.Window):
                         if self.menu+self.page*10+1 > len(game_self.party.house_item):
                             self.menu-=1
 
+class Item_view(window.Window):
+
+
+    def __init__(self, rectangle):
+
+        window.Window.__init__(self, rectangle)
+        self.is_visible = False
+
+        self.menu = 0
+
+        self.top = rectangle.top
+        self.left = rectangle.left
+        self.right = rectangle.right
+        self.centerx = rectangle.centerx
+
+        self.menu_font = pygame.font.Font("ipag.ttf", 20)
+
+        self.top_font = self.menu_font.render( u"の持ち物:", True, COLOR_WHITE)
+
+        self.target_window = Target_select(Rect(120, 50, 400, 240)) 
+
+    def update(self):
+        pass
+    def draw(self, screen, game_self):
+
+        if self.is_visible == False: return
+        
+        window.Window.draw(self, screen)
+
+        character = game_self.party.member[game_self.menu.item_window.menu]
+
+        name_font = self.menu_font.render( character.name, True, COLOR_WHITE)
+
+        screen.blit( name_font, (self.left+20, self.top+20))
+        screen.blit( self.top_font, (self.left+20+name_font.get_width(), self.top+20))
+
+        #draw the box on item selected
+        if character.items != []:
+            #draws rectangle on the menu item size of rectangle has width of window rectangle - edge_length*2
+            #the height depends on the size of font
+            pygame.draw.rect(screen, COLOR_GLAY, Rect( self.left+4, self.top+55 + 30*self.menu,(self.right-self.left)-8,30), 0)
+
+
+        i = 0
+        for item in character.items:
+            item_font = self.menu_font.render( item.name, True, COLOR_WHITE)
+            screen.blit ( item_font, (self.centerx - item_font.get_width()/2, self.top+60+i*30))
+            i += 1
+
+        self.target_window.draw( screen, game_self)
+        
+    def item_view_handler(self, event, game_self):
+
+        if self.target_window.is_visible == True:
+            self.target_window.target_select_handler( event, game_self)
+            return
+
+        character = game_self.party.member[game_self.menu.item_window.menu]
+
+        #moves back to shop
+        if event.type == KEYUP and event.key == K_x:
+            game_self.cancel_se.play()
+            self.menu = 0
+            self.is_visible =False
+
+        #moves the cursor up
+        elif event.type == KEYUP and event.key == K_UP:
+            game_self.cursor_se.play()
+            self.menu -= 1
+            if self.menu < 0:
+                self.menu = 0
+                
+        #moves the cursor down
+        elif event.type == KEYUP and event.key == K_DOWN:
+            game_self.cursor_se.play()
+            if len(character.items) > self.menu+1:
+                self.menu += 1
+
+        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+            if len(character.items) > 0:
+                use_item = character.items[game_self.menu.item_window.item_view.menu]
+                #if category is 100, it means it needs to select target
+                if use_item.category == 100:
+                    self.target_window.is_visible = True
+                #if category is 101, no target selection is needed
+                elif use_item.category == 101:
+                    pass
+                #else not able to use in menu
+                else:
+                    pass
+
+
+class Magic_all_view(window.Window):
+    
+    def __init__(self, rectangle):
+
+        window.Window.__init__(self, rectangle)
+        self.is_visible = False
+
+        self.menu = 0
+
+        self.top = rectangle.top
+        self.left = rectangle.left
+        self.right = rectangle.right
+        self.centerx = rectangle.centerx
+
+        self.menu_font = pygame.font.Font("ipag.ttf", 20)
+
+        self.top_font = self.menu_font.render( u"の呪文", True, COLOR_WHITE)
+
+        self.magic_level_view = Magic_level(Rect(180, 50, 280, 250)) 
+        #self.target_window = Target_select(Rect(120, 50, 400, 240)) 
+
+    def update(self):
+        pass
+    def draw(self, screen, game_self):
+
+        if self.is_visible == False: return
+        
+        window.Window.draw(self, screen)
+
+        character = game_self.party.member[game_self.menu.magic_window.menu]
+
+        name_font = self.menu_font.render( character.name, True, COLOR_WHITE)
+
+        screen.blit( name_font, (self.left+20, self.top+20))
+        screen.blit( self.top_font, (self.left+20+name_font.get_width(), self.top+20))
+
+
+        #draws rectangle on the menu item size of rectangle has width of window rectangle - edge_length*2
+        #the height depends on the size of font
+        pygame.draw.rect(screen, COLOR_GLAY, Rect( self.left+20 + (self.menu%7)*30, self.top+55 + int(self.menu/7)*30, 15,25), 0)
+
+
+        i = 0
+        for magic in character.magician_mp:
+            magic_font = self.menu_font.render( str(magic), True, COLOR_WHITE)
+            screen.blit ( magic_font, ( self.left+20+30*i, self.top+60))
+            if i < 7:
+                slash_font = self.menu_font.render( "/" , True, COLOR_WHITE)
+                screen.blit( slash_font, (self.left+20+30*i+15, self.top+60))
+            i += 1
+        i = 0
+        for magic in character.priest_mp:
+            magic_font = self.menu_font.render( str(magic), True, COLOR_WHITE)
+            screen.blit ( magic_font, ( self.left+20+30*i, self.top+90))
+            if i < 7:
+                slash_font = self.menu_font.render( "/" , True, COLOR_WHITE)
+                screen.blit( slash_font, (self.left+20+30*i+15, self.top+90))
+            i += 1
+
+        self.magic_level_view.draw(screen, game_self)
+        
+    def magic_all_view_handler( self, event, game_self):
+
+        if self.magic_level_view.is_visible == True:
+            self.magic_level_view.magic_level_view_handler(event, game_self)
+            return
+
+        #moves back to shop
+        if event.type == KEYUP and event.key == K_x:
+            game_self.cancel_se.play()
+            self.menu = 0
+            self.is_visible =False
+
+        #moves the cursor up
+        elif event.type == KEYUP and event.key == K_UP:
+            game_self.cursor_se.play()
+            self.menu -= 7
+            if self.menu < 0:
+                self.menu += 14
+                
+        #moves the cursor down
+        elif event.type == KEYUP and event.key == K_DOWN:
+            game_self.cursor_se.play()
+            self.menu += 7
+            if self.menu > 13:
+                self.menu -= 14
+
+                
+        #moves the cursor left
+        elif event.type == KEYUP and event.key == K_LEFT:
+            game_self.cursor_se.play()
+            self.menu -= 1
+            if self.menu == 6:
+                self.menu = 13
+            if self.menu < 0:
+                self.menu = 6
+            
+        #moves the cursor right
+        elif event.type == KEYUP and event.key == K_RIGHT:
+            game_self.cursor_se.play()
+            self.menu += 1
+            if self.menu == 7:
+                self.menu = 0
+            if self.menu > 13:
+                self.menu = 7
+
+        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+            game_self.select_se.play()
+            self.magic_level_view.is_visible = True
+
+
+class Magic_level(window.Window):
+
+    def __init__(self, rectangle):
+
+        window.Window.__init__(self, rectangle)
+        self.is_visible = False
+
+        self.menu = 0
+
+        self.top = rectangle.top
+        self.left = rectangle.left
+        self.right = rectangle.right
+        self.centerx = rectangle.centerx
+
+        self.menu_font = pygame.font.Font("ipag.ttf", 20)
+
+        self.top_font = self.menu_font.render( u"呪文LV", True, COLOR_WHITE)
+
+        #self.target_window = Target_select(Rect(120, 50, 400, 240)) 
+
+    def update(self):
+        pass
+    def draw(self, screen, game_self):
+
+        if self.is_visible == False: return
+        
+        window.Window.draw(self, screen)
+
+        level = game_self.menu.magic_window.magic_all_view.menu
+        character = game_self.party.member[game_self.menu.magic_window.menu]
+
+        if level < 7:
+            top_font = self.menu_font.render( u"呪文LV" + str(level+1), True, COLOR_WHITE)
+        else:
+            top_font = self.menu_font.render( u"呪文LV" + str(level-6), True, COLOR_WHITE)
+            
+        screen.blit( top_font, (self.left+20, self.top+20))
+
+
+        #draws rectangle on the menu item size of rectangle has width of window rectangle - edge_length*2
+        #the height depends on the size of font
+        pygame.draw.rect(screen, COLOR_GLAY, Rect( self.left+4,  self.top+55 + self.menu*30, self.right-self.left-8, 30), 0)
+
+        if level < 7:
+            i = 0
+            for magic in character.magic[level]:
+                if magic == 1:
+                    magic_font = game_self.magic_data[level*6+1+i][0].strip("\"")
+                    magic_font = unicode( magic_font, encoding="sjis")
+                    #the magic is only used in battle
+                    if game_self.magic_data[level*6+1+i][4] == 1:
+                        magic_font = self.menu_font.render( magic_font, True, COLOR_GLAY)    
+                    else:
+                        magic_font = self.menu_font.render( magic_font, True, COLOR_WHITE)
+                    screen.blit( magic_font, (self.centerx - magic_font.get_width()/2, self.top+60+i*30))
+                else:
+                    magic_font = self.menu_font.render( "????????", True, COLOR_GLAY)
+                    screen.blit( magic_font, (self.centerx - magic_font.get_width()/2, self.top+60+i*30))
+                    
+                i+=1
+
+        else:
+            i = 0
+            for magic in character.priest_magic[level-7]:
+                if magic == 1:
+                    magic_font = game_self.magic_data[(level-7)*6+50+i][0].strip("\"")
+                    magic_font = unicode( magic_font, encoding="sjis")
+                    #the magic is only used in battle
+                    if game_self.magic_data[(level-7)*6+50+i][4] == 1:
+                        magic_font = self.menu_font.render( magic_font, True, COLOR_GLAY)    
+                    else:
+                        magic_font = self.menu_font.render( magic_font, True, COLOR_WHITE)
+                    screen.blit( magic_font, (self.centerx - magic_font.get_width()/2, self.top+60+i*30))
+                else:
+                    magic_font = self.menu_font.render( "????????", True, COLOR_GLAY)
+                    screen.blit( magic_font, (self.centerx - magic_font.get_width()/2, self.top+60+i*30))
+                i+=1
+                    
+        
+    def magic_level_view_handler( self, event, game_self):
+
+        #moves back to shop
+        if event.type == KEYUP and event.key == K_x:
+            game_self.cancel_se.play()
+            self.menu = 0
+            self.is_visible =False
+
+        #moves the cursor up
+        elif event.type == KEYUP and event.key == K_UP:
+            game_self.cursor_se.play()
+            self.menu -= 1
+            if self.menu < 0:
+                self.menu = 0
+                
+        #moves the cursor down
+        elif event.type == KEYUP and event.key == K_DOWN:
+            game_self.cursor_se.play()
+            self.menu += 1
+            if self.menu > 5:
+                self.menu = 5
+
+                
+        #moves the cursor left
+        elif event.type == KEYUP and event.key == K_LEFT:
+            game_self.cursor_se.play()
+            game_self.menu.magic_window.magic_all_view.menu -= 1
+            if game_self.menu.magic_window.magic_all_view.menu < 0:
+                game_self.menu.magic_window.magic_all_view.menu = 6
+            if game_self.menu.magic_window.magic_all_view.menu == 6:
+                game_self.menu.magic_window.magic_all_view.menu = 13
+            
+        #moves the cursor right
+        elif event.type == KEYUP and event.key == K_RIGHT:
+            game_self.cursor_se.play()
+            game_self.menu.magic_window.magic_all_view.menu += 1
+            if game_self.menu.magic_window.magic_all_view.menu == 7:
+                game_self.menu.magic_window.magic_all_view.menu = 0
+            if game_self.menu.magic_window.magic_all_view.menu > 13:
+                game_self.menu.magic_window.magic_all_view.menu = 7
+
+
+
+      
+class Target_select(window.Window):
+
+
+    def __init__(self, rectangle):
+
+        window.Window.__init__(self, rectangle)
+        self.is_visible = False
+
+        self.menu = 0
+
+        self.top = rectangle.top
+        self.left = rectangle.left
+        self.right = rectangle.right
+        self.centerx = rectangle.centerx
+
+        self.menu_font = pygame.font.Font("ipag.ttf", 20)
+
+        self.top_font = self.menu_font.render( u"誰に使いますか？", True, COLOR_WHITE) 
+
+    def update(self):
+        pass
+    def draw(self, screen, game_self):
+
+        if self.is_visible == False: return
+        
+        window.Window.draw(self, screen)
+
+        screen.blit( self.top_font, (self.centerx - self.top_font.get_width()/2, self.top+20))
+
+        #draw the box on item selected
+        if game_self.party.member != []:
+            #draws rectangle on the menu item size of rectangle has width of window rectangle - edge_length*2
+            #the height depends on the size of font
+            pygame.draw.rect(screen, COLOR_GLAY, Rect( self.left+4, self.top+55 + 30*self.menu,(self.right-self.left)-8,30), 0)
+
+
+        i = 0
+        for character in game_self.party.member:            
+            name_font = self.menu_font.render( character.name, True, COLOR_WHITE)
+            screen.blit ( name_font, (self.centerx - name_font.get_width()/2, self.top+60+i*30))
+            i += 1
+
+    def target_select_handler(self, event, game_self):
+
+        #moves back to shop
+        if event.type == KEYUP and event.key == K_x:
+            game_self.cancel_se.play()
+            self.menu = 0
+            self.is_visible =False
+
+        #moves the cursor up
+        elif event.type == KEYUP and event.key == K_UP:
+            game_self.cursor_se.play()
+            self.menu -= 1
+            if self.menu < 0:
+                self.menu = 0
+                
+        #moves the cursor down
+        elif event.type == KEYUP and event.key == K_DOWN:
+            game_self.cursor_se.play()
+            self.menu += 1
+            if self.menu+1 > len(game_self.party.member):
+                self.menu = len(game_self.party.member)-1
+
+
+        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+
+            if game_self.menu.item_window.is_visible == True:
+                user = game_self.party.member[game_self.menu.item_window.menu]
+                use_item = user.items[game_self.menu.item_window.item_view.menu]
+                target = game_self.party.member[self.menu]
+
+                #use_item.mp_cure
+
+                if use_item.hp_cure > 0:
+                    hp_cure = random.randint(1, use_item.hp_cure)
+                    target.hp += hp_cure
+                    if target.hp > target.max_hp:
+                        target.hp = target.max_hp
+
+                if use_item.status_cure > 0:
+                    if use_item.status_cure == 1:
+                        if target.status == "POISON":
+                            target.status = "OK"
+                    if use_item.status_cure == 2:
+                        if target.status == "PALSY":
+                            target.status = "OK"
+
+                del user.items[game_self.menu.item_window.item_view.menu]
+
+                self.menu = 0
+                self.is_visible = False

@@ -20,11 +20,11 @@ MENU_MAX = 5
 
 class Battle_command:
 
-    def __init__(self, character, movement, movement_to):
+    def __init__(self, character, movement, target):
 
         self.character = character
         self.movement = movement
-        self.movement_to = movement_to
+        self.target = target
 
         self.speed = random.randint(1,character.agility)
 

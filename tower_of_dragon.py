@@ -15,6 +15,7 @@ import castle
 import bar
 import house
 import dungeon
+import menu
 
 import party
 import character
@@ -23,6 +24,7 @@ import item
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 HOUSE = 11
+MENU = 12
 
 CHARACTER_MAKE = 10
 
@@ -51,6 +53,7 @@ class tower_of_dragon:
         self.bar = bar.Bar()
         self.house = house.House()
         self.dungeon = dungeon.Dungeon()
+        self.menu = menu.Menu()
 
         self.party = party.Party()
         self.character_make = character_make.Character_make()
@@ -83,9 +86,6 @@ class tower_of_dragon:
             
 
         self.mainloop()
-
-        
-
 
 
     def mainloop(self):
@@ -128,6 +128,8 @@ class tower_of_dragon:
             self.character_make.update()
         elif self.game_state == DUNGEON:
             self.dungeon.update()
+        elif self.game_state == MENU:
+            self.menu.update()
 
 
     def render(self):
@@ -160,6 +162,8 @@ class tower_of_dragon:
             self.character_make.draw(self, self.screen)
         elif self.game_state == DUNGEON:
             self.dungeon.draw(self, self.screen)
+        elif self.game_state == MENU:
+            self.menu.draw(self.screen, self)
 
 
 
@@ -196,6 +200,8 @@ class tower_of_dragon:
                 character_make.character_make_handler(self, event)
             elif self.game_state == DUNGEON:
                 self.dungeon.dungeon_handler(self, event)
+            elif self.game_state == MENU:
+                self.menu.menu_handler(event, self)
 
 
 

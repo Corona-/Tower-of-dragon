@@ -9,7 +9,8 @@ import window
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 CHARACTER_MAKE = 10
-NO_EXTRA, CHARACTER_VIEW, PARTY_REMOVE, CHARACTER_CHECK = 100, 101, 102, 103
+
+MENU = 12
 
 SCREEN_RECTANGLE = Rect(0,0,640,480)
 
@@ -417,9 +418,6 @@ class Status_view_window(window.Window):
 
             elif event.type == KEYUP and event.key == K_x:
                 self.is_visible = False
-            #menu?         
-            #elif  event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
-           
 
 
         if game_self.game_state == SHOP:
@@ -427,3 +425,24 @@ class Status_view_window(window.Window):
             if event.type == KEYUP and (event.key == K_LSHIFT or event.key == K_x):
                 self.is_visible = False
 
+
+        if game_self.game_state == MENU:
+
+
+            if event.type == KEYUP and event.key == K_RIGHT:
+                self.menu += 1
+                game_self.menu.status_window.menu+=1
+                if self.menu >= len(character):
+                    self.menu = 0
+                    game_self.menu.status_window.menu = 0
+                    
+            elif event.type == KEYUP and event.key == K_LEFT:
+                self.menu -= 1
+                game_self.menu.status_window.menu -= 1
+                if self.menu < 0:
+                    self.menu = len(character)-1
+                    game_self.menu.status_window.menu = len(character)-1
+
+            elif event.type == KEYUP and event.key == K_x:
+                self.is_visible = False
+            

@@ -21,11 +21,10 @@ BUSIN　依頼？
 職業の攻撃回数と、武器の攻撃回数の多いほうをしよう（＋もあり？）
 
 やるべきこと：
-	街メニュー
-	魔法表示いる？
+
+	コマンド入力敵で範囲必要？
 
 	シフトでヘルプ表示したりできたらいいな
-	お金を集める
 
 	経験値計算法
 
@@ -35,13 +34,22 @@ BUSIN　依頼？
 
 	寺院：治療する
 
-	お城：転職する（上級職のみ？）
+	お城：転職する ->実際に転職　job, strength, maxを変える
 
 	ショップ　ID順にソート
-	でIDのやつだけ表示
 
-	選んだらお金を減らして、
-	IDのものをキャラクターに追加
+	戦闘！魔法とアイテム使用
+	攻撃あたり判定
+
+	アイテム使用時、一番下だとそのままになる
+
+	モンスター状態抵抗率
+	タイプ　戦士、盗賊　、僧侶、魔術師（人間系？）
+	昆虫、竜、神話
+	悪魔、巨人
+
+	パーティメニュー戻るコマンド、パーティ人数０だと失敗
+
 
 セーブに必要なもの：
 	キャラ： items,equip	
@@ -55,28 +63,16 @@ BUSIN　依頼？
 死亡ｌｖ＊２５０ｇｐ
 灰化ｌｖ＊５００ｇｐ
 
-君主　MON
-ソードマスター　SWO
-狂王　MAD
+    LORD, SWORDMASTER, MADOVERLORD = 10,11,12
+    MASTERSWORDSMAN, GENERAL, MURDERER = 13,14,15
+    RUNESWORDSMAN, SAGE, SORCERER = 16,17,18
+    POPE, BISHOP, FANATIC = 19,20,21
+    GUILDMASTER, ARMEDMERCHANT, MONEYLENDER = 22, 23,24
+    CHIVALROUSTHIEF, PHANTOMTHIEF, NINJA = 25,26,27
 
-剣聖　MAS
-大将 GEN
-ヒトキリ　MUR
 
-魔法戦士 RUN
-大魔術 SAG
-呪術師 SOR
+パーティ１
 
-法王 POP
-司祭 BIS
-狂信者 ADH
-
-ギルドマスター GUI
-武装商人 ARM
-高利貸し MON
-
-義賊 CHI
-怪盗 PHA
-忍者　NIN
+temp
 
 

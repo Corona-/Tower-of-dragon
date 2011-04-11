@@ -18,7 +18,7 @@ COLOR_WHITE = (255,255,255)
 COLOR_GLAY = (128,128,128)
 COLOR_BLACK = (0,0,0)
 
-MENU_MAX = 5
+MENU_MAX = 6
 
 
 class Bar:
@@ -39,8 +39,8 @@ class Bar:
         self.remove_font = self.menu_font.render(u"仲間から外す", True, COLOR_WHITE)
         self.check_font = self.menu_font.render(u"仲間を見る", True, COLOR_WHITE)
         self.share_font = self.menu_font.render(u"山分けする", True, COLOR_WHITE)
-        self.collect_font = self.menu_font.render(u"お金を集める", True, COLOR_WHITE)
         self.donate_font = self.menu_font.render(u"寄付をする", True, COLOR_WHITE)
+        self.collect_font = self.menu_font.render(u"お金を集める", True, COLOR_WHITE)
         self.back_font = self.menu_font.render(u"街に戻る", True, COLOR_WHITE)
 
 
@@ -48,8 +48,8 @@ class Bar:
         self.no_remove_font = self.menu_font.render(u"仲間から外す", True, COLOR_GLAY)
         self.no_check_font = self.menu_font.render(u"仲間を見る", True, COLOR_GLAY)
         self.no_share_font = self.menu_font.render(u"山分けする", True, COLOR_GLAY)
-        self.no_collect_font = self.menu_font.render(u"お金を集める", True, COLOR_GLAY)
         self.no_donate_font = self.menu_font.render(u"寄付をする", True, COLOR_GLAY)
+        self.no_collect_font = self.menu_font.render(u"お金を集める", True, COLOR_GLAY)
 
         self.music = 0
 
@@ -60,6 +60,7 @@ class Bar:
         self.status_view = character_view.Status_view_window(Rect(20,20,600, 440))
         self.share_money = system_notify.System_notify_window(Rect(220,140,220, 50), self.SHARE - 3)
         self.donate_money = system_notify.System_notify_window(Rect(200, 120 ,240, 240), self.DONATE - 3)
+        self.collect_money = system_notify.System_notify_window(Rect(200,120,240,240), 8)
    
     def update(self):
         if self.music == 0:
@@ -75,7 +76,7 @@ class Bar:
         
         screen.blit(self.bar_font, (35, 35))
 
-        menu_window = window.Window(Rect(320,20,300,210))
+        menu_window = window.Window(Rect(320,20,300,240))
         menu_window.draw(screen)
 
         #set cursors of menu items
@@ -91,8 +92,10 @@ class Bar:
             pygame.draw.rect(screen, COLOR_GLAY, Rect(324,125,292,30), 0)
         elif self.menu == self.DONATE:
             pygame.draw.rect(screen, COLOR_GLAY, Rect(324,155,292,30), 0)
-        elif self.menu == self.BACK:
+        elif self.menu == self.COLLECT:
             pygame.draw.rect(screen, COLOR_GLAY, Rect(324,185,292,30), 0)
+        elif self.menu == self.BACK:
+            pygame.draw.rect(screen, COLOR_GLAY, Rect(324,215,292,30), 0)
 
         #draw the image fonts onto screen
         WINDOW_START_WIDTH = 300
@@ -122,8 +125,14 @@ class Bar:
             screen.blit(self.no_donate_font, ((MENU_CENTER-self.no_donate_font.get_width())/2, 160))
         else:    
             screen.blit(self.donate_font, ((MENU_CENTER-self.donate_font.get_width())/2, 160))
+
+        if len(game_self.party.member) == 0:
+            screen.blit(self.no_collect_font, ((MENU_CENTER-self.no_collect_font.get_width())/2, 190))
+        else:    
+            screen.blit(self.collect_font, ((MENU_CENTER-self.collect_font.get_width())/2, 190))
+
             
-        screen.blit(self.back_font, ((MENU_CENTER-self.back_font.get_width())/2, 190))
+        screen.blit(self.back_font, ((MENU_CENTER-self.back_font.get_width())/2, 220))
 
         #draw extra window
         self.party_add.draw(screen, game_self.characters)
@@ -132,7 +141,7 @@ class Bar:
         self.status_view.draw(screen, game_self.party.member)
         self.share_money.draw(screen, game_self.party.member)
         self.donate_money.draw(screen, game_self.party.member)
-
+        self.collect_money.draw(screen, game_self.party.member)
 
 def bar_handler(self, event):
     """event handler of bar"""
@@ -155,7 +164,10 @@ def bar_handler(self, event):
     elif self.bar.donate_money.is_visible:
         self.bar.donate_money.system_notify_window_handler(event, self, self.party.member)
         return
-    
+    elif self.bar.collect_money.is_visible:
+        self.bar.collect_money.system_notify_window_handler(event, self, self.party.member)
+        return
+       
     if event.type == KEYUP and event.key == K_UP: #moves the cursor up
         self.cursor_se.play()
         self.bar.menu -= 1
@@ -183,6 +195,9 @@ def bar_handler(self, event):
         elif self.bar.menu == Bar.DONATE:
             if len(self.party.member) > 0:
                 self.bar.donate_money.is_visible = True
+        elif self.bar.menu == Bar.COLLECT:
+            if len(self.party.member) > 0:
+                self.bar.collect_money.is_visible = True
         elif self.bar.menu == Bar.BACK:
             self.game_state = CITY
             self.bar.menu = Bar.ADD
