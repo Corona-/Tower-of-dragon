@@ -211,11 +211,11 @@ class Battle:
             #0 is normal attack
             if battle_command.movement == self.FIGHT:
                 battle_font1 = battle_command.character.name + u"は" + self.target_font + u"を" + u"突き刺した"
-
+                #print battle_font1
                 #calculate hit times
                 hit_times = calculate_hit_time(battle_command.character)
 
-                battle_font2 = str(hit_times) + u"回当たり"
+                battle_font2 = str(hit_times) + u"回当たり "
 
                 #calculate damage
                 if (self.damage_set == 0):
@@ -252,6 +252,8 @@ class Battle:
                                 
                             for i in to_delete:
                                 del self.total_movement[i]
+                            for i in self.total_movement:
+                                print i.character.name
                             
                                     
                             #move the person to end of party
@@ -274,6 +276,7 @@ class Battle:
                                 if isinstance(command.character, enemy.Enemy):
                                     if self.target_group[offset] == command.character:
                                         del self.total_movement[i]
+                                i+=1
  
                             del self.target_group[offset]
 
@@ -289,13 +292,14 @@ class Battle:
                                             if i != 0:
                                                 to_delete.insert(0,i)                                            
                                     i+=1
+                                
                                 for i in to_delete:
                                     del self.total_movement[i]
                                 
                                 del self.enemyList[target]
+
                             self.dead_set = 1
                             self.dead_font = self.target_font
-                            print self.enemyList
 
                     
                 battle_font2 += str(self.damage) + u"のダメージ"

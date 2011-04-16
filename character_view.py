@@ -24,6 +24,13 @@ class Character_view(window.Window):
 
     GOOD, NEUTRAL, EVIL = 1, 0, -1
     WARRIOR, FIGHTER, MAGICIAN,PRIEST, THIEF, MERCHANT = 0, 1, 2, 3, 4, 5
+    LORD, SWORDMASTER, MADOVERLORD = 10,11,12
+    MASTERSWORDSMAN, GENERAL, MURDERER = 13,14,15
+    RUNESWORDSMAN, SAGE, SORCERER = 16,17,18
+    POPE, BISHOP, FANATIC = 19,20,21
+    CHIVALROUSTHIEF, PHANTOMTHIEF, NINJA = 22,23,24
+    GUILDMASTER, ARMEDMERCHANT, MONEYLENDER = 25, 26,27
+
 
     #from castle
     DELETE, RENAME= 0, 1
@@ -114,6 +121,42 @@ class Character_view(window.Window):
                     job = "THI"
                 elif chara.job == self.MERCHANT:
                     job = "MER"
+                elif chara.job == self.LORD:
+                    job = "LOR"
+                elif chara.job == self.SWORDMASTER:
+                    job = "SWO"
+                elif chara.job == self.MADOVERLORD:
+                    job = "MAD"
+                elif chara.job == self.MASTERSWORDSMAN:
+                    job = "MAS"
+                elif chara.job == self.GENERAL:
+                    job = "GEN"
+                elif chara.job == self.MURDERER:
+                    job = "MUR"
+                elif chara.job == self.RUNESWORDSMAN:
+                    job = "RUN"
+                elif chara.job == self.SAGE:
+                    job = "SAG"
+                elif chara.job == self.SORCERER:
+                    job = "SOR"
+                elif chara.job == self.POPE:
+                    job = "POP"
+                elif chara.job == self.BISHOP:
+                    job = "BIS"
+                elif chara.job == self.FANATIC:
+                    job = "FAN"
+                elif chara.job == self.GUILDMASTER:
+                    job = "GUI"
+                elif chara.job == self.ARMEDMERCHANT:
+                    job = "ARM"
+                elif chara.job == self.MONEYLENDER:
+                    job = "MON"
+                elif chara.job == self.CHIVALROUSTHIEF:
+                    job = "CHI"
+                elif chara.job == self.PHANTOMTHIEF:
+                    job = "PHA"
+                elif chara.job == self.NINJA:
+                    job = "NIN"
 
                 total = align + "-" + job
                 total_font = self.menu_font.render(total, True, COLOR_WHITE)
@@ -262,6 +305,13 @@ class Status_view_window(window.Window):
 
     GOOD, NEUTRAL, EVIL = 1, 0, -1
     WARRIOR, FIGHTER, MAGICIAN, PRIEST, THIEF, MERCHANT = 0, 1, 2, 3, 4, 5
+    LORD, SWORDMASTER, MADOVERLORD = 10,11,12
+    MASTERSWORDSMAN, GENERAL, MURDERER = 13,14,15
+    RUNESWORDSMAN, SAGE, SORCERER = 16,17,18
+    POPE, BISHOP, FANATIC = 19,20,21
+    CHIVALROUSTHIEF, PHANTOMTHIEF, NINJA = 22,23,24
+    GUILDMASTER, ARMEDMERCHANT, MONEYLENDER = 25, 26,27
+
     
     def __init__(self, rectangle):
         window.Window.__init__(self, rectangle)
@@ -305,6 +355,43 @@ class Status_view_window(window.Window):
                 job_font = "THI"
             elif character[self.menu].job == self.MERCHANT:
                 job_font = "MER"
+            elif character[self.menu].job == self.LORD:  
+                job_font = "LOR"
+            elif character[self.menu].job == self.SWORDMASTER:  
+                job_font = "SWO"
+            elif character[self.menu].job == self.MADOVERLORD:  
+                job_font = "MAD"
+            elif character[self.menu].job == self.MASTERSWORDSMAN:  
+                job_font = "MAS"
+            elif character[self.menu].job == self.GENERAL:  
+                job_font = "GEN"
+            elif character[self.menu].job == self.MURDERER:  
+                job_font = "MUR"
+            elif character[self.menu].job == self.RUNESWORDSMAN:  
+                job_font = "RUN"
+            elif character[self.menu].job == self.SAGE:  
+                job_font = "SAG"
+            elif character[self.menu].job == self.SORCERER:  
+                job_font = "SOR"
+            elif character[self.menu].job == self.POPE:  
+                job_font = "POP"
+            elif character[self.menu].job == self.BISHOP:  
+                job_font = "BIS"
+            elif character[self.menu].job == self.FANATIC:  
+                job_font = "FAN"
+            elif character[self.menu].job == self.GUILDMASTER:  
+                job_font = "GUI"
+            elif character[self.menu].job == self.ARMEDMERCHANT:  
+                job_font = "ARM"
+            elif character[self.menu].job == self.MONEYLENDER:  
+                job_font = "MON"
+            elif character[self.menu].job == self.CHIVALROUSTHIEF:  
+                job_font = "CHI"
+            elif character[self.menu].job == self.PHANTOMTHIEF:  
+                job_font = "PHA"
+            elif character[self.menu].job == self.NINJA:  
+                job_font = "NIN"
+
 
             exp_font = self.menu_font.render( u"経験値：", True, COLOR_WHITE)
             marks_font = self.menu_font.render( u"MARKS:", True, COLOR_WHITE)

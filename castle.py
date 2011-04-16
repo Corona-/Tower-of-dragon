@@ -205,6 +205,8 @@ class Change_job_window(window.Window):
 
         self.menu_font = pygame.font.Font("ipag.ttf", 20)
 
+        self.job_change_confirm = system_notify.Confirm_window( Rect(180, 80, 360, 110), 20)
+
         #find all characters that could change job
         self.possible_characters = []
 
@@ -221,6 +223,7 @@ class Change_job_window(window.Window):
         top_font = self.menu_font.render( u"転職可能な冒険者", True, COLOR_WHITE)      
         screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+20))
 
+        self.possible_characters = []
         for character in game_self.party.member:
             if character.job == self.WARRIOR:
                 if game_self.party.castle_donate > 100000 and charcter.level > 20:
@@ -310,9 +313,15 @@ class Change_job_window(window.Window):
             total_font = self.menu_font.render(total_font, True, COLOR_WHITE)
             screen.blit(total_font, (self.centerx-40, self.top+50+(i%10)*30))              
             i+=1
+
+        self.job_change_confirm.draw(screen, game_self, None)
  
 
     def change_job_window_handler(self, game_self, event):
+
+        if self.job_change_confirm.is_visible == True:
+            self.job_change_confirm.confirm_window_handler( game_self, event, self.possible_characters[self.menu])
+            return
 
         if event.type == KEYUP and event.key == K_x:
             self.menu = 0
@@ -338,6 +347,9 @@ class Change_job_window(window.Window):
                 self.menu = 0
 
         #TO-DO add enter and change job
-
-        pass
+        if event.type == KEYUP and (event.key ==K_z or event.key == K_SPACE or event.key == K_RETURN):
+            if self.possible_characters != []:
+                self.job_change_confirm.is_visible = True
+            
+            pass
         

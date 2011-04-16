@@ -173,6 +173,9 @@ class Menu:
 
             if self.menu == self.BACK:
                 self.menu = self.ITEM
+                if game_self.party.member == []:
+                    game_self.game_state = CITY
+                    return
                 if game_self.party.member[0].coordinate != [-1,-1,-1]:
                     game_self.game_state = DUNGEON
                 else:

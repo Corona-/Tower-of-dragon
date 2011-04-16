@@ -1,4 +1,20 @@
 
+ダウンロードして頂きありがとうございます！
+ゆっくりしていってね！
+
+【概要】
+このゲームは童帝◆HyQRiOn/vの「ぼくのかんがえたおもしろそうなうぃず」。
+・・・げふんげふん「天龍の塔」をゲーム化したものです。
+
+作成者はゲーム作りがほぼ初めてな為バグが大量発生しているかもしれません
+
+（デバッグに協力してくれたら…嬉しい…
+言っちゃうか…！そんな事も…！）
+
+
+注：戦闘時に敵が敵に攻撃する？
+見間違えかも知れませんがその様なことがあったらご報告ください
+
 【操作】
 
 	【全体】
@@ -63,3 +79,14 @@
 	【アドレス】http://tyaya.net/graph-paper/
 	【ツール名】方眼紙マッピングv1.151
 
+
+【参考資料】
+
+	【サイト名】wIZARDRY PROVING GROUND OF MAD OVERLORD
+	【アドレス】http://www.geocities.co.jp/Playtown-Denei/4273/wiz1/wiz1_kouryaku.htm
+
+	【サイト名】Wizardry(NES) 解析
+	【アドレス】http://www6.atpages.jp/appsouko/work/Game/Wiz1_NES/
+
+	【サイト名】Wikipedia - ウィザードリィ
+	【アドレス】http://ja.wikipedia.org/wiki/%E3%82%A6%E3%82%A3%E3%82%B6%E3%83%BC%E3%83%89%E3%83%AA%E3%82%A3

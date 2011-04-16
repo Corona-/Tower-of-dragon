@@ -204,6 +204,9 @@ def shop_handler(self,event):
         self.shop.menu = Shop.BUY
         self.shop.music = 0
         self.cancel_se.play()
+        for item_list in self.shop.stock:
+            item_list.sort(cmp=lambda x, y: cmp(x.id, y.id), reverse=False)
+
         
 
 class Shop_item:

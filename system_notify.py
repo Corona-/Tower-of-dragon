@@ -708,6 +708,7 @@ class Confirm_window(window.Window):
     HOUSE, PAY  = 0, 1
     HOUSE_CHANGE = 10
     SAVE, LOAD = 100, 101
+    JOB_CHANGE = 20
 
 
     YES, NO = 0, 1
@@ -751,7 +752,10 @@ class Confirm_window(window.Window):
              confirm_font = self.menu_font.render( u"セーブしますか？", True, COLOR_WHITE)            
          elif self.instruction == self.LOAD:
              confirm_font = self.menu_font.render( u"ロードしますか？", True, COLOR_WHITE)            
-                     
+         elif self.instruction == self.JOB_CHANGE:
+             character = game_self.castle.change_job_window.possible_characters[game_self.castle.change_job_window.menu]
+             confirm_font = self.menu_font.render( character.name + u"は" + u"転職します", True, COLOR_WHITE)
+             
 
          yes_font = self.menu_font.render( u"はい", True, COLOR_WHITE) 
          no_font = self.menu_font.render( u"いいえ", True, COLOR_WHITE) 
@@ -823,7 +827,84 @@ class Confirm_window(window.Window):
                 else:
                     game_self.inn.load_confirm.is_visible = False
                     game_self.house.load_confirm.is_visible = False
-    
+
+            if self.instruction == self.JOB_CHANGE:
+                if self.menu == self.YES:
+
+                    if character.job == 0:
+                        character.strength = 10
+                        character.intelligence = 5
+                        character.piety = 8
+                        character.vitality = 12
+                        character.agility = 8
+                        character.luck = 8            
+                    elif character.job == 1:
+                        character.strength = 12
+                        character.intelligence = 8
+                        character.piety = 8
+                        character.vitality = 10
+                        character.agility = 8
+                        character.luck = 5           
+                    elif character.job == 2:
+                        character.strength = 8
+                        character.intelligence = 12
+                        character.piety = 8
+                        character.vitality = 5
+                        character.agility = 10
+                        character.luck = 8            
+                    elif character.job == 3:  
+                        character.strength = 8
+                        character.intelligence = 8
+                        character.piety = 12
+                        character.vitality = 10
+                        character.agility = 5
+                        character.luck = 8            
+                    elif character.job == 4:  
+                        character.strength = 8
+                        character.intelligence = 8
+                        character.piety = 5
+                        character.vitality = 8
+                        character.agility = 12
+                        character.luck = 10           
+                    elif character.job == 5:
+                        character.strength = 5
+                        character.intelligence = 8
+                        character.piety = 8
+                        character.vitality = 8
+                        character.agility = 10
+                        character.luck = 12  
+
+                    if character.alignment == 1:
+                        character.job = 10+(character.job*3)
+                    elif character.alignment == 0:
+                        character.job = 10+(character.job*3)+1
+                    elif character.alignment == -1:
+                        character.job = 10+(character.job*3)+2
+                        
+                        
+                    character.strength_max += 10
+                    character.intelligence_max += 10
+                    character.piety_max += 10
+                    character.vitality_max += 10
+                    character.agility_max += 10
+                    character.luck_max += 10
+                    character.exp = 0
+
+                    character.level = 1
+
+                    del game_self.castle.change_job_window.possible_characters[game_self.castle.change_job_window.menu]
+
+                    if game_self.castle.change_job_window.menu > len(game_self.castle.change_job_window.possible_characters)-1:
+                        game_self.castle.change_job_window.menu-=1
+
+                    
+                    game_self.castle.change_job_window.job_change_confirm.is_visible = False
+
+                    
+                    pass
+                else:
+                    game_self.castle.change_job_window.job_change_confirm.is_visible = False
+                    
 
 
 class level_up_window(window.Window):
@@ -1611,6 +1692,9 @@ class Target_select(window.Window):
                             target.status = "OK"
 
                 del user.items[game_self.menu.item_window.item_view.menu]
+
+                if game_self.menu.item_window.item_view.menu > len(user.items)-1:
+                    game_self.menu.item_window.item_view.menu -= 1
 
                 self.menu = 0
                 self.is_visible = False

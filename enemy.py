@@ -131,6 +131,15 @@ class Enemy:
 
         self.attack_range = int(enemy[44])
 
+        self.sleep_resistance = int(enemy[45])
+        self.silent_resistance = int(enemy[46])
+        self.poison_resistance = int(enemy[47])
+        self.dead_resistance = int(enemy[48])
+        self.paralysis_resistance = int(enemy[49])
+        self.confuse_resistance = int(enemy[50])
+        self.blind_resistance = int(enemy[51])
+        
+
         
 
         

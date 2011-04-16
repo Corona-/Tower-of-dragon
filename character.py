@@ -101,7 +101,10 @@ class Character:
         elif probability < 190:
             self.money = random.randint(200, 380)                          
         elif probability <= 200:
-            self.money = random.randint(380, 800)                          
+            self.money = random.randint(380, 800)
+
+        self.permanant_ac = 0
+        self.battle_ac = 0
  
         
     def load(self, name, level, alignment, job, ac,
