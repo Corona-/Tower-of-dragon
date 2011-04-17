@@ -10,6 +10,7 @@ import shop_window
 import item
 import character_view
 import random
+import temple_window
 
 COLOR_WHITE = (255,255,255)
 COLOR_GLAY = (128,128,128)
@@ -28,6 +29,7 @@ class System_notify_window(window.Window):
     USE_MAGIC = 10
     VIEW_STATUS = 11
     CHANGE_PARTY = 12
+    TEMPLE_PAY = 13
     
     def __init__(self, rectangle, instruction):
         window.Window.__init__(self, rectangle)
@@ -62,6 +64,12 @@ class System_notify_window(window.Window):
         self.item_view = Item_view(Rect(120, 50, 400, 360))
         self.magic_all_view = Magic_all_view(Rect(80, 50, 280 ,120))
 
+        self.temple_not_enough = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.TEMPLE_NOT_ENOUGH)
+        self.temple_not_movable = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.TEMPLE_NOT_MOVABLE)
+        self.temple_curing = temple_window.Curing_window(Rect(60, 40, 520, 400))
+        self.cured = False
+
+        
     def draw(self, screen, character):
             """draw the window on the screen"""
             
@@ -87,7 +95,7 @@ class System_notify_window(window.Window):
                             chara.money += 1
                             money_left -= 1
 
-            if self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL or self.instruction == self.COLLECT or self.instruction == self.USE_ITEM or self.instruction == self.USE_MAGIC or self.instruction == self.VIEW_STATUS or self.instruction == self.CHANGE_PARTY:
+            if self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL or self.instruction == self.COLLECT or self.instruction == self.USE_ITEM or self.instruction == self.USE_MAGIC or self.instruction == self.VIEW_STATUS or self.instruction == self.CHANGE_PARTY or self.instruction == self.TEMPLE_PAY:
 
                 if self.instruction == self.DONATE:
                     top_font = self.menu_font.render( u"誰が寄付をしますか？", True, COLOR_WHITE)      
@@ -123,6 +131,12 @@ class System_notify_window(window.Window):
                 elif self.instruction == self.CHANGE_PARTY:
                     top_font = self.menu_font.render( u"順番に並べ替えてください", True, COLOR_WHITE)      
                     screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))                    
+                elif self.instruction == self.TEMPLE_PAY:
+                    top_font = self.menu_font.render( u"誰が寄付金を納めますか？", True, COLOR_WHITE)      
+                    screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))
+                    game_self = character
+                    character = game_self.party.member
+
 
                 #set cursors of menu items
                 if len(character) > 0:
@@ -142,8 +156,13 @@ class System_notify_window(window.Window):
                 self.house_reform_message.draw(screen)
                 self.character_sell_window.draw(screen, character[self.menu]) 
                 self.collect_message.draw(screen)
+                self.temple_not_enough.draw(screen)
+                self.temple_not_movable.draw(screen)
 
                 self.status_view.draw(screen, character)
+
+                if self.instruction == self.TEMPLE_PAY:
+                    self.temple_curing.draw(screen, game_self)
 
                 if self.instruction == self.USE_ITEM:
                     self.item_view.draw(screen, game_self)
@@ -220,13 +239,21 @@ class System_notify_window(window.Window):
         elif self.magic_all_view.is_visible:
             self.magic_all_view.magic_all_view_handler(event, game_self)
             return
-           
+        elif self.temple_not_enough.is_visible:
+            self.temple_not_enough.donate_finish_window_handler(event, game_self)
+            return
+        elif self.temple_not_movable.is_visible:
+            self.temple_not_movable.donate_finish_window_handler(event, game_self)
+            return
+        elif self.temple_curing.is_visible:
+            self.temple_curing.curing_window_handler(event, game_self)
+            return
         
         if self.instruction == self.SHARE:        
             if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
                 self.is_visible = False
 
-        elif self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL or self.instruction == self.ITEM_OUT or self.instruction == self.ITEM_IN or self.instruction == self.COLLECT or self.instruction == self.USE_ITEM or self.instruction == self.USE_MAGIC or self.instruction == self.VIEW_STATUS or self.instruction == self.CHANGE_PARTY:
+        elif self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL or self.instruction == self.ITEM_OUT or self.instruction == self.ITEM_IN or self.instruction == self.COLLECT or self.instruction == self.USE_ITEM or self.instruction == self.USE_MAGIC or self.instruction == self.VIEW_STATUS or self.instruction == self.CHANGE_PARTY or self.instruction == self.TEMPLE_PAY:
             
             if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
                 if self.instruction == self.DONATE:
@@ -330,6 +357,43 @@ class System_notify_window(window.Window):
                         self.menu = 0
                         game_self.menu.temp_party1 = []
                         game_self.menu.temp_party2 = []
+
+                elif self.instruction == self.TEMPLE_PAY:
+                    if game_self.party.member[self.menu].status == "OK":
+                        temple_cure = game_self.temple.temple_cure_window
+                        cure_character = temple_cure.to_cure[temple_cure.menu+temple_cure.page*10]
+                        cost = 0
+                        if cure_character.status == "PALSY":
+                            cost = 100*cure_character.level
+                        elif cure_character.status == "STONE":
+                            cost = 200*cure_character.level
+                        elif cure_character.status == "DEAD":
+                            cost = 250*cure_character.level
+                        elif cure_character.status == "ASHED":
+                            cost = 500*cure_character.level
+
+                        
+                        if game_self.party.member[self.menu].money > cost:
+                            game_self.party.member[self.menu].money-=cost
+
+                            self.cured = False
+                            if cure_character.status == "PALSY" or cure_character.status == "STONE":
+                                self.cured = True
+                            else:
+                                probability = random.randint(1,100)
+                                if probability <= 5:
+                                    self.cured = True
+                                else:
+                                    self.cured = False
+
+                            self.temple_curing.is_visible = True
+                        else:
+                            self.temple_not_enough.is_visible = True
+                            pass
+                    else:
+                        self.temple_not_movable.is_visible = True
+                        pass
+                    pass
                         
                 
                 
@@ -560,6 +624,8 @@ class Donate_finish_window(window.Window):
     TOO_MUCH_ITEM = 5
     SOLD_ITEM = 6
     COLLECT = 7
+    TEMPLE_NOT_ENOUGH = 8
+    TEMPLE_NOT_MOVABLE = 9
     
     def __init__(self, rectangle, instruction):
         window.Window.__init__(self, rectangle)
@@ -607,6 +673,13 @@ class Donate_finish_window(window.Window):
             elif self.instruction == self.COLLECT:
                 enough_font = self.menu_font.render( u"*お金を集めました*", True, COLOR_WHITE)      
                 screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
+            elif self.instruction == self.TEMPLE_NOT_ENOUGH:
+                enough_font = self.menu_font.render( u"*けちな背教者め！*", True, COLOR_WHITE)      
+                screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
+            elif self.instruction == self.TEMPLE_NOT_MOVABLE:
+                enough_font = self.menu_font.render( u"*行動不能です*", True, COLOR_WHITE)      
+                screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
+                
 
 
     def donate_finish_window_handler(self, event, game_self):
@@ -650,6 +723,10 @@ class Donate_finish_window(window.Window):
                 self.is_visible = False
                 if game_self.shop.shop_window.buy_window.character_select.no_more == 1:
                     game_self.shop.shop_window.buy_window.character_select.is_visible = False
+        elif self.instruction == self.TEMPLE_NOT_ENOUGH or self.instruction == self.TEMPLE_NOT_MOVABLE:
+            if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+                self.is_visible = False
+            
 
 
 class Rest_window(window.Window):

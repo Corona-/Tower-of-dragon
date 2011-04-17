@@ -4,6 +4,7 @@ import pygame
 from pygame.locals import *
 import window
 import system_notify
+import temple_window
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -40,6 +41,7 @@ class Temple:
         self.music = 0
 
         #initialize extra window
+        self.temple_cure_window = temple_window.Temple_window( Rect(60, 50, 520, 360))
         self.donate_money = system_notify.System_notify_window(Rect(200, 120 ,240, 240), self.DONATE)
 
     def update(self):
@@ -79,12 +81,16 @@ class Temple:
 
         #draw extra window
         self.donate_money.draw(screen, game_self.party.member)
+        self.temple_cure_window.draw(screen, game_self)
 
 
 def temple_handler(self, event):
     """event handler of temple"""
     if self.temple.donate_money.is_visible:
         self.temple.donate_money.system_notify_window_handler(event, self,self.party.member)
+        return
+    elif self.temple.temple_cure_window.is_visible:
+        self.temple.temple_cure_window.temple_window_handler(event, self)
         return
     
     
@@ -101,7 +107,7 @@ def temple_handler(self, event):
 
     if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         if self.temple.menu == Temple.CURE:
-            pass
+            self.temple.temple_cure_window.is_visible = True
         elif self.temple.menu == Temple.DONATE:
             self.temple.donate_money.is_visible = True
         elif self.temple.menu == Temple.BACK:
