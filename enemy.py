@@ -139,7 +139,7 @@ class Enemy:
         self.confuse_resistance = int(enemy[50])
         self.blind_resistance = int(enemy[51])
         
-
+        self.level = int(enemy[52])
         
 
         

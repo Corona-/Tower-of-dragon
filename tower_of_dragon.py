@@ -61,6 +61,7 @@ class tower_of_dragon:
         self.game_state = TITLE
 
         self.characters = []
+        self.dungeon_characters = []
 
         self.cursor_se = pygame.mixer.Sound("SE/decide.wav")
         self.select_se = pygame.mixer.Sound("SE/decide.wav")

@@ -5,6 +5,7 @@ from pygame.locals import *
 import easygui
 import string
 import window
+import item
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -325,6 +326,7 @@ class Status_view_window(window.Window):
         self.centerx = rectangle.centerx
 
         self.menu_font = pygame.font.Font("ipag.ttf", 20)
+        self.item_font = pygame.font.Font("ipag.ttf", 16)
     
 
     def draw(self, screen, character):
@@ -430,9 +432,6 @@ class Status_view_window(window.Window):
             character_agility_font = self.menu_font.render( str(character[self.menu].agility), True, COLOR_WHITE)
             character_luck_font = self.menu_font.render( str(character[self.menu].luck) , True, COLOR_WHITE)
 
-            #item still not decided yet...
-            #character_item_font = self.menu_font.render( item? , True, COLOR_WHITE)
-
             magic_font = self.menu_font.render( u"魔術：", True, COLOR_WHITE)
             priest_magic_font = self.menu_font.render( u"僧侶：", True, COLOR_WHITE)
 
@@ -483,6 +482,19 @@ class Status_view_window(window.Window):
                                                    
             screen.blit(character_magic_font, ( 150 , 370))
             screen.blit(character_priest_magic_font, (150, 400))
+
+            i = 0
+            for equip in character[self.menu].equip:
+                if isinstance( equip , item.Item):
+                    item_font = self.item_font.render( equip.name, True, COLOR_WHITE)
+                    screen.blit( item_font, (450, 100+ i*20))
+                i+=1
+                
+            i = 0
+            for char_item in character[self.menu].items:
+                item_font = self.item_font.render( char_item.name, True, COLOR_WHITE)
+                screen.blit( item_font, ( 450, 220 + i*20))
+                i+=1
 
 
     def status_view_window_handler(self, game_self, event, character):

@@ -56,7 +56,7 @@ def rest(self, game_self, rest_level, inn):
 #calculate the exp needed
 #need to find better way to calculate exp
 def calc_exp_needed(self, character):
-    necessary_exp = 100*character.level + 250*(character.level-1)   
+    necessary_exp = int(100*1.75*character.level)  
     character.next = necessary_exp - character.exp
 
 

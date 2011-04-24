@@ -305,21 +305,26 @@ class System_notify_window(window.Window):
 
                     change = [0,0,0,0,0,0,0,0]
                     #level up if next is negative
-                    if game_self.party.member[self.menu].next > 0:
+                    if game_self.party.member[self.menu].next < 0:
                         if game_self.game_state == INN:
                             rest.level_up(self, game_self.party.member[self.menu], game_self.inn.inn_window.menu, change)
                         elif game_self.game_state == HOUSE:
                             rest.level_up(self, game_self.party.member[self.menu], game_self.party.house, change)
                             
-
                         self.resting_window.get_change_status_values(change)
                         #show message of sleeping...
+                        self.resting_window.lv_up_window = level_up_window(Rect(80, 140, 440, 300), 0)
+
                         self.resting_window.is_visible = True
                         #show message for lv up                        
                     else:
                         self.resting_window.get_change_status_values(change)
                         #window to show next
                         #show message of sleeping...
+
+                        #change the lv up to not lv up
+                        self.resting_window.lv_up_window = level_up_window(Rect(80, 140, 440, 300), 1)
+
                         self.resting_window.is_visible = True
                         pass
                     #print change
@@ -402,6 +407,8 @@ class System_notify_window(window.Window):
             if event.type == KEYUP and event.key == K_x:
                 self.menu = 0
                 self.is_visible = False
+                game_self.menu.temp_party1 = []
+                game_self.menu.temp_party2 = []
 
             if event.type == KEYUP and event.key == K_UP:
                 self.menu -= 1
@@ -732,6 +739,7 @@ class Donate_finish_window(window.Window):
 class Rest_window(window.Window):
 
     REST = 0
+    LV_UP,LV_STAY = 0, 1
     
     def __init__(self, rectangle, instruction):
         window.Window.__init__(self, rectangle)
@@ -1008,6 +1016,17 @@ class level_up_window(window.Window):
         if self.is_visible == False: return
 
         #if level doesn't go up
+        if self.instruction == self.NOT_UP:
+
+            name_font = self.menu_font.render( character.name, True, COLOR_WHITE)
+            lv_font = self.menu_font.render( u"は次のレベルまで", True, COLOR_WHITE) 
+            exp_font = self.menu_font.render( u"あと " + str(character.next) + u"EXPが必要です", True, COLOR_WHITE) 
+
+            screen.blit(name_font, ( self.left + 20 , self.top + 20))
+            screen.blit(lv_font, ( self.left + 25 + name_font.get_width() , self.top + 20))
+            screen.blit(exp_font, ( self.left + 20 , self.top + 50))
+ 
+            return
         
         
         #if level up

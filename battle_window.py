@@ -7,6 +7,7 @@ import random
 import character
 import character_make
 import window
+import battle
 
 import string
 
@@ -74,21 +75,36 @@ class Enemy_select_window(window.Window):
 
         #not sure it is passing it by...
         #if making change to battle, do it with game_self
-        battle = game_self.dungeon.battle
+        battle_in = game_self.dungeon.battle
 
-        front_length = len(battle.enemyList)
-        back_length = len(battle.enemyListBack)
+        front_length = len(battle_in.enemyList)
+        back_length = len(battle_in.enemyListBack)
 
         
-        character = game_self.party.member[ battle.selected ]
+        character = game_self.party.member[ battle_in.selected ]
 
         if event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
-            if battle.menu == battle.FIGHT:
-                game_self.dungeon.battle.party_movement.append( battle_command.Battle_command( character, battle.FIGHT, self.menu))
-            if battle.menu == battle.CURSE:
-                game_self.dungeon.battle.party_movement.append( battle_command.Battle_command( character, battle.CURSE, self.menu))                
+            if battle_in.menu == battle_in.FIGHT:
+                game_self.dungeon.battle.party_movement.append( battle_command.Battle_command( character, battle_in.FIGHT, self.menu))
+            if battle_in.menu == battle_in.CURSE:
+                game_self.dungeon.battle.party_movement.append( battle_command.Battle_command( character, battle_in.CURSE, self.menu))                
             self.is_visible = False
             game_self.dungeon.battle.selected += 1
+
+            next_character = None
+            if game_self.dungeon.battle.selected >= len(game_self.party.member):
+                next_character = game_self.party.member[0]
+            else:
+                next_character = game_self.party.member[ battle_in.selected ]
+
+            check = battle.character_attackable ( game_self, next_character )
+
+            if check == True:
+                game_self.dungeon.battle.menu = battle_in.FIGHT
+            else:
+                game_self.dungeon.battle.menu = battle_in.DEFEND
+       
+            
 
 
         if event.type == KEYUP and event.key == K_x:

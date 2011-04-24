@@ -538,6 +538,33 @@ class Dungeon:
                     for character in game_self.party.member:
                         character.coordinate[0] = decrement(character.coordinate[0],1)
 
+            #find event on the new place?
+
+            coordinate = game_self.party.member[0].coordinate
+            x = coordinate[0]
+            y = coordinate[1]
+
+            #down stairs = 2, up stairs = 1, elevator = 3
+
+            #下りる階段があります　下りますか　はい　いいえ
+            if self.ground[y][x] == 2:
+                for character in game_self.party.member:
+                    character.coordinate[2] = character.coordinate[2]-1
+                #return to tower
+                
+                if game_self.party.member[0].coordinate[2] == 0:
+                    game_self.game_state = TOWER
+                    for charcter in game_self.party.member:
+                        character.coordinate = [-1, -1, -1]
+                    self.battle = None
+                    self.battle_flag = 0
+                    self.music = 0
+                    game_self.party.direction = 0
+                    
+                    
+                pass
+
+            
 
         #probability is out of 1 - 100
     def battle_encount( self, probability, character ):

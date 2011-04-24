@@ -54,10 +54,11 @@ class Temple_window(window.Window):
 
         if self.to_cure == []:
             for character in game_self.party.member:
-                #if character.status != "OK":
+                if character.status != "OK":
                     self.to_cure.append(character)
             for character in game_self.characters:
-                self.to_cure.append(character)
+                if character.status != "OK":
+                    self.to_cure.append(character)
 
         if self.to_cure != []:
             #draws rectangle on the menu item size of rectangle has width of window rectangle - edge_length*2
@@ -100,6 +101,7 @@ class Temple_window(window.Window):
             self.menu = 0
             self.page = 0
             self.is_visible = False
+            self.to_cure = []
 
         if event.type == KEYUP and event.key == K_UP: #moves the cursor up
             self.menu -= 1
@@ -136,7 +138,6 @@ class Temple_window(window.Window):
 
             else:
                 self.cure_pay_window.is_visible = True
-                #and new window for showing 囁き祈り詠唱念じろ!
 
 
 class Curing_window(window.Window):
