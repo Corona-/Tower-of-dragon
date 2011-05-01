@@ -88,3 +88,6 @@
 
 	【サイト名】Wizardry Prisoners of the Battles
 	【アドレス】http://wiz-pb.jp/pob.html
+
+	【サイト名】Wizardry レベルアップ必要経験値List
+	【アドレス】http://yosiho.lain.aisnet.jp/ETC/wiz_exp.html

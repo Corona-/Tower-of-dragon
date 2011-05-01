@@ -4,6 +4,14 @@ import pygame
 from pygame.locals import *
 
 import window
+import tower
+import temple
+import shop
+import inn
+import castle
+import bar
+import house
+import menu
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 HOUSE = 11
@@ -49,10 +57,6 @@ class City:
         
 
         self.music = 0
-
-        self.cursor_se = pygame.mixer.Sound("SE/decide.wav")
-        self.select_se = pygame.mixer.Sound("SE/select.wav")
-        
 
     def update(self):
         if self.music == 0:
@@ -167,32 +171,48 @@ def city_handler(self, event):
         
         if self.city.menu == City.BAR:
             self.game_state = BAR
+            self.city = None
+            self.bar = bar.Bar()
         elif self.city.menu == City.INN:
             self.game_state = INN
+            self.city = None
+            self.inn = inn.Inn()
         elif self.city.menu == City.HOUSE:
             self.game_state = HOUSE
+            self.city = None
+            self.house = house.House()
         elif self.city.menu == City.SHOP:
             if len(self.party.member) == 0:
                 #if it cannot be selected, continue music
                 self.city.music = 1
             else:
                 self.game_state = SHOP
+                self.city = None
+                self.shop = shop.Shop()
         elif self.city.menu == City.TEMPLE:
             if len(self.party.member) == 0:
                 self.city.music = 1
             else:
                 self.game_state = TEMPLE
+                self.city = None
+                self.temple = temple.Temple()
         elif self.city.menu == City.CASTLE:
             self.game_state = CASTLE
+            self.city = None
+            self.castle = castle.Castle
         elif self.city.menu == City.TOWER:
             if len(self.party.member) == 0:
                 self.city.music = 1
             else:
                 self.game_state = TOWER
+                self.city = None
+                self.tower = tower.Tower
 
 
     elif event.type == KEYUP and event.key == K_x:
 
         self.game_state = MENU
+        self.city = None
+        self.menu = menu.Menu()
 
 

@@ -486,7 +486,7 @@ class Status_view_window(window.Window):
             i = 0
             for equip in character[self.menu].equip:
                 if isinstance( equip , item.Item):
-                    item_font = self.item_font.render( equip.name, True, COLOR_WHITE)
+                    item_font = self.item_font.render( "E:" + equip.name, True, COLOR_WHITE)
                     screen.blit( item_font, (450, 100+ i*20))
                 i+=1
                 

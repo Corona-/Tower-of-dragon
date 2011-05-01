@@ -228,6 +228,10 @@ class Curing_window(window.Window):
                 character = cure_window.to_cure[cure_window.menu+cure_window.page*10]
                 if self.status_change == 0:
                     character.status = "OK"
+                    #it is OK now so remove from to_cure window
+                    character.hp = character.max_hp
+                    del cure_window.to_cure[cure_window.menu+cure_window.page*10]
+
                 if self.status_change == 1:
                     character.status = "ASHED"
                 if self.status_change == 2:

@@ -116,7 +116,7 @@ class System_notify_window(window.Window):
                     top_font = self.menu_font.render( u"誰にお金を集めますか？", True, COLOR_WHITE)      
                     screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))                    
                 elif self.instruction == self.USE_ITEM:
-                    top_font = self.menu_font.render( u"誰のアイテムを使いますか？", True, COLOR_WHITE)      
+                    top_font = self.menu_font.render( u"誰のアイテムを見ますか？", True, COLOR_WHITE)      
                     screen.blit(top_font, (self.centerx - top_font.get_width()/2, self.top+15))
                     game_self = character
                     character = game_self.party.member
@@ -256,6 +256,10 @@ class System_notify_window(window.Window):
         elif self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL or self.instruction == self.ITEM_OUT or self.instruction == self.ITEM_IN or self.instruction == self.COLLECT or self.instruction == self.USE_ITEM or self.instruction == self.USE_MAGIC or self.instruction == self.VIEW_STATUS or self.instruction == self.CHANGE_PARTY or self.instruction == self.TEMPLE_PAY:
             
             if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+                #if game_self.party.member[self.menu].status != "OK" and self.instruction != self.VIEW_STATUS:
+                #    return
+
+                
                 if self.instruction == self.DONATE:
                     if len(character) > 0:
                         self.donate_window.is_visible = True
@@ -386,7 +390,7 @@ class System_notify_window(window.Window):
                                 self.cured = True
                             else:
                                 probability = random.randint(1,100)
-                                if probability <= 5:
+                                if probability <= 90:
                                     self.cured = True
                                 else:
                                     self.cured = False
@@ -794,6 +798,7 @@ class Confirm_window(window.Window):
     HOUSE_CHANGE = 10
     SAVE, LOAD = 100, 101
     JOB_CHANGE = 20
+    DOWNSTAIRS = 30
 
 
     YES, NO = 0, 1
@@ -840,6 +845,9 @@ class Confirm_window(window.Window):
          elif self.instruction == self.JOB_CHANGE:
              character = game_self.castle.change_job_window.possible_characters[game_self.castle.change_job_window.menu]
              confirm_font = self.menu_font.render( character.name + u"は" + u"転職します", True, COLOR_WHITE)
+         elif self.instruction == self.DOWNSTAIRS:
+             confirm_font = self.menu_font.render( u"下りる階段があります　下りますか？", True, COLOR_WHITE)
+            
              
 
          yes_font = self.menu_font.render( u"はい", True, COLOR_WHITE) 
@@ -989,6 +997,31 @@ class Confirm_window(window.Window):
                     pass
                 else:
                     game_self.castle.change_job_window.job_change_confirm.is_visible = False
+            if self.instruction == self.DOWNSTAIRS:
+                if self.menu == self.YES:
+                    for character in game_self.party.member:
+                        character.coordinate[2] = character.coordinate[2]-1
+
+                    #TO-DO load new floor
+                        
+                    #return to tower   
+                    if game_self.party.member[0].coordinate[2] == 0:
+                        game_self.game_state = TOWER
+                        i = 0
+                        for charcter in game_self.party.member:
+                            game_self.party.member[i].coordinate = [-1,-1,-1]
+                            i += 1
+                        game_self.dungeon.battle = None
+                        game_self.dungeon.battle_flag = 0
+                        game_self.dungeon.music = 0
+                        game_self.party.direction = 0
+
+                        self.is_visible = False
+                    
+                else:
+                    self.is_visible = False
+                
+                pass
                     
 
 
@@ -1392,7 +1425,7 @@ class Item_view(window.Window):
 
         self.top_font = self.menu_font.render( u"の持ち物:", True, COLOR_WHITE)
 
-        self.target_window = Target_select(Rect(120, 50, 400, 240)) 
+        self.item_todo_window = Item_menu_select(Rect(170, 80, 300, 180))
 
     def update(self):
         pass
@@ -1422,12 +1455,12 @@ class Item_view(window.Window):
             screen.blit ( item_font, (self.centerx - item_font.get_width()/2, self.top+60+i*30))
             i += 1
 
-        self.target_window.draw( screen, game_self)
+        self.item_todo_window.draw(screen, game_self)
         
     def item_view_handler(self, event, game_self):
 
-        if self.target_window.is_visible == True:
-            self.target_window.target_select_handler( event, game_self)
+        if self.item_todo_window.is_visible == True:
+            self.item_todo_window.item_menu_select_handler(event, game_self)
             return
 
         character = game_self.party.member[game_self.menu.item_window.menu]
@@ -1453,16 +1486,9 @@ class Item_view(window.Window):
 
         elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
             if len(character.items) > 0:
-                use_item = character.items[game_self.menu.item_window.item_view.menu]
-                #if category is 100, it means it needs to select target
-                if use_item.category == 100:
-                    self.target_window.is_visible = True
-                #if category is 101, no target selection is needed
-                elif use_item.category == 101:
-                    pass
-                #else not able to use in menu
-                else:
-                    pass
+                self.item_todo_window.is_visible = True
+
+
 
 
 class Magic_all_view(window.Window):
@@ -1701,8 +1727,10 @@ class Magic_level(window.Window):
       
 class Target_select(window.Window):
 
+    USE_ITEM = 0
+    PASS_ITEM = 1
 
-    def __init__(self, rectangle):
+    def __init__(self, rectangle, instruction):
 
         window.Window.__init__(self, rectangle)
         self.is_visible = False
@@ -1713,6 +1741,8 @@ class Target_select(window.Window):
         self.left = rectangle.left
         self.right = rectangle.right
         self.centerx = rectangle.centerx
+
+        self.instruction = instruction
 
         self.menu_font = pygame.font.Font("ipag.ttf", 20)
 
@@ -1766,7 +1796,7 @@ class Target_select(window.Window):
 
         elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
 
-            if game_self.menu.item_window.is_visible == True:
+            if self.instruction == self.USE_ITEM:
                 user = game_self.party.member[game_self.menu.item_window.menu]
                 use_item = user.items[game_self.menu.item_window.item_view.menu]
                 target = game_self.party.member[self.menu]
@@ -1794,3 +1824,239 @@ class Target_select(window.Window):
 
                 self.menu = 0
                 self.is_visible = False
+                game_self.menu.item_window.item_view.item_todo_window.is_visible = False
+
+            if self.instruction == self.PASS_ITEM:
+                user = game_self.party.member[game_self.menu.item_window.menu]
+                use_item = user.items[game_self.menu.item_window.item_view.menu]
+                target = game_self.party.member[self.menu]
+
+                #if length is less than max, it is able to pass
+                if len(target.items) < 10:
+                    target.items.append(use_item)
+                    del user.items[game_self.menu.item_window.item_view.menu]
+                    game_self.menu.item_window.item_view.item_todo_window.is_visible = False
+                    self.menu = 0
+                    self.is_visible = False
+                else:
+                    #item is full, do nothing
+                    #need to show window that item is full
+                    self.menu = 0
+                    self.is_visible = False
+
+                if game_self.menu.item_window.item_view.menu > len(user.items)-1:
+                    game_self.menu.item_window.item_view.menu -= 1
+                    
+               
+                pass
+            
+
+class Item_menu_select(window.Window):
+
+    MENU_MAX = 4
+    USE_ITEM, EQUIP_ITEM, LOOK_ITEM, PASS_ITEM, TRASH_ITEM = 0, 1, 2, 3, 4
+
+    def __init__(self, rectangle):
+
+        window.Window.__init__(self, rectangle)
+        self.is_visible = False
+
+        self.menu = 0
+
+        self.top = rectangle.top
+        self.left = rectangle.left
+        self.right = rectangle.right
+        self.centerx = rectangle.centerx
+
+        self.menu_font = pygame.font.Font("ipag.ttf", 20)
+
+        self.use_font = self.menu_font.render( u"アイテムを使う", True, COLOR_WHITE) 
+        self.equip_font = self.menu_font.render( u"アイテムを装備する", True, COLOR_WHITE) 
+        self.look_font = self.menu_font.render( u"アイテムを見る", True, COLOR_WHITE) 
+        self.pass_font = self.menu_font.render( u"アイテムを渡す", True, COLOR_WHITE) 
+        self.trash_font = self.menu_font.render( u"アイテムを捨てる", True, COLOR_WHITE) 
+
+        self.use_target_window = Target_select(Rect(170, 50, 400, 240), 0)
+        self.pass_target_window = Target_select(Rect(170, 50, 400, 240), 1)
+
+
+    def update(self):
+        pass
+    def draw(self, screen, game_self):
+
+        if self.is_visible == False: return
+        
+        window.Window.draw(self, screen)
+
+        
+        pygame.draw.rect(screen, COLOR_GLAY, Rect( self.left+4, self.top+15 + 30*self.menu,(self.right-self.left)-8,30), 0)
+
+
+
+        screen.blit( self.use_font, (self.centerx - self.use_font.get_width()/2, self.top+20))
+        screen.blit( self.equip_font, (self.centerx - self.equip_font.get_width()/2, self.top+50))
+        screen.blit( self.look_font, (self.centerx - self.look_font.get_width()/2, self.top+80))
+        screen.blit( self.pass_font, (self.centerx - self.pass_font.get_width()/2, self.top+110))
+        screen.blit( self.trash_font, (self.centerx - self.trash_font.get_width()/2, self.top+140))
+
+
+        self.use_target_window.draw( screen, game_self)
+        self.pass_target_window.draw(screen,game_self)
+
+        
+
+    def item_menu_select_handler(self, event, game_self):
+
+        if self.use_target_window.is_visible == True:
+            self.use_target_window.target_select_handler( event, game_self)
+            return
+        if self.pass_target_window.is_visible == True:
+            self.pass_target_window.target_select_handler( event, game_self)
+            return
+
+        if event.type == KEYUP and event.key == K_x:
+            game_self.cancel_se.play()
+            self.menu = 0
+            self.is_visible =False
+
+        #moves the cursor up
+        elif event.type == KEYUP and event.key == K_UP:
+            game_self.cursor_se.play()
+            self.menu -= 1
+            if self.menu < 0:
+                self.menu = 0
+                
+        #moves the cursor down
+        elif event.type == KEYUP and event.key == K_DOWN:
+            game_self.cursor_se.play()
+            self.menu += 1
+            if self.menu > self.MENU_MAX:
+                self.menu = self.MENU_MAX
+
+
+        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+
+            character = game_self.party.member[game_self.menu.item_window.menu]
+            use_item = character.items[game_self.menu.item_window.item_view.menu]
+
+
+            if self.menu == self.USE_ITEM:
+                #if category is 100, it means it needs to select target (for party member)
+                if use_item.category == 100:
+                    self.use_target_window.is_visible = True
+                #if category is 101, no target selection is needed
+                #たいまつとか
+                elif use_item.category == 101:
+                    pass
+                else:
+                    #not able to use in menu
+                    pass
+
+            if self.menu == self.EQUIP_ITEM:
+
+                
+                #weapon
+                if use_item.category == 1:
+                    if character.job == 0:
+                        if isinstance(character.equip[0], item.Item):
+                            character.items.append(character.equip[0])
+                            character.equip[0] = use_item
+                        else:
+                            character.equip[0] = use_item
+                        del character.items[game_self.menu.item_window.item_view.menu]
+
+                if use_item.category == 2:
+                    if character.job == 1:
+                        if isinstance(character.equip[0], item.Item):
+                            character.items.append(character.equip[0])
+                            character.equip[0] = use_item
+                        else:
+                            character.equip[0] = use_item
+                        del character.items[game_self.menu.item_window.item_view.menu]
+
+                if use_item.category == 3:
+                    if character.job == 2 or character.job == 3:
+                        if isinstance(character.equip[0], item.Item):
+                            character.items.append(character.equip[0])
+                            character.equip[0] = use_item
+                        else:
+                            character.equip[0] = use_item
+                        del character.items[game_self.menu.item_window.item_view.menu]
+
+                if use_item.category == 4:
+                    if character.job == 5:
+                        if isinstance(character.equip[0], item.Item):
+                            character.items.append(character.equip[0])
+                            character.equip[0] = use_item
+                        else:
+                            character.equip[0] = use_item
+                        del character.items[game_self.menu.item_window.item_view.menu]
+
+                if use_item.category == 5:
+                    if character.job == 4:
+                        if isinstance(character.equip[0], item.Item):
+                            character.items.append(character.equip[0])
+                            character.equip[0] = use_item
+                        else:
+                            character.equip[0] = use_item
+                        del character.items[game_self.menu.item_window.item_view.menu]
+
+
+                #shield
+                if use_item.category == 30:
+                    if isinstance(character.equip[1], item.Item):
+                        character.items.append(character.equip[1])
+                        character.equip[1] = use_item
+                    else:
+                        character.equip[1] = use_item
+                    del character.items[game_self.menu.item_window.item_view.menu]
+
+                #armor
+                if use_item.category == 60:
+                    if isinstance(character.equip[2], item.Item):
+                        character.items.append(character.equip[2])
+                        character.equip[2] = use_item
+                    else:
+                        character.equip[2] = use_item
+                    del character.items[game_self.menu.item_window.item_view.menu]
+                        
+                #helmet
+                if use_item.category == 90:
+                    if isinstance(character.equip[3], item.Item):
+                        character.items.append(character.equip[3])
+                        character.equip[3] = use_item
+                    else:
+                        character.equip[3] = use_item
+                    del character.items[game_self.menu.item_window.item_view.menu]
+
+                #gauntlet
+                if use_item.category == 120:
+                    if isinstance(character.equip[4], item.Item):
+                        character.items.append(character.equip[4])
+                        character.equip[4] = use_item
+                    else:
+                        character.equip[4] = use_item
+                    del character.items[game_self.menu.item_window.item_view.menu]
+
+                #accessory
+                if use_item.category == 150:
+                    if isinstance(character.equip[5], item.Item):
+                        character.items.append(character.equip[5])
+                        character.equip[5] = use_item
+                    else:
+                        character.equip[5] = use_item
+                    del character.items[game_self.menu.item_window.item_view.menu]
+
+
+                self.is_visible = False
+                self.menu = 0
+                
+            if self.menu == self.LOOK_ITEM:
+                pass
+            if self.menu == self.PASS_ITEM:
+                self.pass_target_window.is_visible = True
+            if self.menu == self.TRASH_ITEM:
+                del character.items[game_self.menu.item_window.item_view.menu]
+                self.menu = 0
+                self.is_visible = False
+                

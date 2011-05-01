@@ -34,7 +34,7 @@ class Menu:
 
         self.menu_font = pygame.font.Font("ipag.ttf", 20)
 
-        self.item_font = self.menu_font.render(u"アイテムを使う", True, COLOR_WHITE)
+        self.item_font = self.menu_font.render(u"アイテムを見る", True, COLOR_WHITE)
         self.magic_font = self.menu_font.render(u"魔法を使う", True, COLOR_WHITE)
         self.status_font = self.menu_font.render(u"状態を見る", True, COLOR_WHITE)
         self.change_font = self.menu_font.render(u"隊列を変更する", True, COLOR_WHITE)
@@ -129,6 +129,9 @@ class Menu:
         if event.type == KEYUP and (event.key ==K_x):
             game_self.cancel_se.play()
             self.menu = self.ITEM
+            if game_self.party.member == []:
+                game_self.game_state = CITY
+                return
             if game_self.party.member[0].coordinate != [-1,-1,-1]:
                 game_self.game_state = DUNGEON
             else:

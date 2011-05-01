@@ -5,6 +5,7 @@ from pygame.locals import *
 import sitecustomize
 import sys
 import save
+import city
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -99,13 +100,18 @@ def title_handler(self, event):
             self.title.menu = 2
     #select menu item
     if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+        self.title.music = 0
+
         if self.title.menu == Title.START:
             self.game_state = CITY
+            self.title = None
+            self.city = city.City()
         elif self.title.menu == Title.CONTINUE:
-            save.load( self, self)
+            #save.load( self, self)
             self.game_state = CITY
+            self.title = None
+            self.city = city.City()
         elif self.title.menu == Title.END:
             pygame.quit()
             sys.exit()
 
-        self.title.music = 0
