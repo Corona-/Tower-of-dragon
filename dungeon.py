@@ -9,6 +9,8 @@ import random
 import battle
 import codecs
 import system_notify
+import city
+import menu
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 MENU=12
 
@@ -128,7 +130,7 @@ class Dungeon:
 
 
         #draw extra window
-        self.downstairs_window = system_notify.Confirm_window( Rect(160, 150, 380, 110) ,30)
+        self.downstairs_window = None #system_notify.Confirm_window( Rect(160, 150, 380, 110) , system_notify.Confirm_window.DOWNSTAIRS)
 
     def update(self):
 
@@ -460,13 +462,14 @@ class Dungeon:
             if self.battle_flag == 1:
                 self.battle.draw(game_self, screen)
 
-        self.downstairs_window.draw( screen, game_self, None)
+        if self.downstairs_window != None:
+            self.downstairs_window.draw( screen, game_self, None)
 
 
     def dungeon_handler(self, game_self, event):
         """event handler for dungeon"""
 
-        if self.downstairs_window.is_visible == True:
+        if self.downstairs_window != None and self.downstairs_window.is_visible == True:
             self.downstairs_window.confirm_window_handler( game_self, event, None)
             return
 
@@ -523,6 +526,8 @@ class Dungeon:
 
         if event.type == KEYUP and (event.key ==K_x):
             game_self.game_state = MENU
+            game_self.menu = menu.Menu()
+            game_self.dungeon = None
             #for character in game_self.party.member:
             #    character.coordinate = [-1,-1,-1]
             #self.music = 0
@@ -559,6 +564,7 @@ class Dungeon:
 
             #下りる階段があります　下りますか　はい　いいえ
             if self.ground[y][x] == 2:
+                self.downstairs_window = system_notify.Confirm_window( Rect(160, 150, 380, 110) , system_notify.Confirm_window.DOWNSTAIRS)
                 self.downstairs_window.is_visible = True
 ##                for character in game_self.party.member:
 ##                    character.coordinate[2] = character.coordinate[2]-1

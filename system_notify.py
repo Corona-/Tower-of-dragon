@@ -11,6 +11,7 @@ import item
 import character_view
 import random
 import temple_window
+import tower
 
 COLOR_WHITE = (255,255,255)
 COLOR_GLAY = (128,128,128)
@@ -411,8 +412,9 @@ class System_notify_window(window.Window):
             if event.type == KEYUP and event.key == K_x:
                 self.menu = 0
                 self.is_visible = False
-                game_self.menu.temp_party1 = []
-                game_self.menu.temp_party2 = []
+                if game_self.menu != None:
+                    game_self.menu.temp_party1 = []
+                    game_self.menu.temp_party2 = []
 
             if event.type == KEYUP and event.key == K_UP:
                 self.menu -= 1
@@ -906,20 +908,28 @@ class Confirm_window(window.Window):
             if self.instruction == self.SAVE:
                 if self.menu == self.YES:
                     save.save( self, game_self)
-                    game_self.inn.save_confirm.is_visible = False
-                    game_self.house.save_confirm.is_visible = False
+                    if game_self.inn != None:
+                        game_self.inn.save_confirm.is_visible = False
+                    if game_self.house != None:
+                        game_self.house.save_confirm.is_visible = False
                 else:
-                    game_self.inn.save_confirm.is_visible = False
-                    game_self.house.save_confirm.is_visible = False
+                    if game_self.inn != None:
+                        game_self.inn.save_confirm.is_visible = False
+                    if game_self.house != None:
+                        game_self.house.save_confirm.is_visible = False
     
             if self.instruction == self.LOAD:
                 if self.menu == self.YES:
                     save.load( self, game_self)
-                    game_self.inn.load_confirm.is_visible = False
-                    game_self.house.load_confirm.is_visible = False
+                    if game_self.inn != None:
+                        game_self.inn.load_confirm.is_visible = False
+                    if game_self.house != None:
+                        game_self.house.load_confirm.is_visible = False
                 else:
-                    game_self.inn.load_confirm.is_visible = False
-                    game_self.house.load_confirm.is_visible = False
+                    if game_self.inn != None:
+                        game_self.inn.load_confirm.is_visible = False
+                    if game_self.house != None:
+                        game_self.house.load_confirm.is_visible = False
 
             if self.instruction == self.JOB_CHANGE:
                 if self.menu == self.YES:
@@ -1015,11 +1025,15 @@ class Confirm_window(window.Window):
                         game_self.dungeon.battle_flag = 0
                         game_self.dungeon.music = 0
                         game_self.party.direction = 0
+                        game_self.tower = tower.Tower()
+                        game_self.dungeon = None
 
                         self.is_visible = False
+                        self = None
                     
                 else:
                     self.is_visible = False
+                    self = None
                 
                 pass
                     

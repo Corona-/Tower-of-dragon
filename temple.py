@@ -5,6 +5,7 @@ from pygame.locals import *
 import window
 import system_notify
 import temple_window
+import city
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -41,8 +42,8 @@ class Temple:
         self.music = 0
 
         #initialize extra window
-        self.temple_cure_window = temple_window.Temple_window( Rect(60, 50, 520, 360))
-        self.donate_money = system_notify.System_notify_window(Rect(200, 120 ,240, 240), self.DONATE)
+        self.temple_cure_window = None #temple_window.Temple_window( Rect(60, 50, 520, 360))
+        self.donate_money = None #system_notify.System_notify_window(Rect(200, 120 ,240, 240), system_notify.System_notify_window.DONATE)
 
     def update(self):
         if self.music == 0:
@@ -80,19 +81,20 @@ class Temple:
         screen.blit(self.back_font, ((MENU_CENTER-self.back_font.get_width())/2, 100))
 
         #draw extra window
-        self.donate_money.draw(screen, game_self.party.member)
-        self.temple_cure_window.draw(screen, game_self)
+        if self.donate_money != None:
+            self.donate_money.draw(screen, game_self.party.member)
+        if self.temple_cure_window != None:
+            self.temple_cure_window.draw(screen, game_self)
 
 
 def temple_handler(self, event):
     """event handler of temple"""
-    if self.temple.donate_money.is_visible:
+    if self.temple.donate_money != None and self.temple.donate_money.is_visible:
         self.temple.donate_money.system_notify_window_handler(event, self,self.party.member)
         return
-    elif self.temple.temple_cure_window.is_visible:
+    elif self.temple.temple_cure_window != None and self.temple.temple_cure_window.is_visible:
         self.temple.temple_cure_window.temple_window_handler(event, self)
         return
-    
     
     if event.type == KEYUP and event.key == K_UP: #moves the cursor up
         self.cursor_se.play()
@@ -107,20 +109,28 @@ def temple_handler(self, event):
 
     if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         if self.temple.menu == Temple.CURE:
+            self.temple.temple_cure_window = temple_window.Temple_window( Rect(60, 50, 520, 360))
             self.temple.temple_cure_window.is_visible = True
         elif self.temple.menu == Temple.DONATE:
+            self.temple.donate_money = system_notify.System_notify_window(Rect(200, 120 ,240, 240), system_notify.System_notify_window.DONATE)
             self.temple.donate_money.is_visible = True
         elif self.temple.menu == Temple.BACK:
             self.game_state = CITY
             self.temple.menu = Temple.CURE
             self.temple.music = 0
+            self.temple = None
+            self.city = city.City()
         self.select_se.play()
+
+
 
 
     if event.type == KEYUP and (event.key ==K_x):
         self.game_state = CITY
         self.temple.menu = Temple.CURE
         self.temple.music = 0
+        self.temple = None
+        self.city = city.City()
         self.cancel_se.play()
         
 

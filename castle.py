@@ -5,6 +5,7 @@ from pygame.locals import *
 import window
 import character_view
 import system_notify
+import city
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -49,11 +50,11 @@ class Castle:
 
         #extra windows initialization
         #-1 to adjust with view.
-        self.character_delete = character_view.Character_view(Rect(80, 60, 480, 360), self.DELETE - 1)
+        self.character_delete = None #character_view.Character_view(Rect(80, 60, 480, 360), character_view.Character_view.DELETE)
         self.delete_confirm = character_view.Delete_confirm_window(Rect(200, 160, 240, 120))
-        self.character_rename = character_view.Character_view(Rect(80, 60, 480, 360), self.NAME_CHANGE - 1)
-        self.donate_money = system_notify.System_notify_window(Rect(200,120,240,240), self.DONATE - 3)
-        self.change_job_window = Change_job_window(Rect(80,60,480,360))
+        self.character_rename = None #character_view.Character_view(Rect(80, 60, 480, 360), character_view.Character_view.NAME_CHANGE)
+        self.donate_money = None #system_notify.System_notify_window(Rect(200,120,240,240), system_notify.System_notify.DONATE)
+        self.change_job_window = None #Change_job_window(Rect(80,60,480,360))
         
     def update(self):
         if self.music == 0:
@@ -119,28 +120,33 @@ class Castle:
 
 
         #draw the extra window
-        self.character_delete.draw(screen, characters)
-        self.delete_confirm.draw(screen)
-        self.character_rename.draw(screen, characters)
-        self.donate_money.draw(screen, game_self.party.member)
-        self.change_job_window.draw(screen,game_self)
+        if self.character_delete != None:
+            self.character_delete.draw(screen, characters)
+        if self.delete_confirm != None:
+            self.delete_confirm.draw(screen)
+        if self.character_rename != None:
+            self.character_rename.draw(screen, characters)
+        if self.donate_money != None:
+            self.donate_money.draw(screen, game_self.party.member)
+        if self.change_job_window != None:
+            self.change_job_window.draw(screen,game_self)
 
 def castle_handler(self, event):
     """event handler of castle"""
 
-    if self.castle.delete_confirm.is_visible:
+    if self.castle.delete_confirm != None and self.castle.delete_confirm.is_visible:
         self.castle.delete_confirm.delete_confirm_window_handler(self, event, self.characters)
         return
-    elif self.castle.character_rename.is_visible:
+    elif self.castle.character_rename != None and self.castle.character_rename.is_visible:
         self.castle.character_rename.character_view_handler( self, event, self.characters)
         return
-    elif self.castle.character_delete.is_visible:
+    elif self.castle.character_delete != None and self.castle.character_delete.is_visible:
         self.castle.character_delete.character_view_handler( self, event, self.characters)
         return
-    elif self.castle.donate_money.is_visible:
+    elif self.castle.donate_money != None and self.castle.donate_money.is_visible:
         self.castle.donate_money.system_notify_window_handler( event, self, self.party.member)
         return
-    elif self.castle.change_job_window.is_visible:
+    elif self.castle.change_job_window != None and self.castle.change_job_window.is_visible:
         self.castle.change_job_window.change_job_window_handler( self, event)
         return
     
@@ -161,26 +167,35 @@ def castle_handler(self, event):
             self.game_state = CHARACTER_MAKE
         elif self.castle.menu == Castle.DELETE:
             if len(self.characters) > 0:
+                self.castle.character_delete = character_view.Character_view(Rect(80, 60, 480, 360), character_view.Character_view.DELETE)
                 self.castle.character_delete.is_visible = True
         elif self.castle.menu == Castle.NAME_CHANGE:
             if len(self.characters) > 0:
+                self.castle.character_rename = character_view.Character_view(Rect(80, 60, 480, 360), character_view.Character_view.RENAME)
                 self.castle.character_rename.is_visible = True
         elif self.castle.menu == Castle.JOB_CHANGE:
             if len(self.party.member) > 0:
+                self.castle.change_job_window = Change_job_window(Rect(80,60,480,360))
                 self.castle.change_job_window.is_visible = True
         elif self.castle.menu == Castle.DONATE:
             if len(self.party.member) > 0:
+                self.castle.donate_money = system_notify.System_notify_window(Rect(200,120,240,240), system_notify.System_notify_window.DONATE)
                 self.castle.donate_money.is_visible = True
         elif self.castle.menu == Castle.BACK:
             self.game_state = CITY
             self.castle.menu = Castle.NEW
             self.castle.music = 0
+            self.castle = None
+            self.city = city.City()
         self.select_se.play()
 
     if event.type == KEYUP and (event.key ==K_x):
         self.game_state = CITY
         self.castle.menu = Castle.NEW
         self.castle.music = 0
+        self.castle = None
+        self.city = city.City()
+
         self.cancel_se.play()
 
 

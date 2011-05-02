@@ -9,6 +9,8 @@ import character_view
 import item
 import shop
 import easygui
+import city
+import dungeon
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -46,10 +48,10 @@ class Menu:
         self.no_status_font = self.menu_font.render(u"状態を見る", True, COLOR_GLAY)
         self.no_change_font = self.menu_font.render(u"隊列を変更する", True, COLOR_GLAY)
 
-        self.item_window = system_notify.System_notify_window(Rect(200,120,340, 240), 9)
-        self.magic_window = system_notify.System_notify_window(Rect(200,120,340, 240), 10)
-        self.status_window = system_notify.System_notify_window(Rect(200,120,340, 240), 11)
-        self.change_window = system_notify.System_notify_window(Rect(200,120,340, 240), 12)
+        self.item_window = None #system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.USE_ITEM)
+        self.magic_window = None #system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.USE_MAGIC)
+        self.status_window = None #system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.VIEW_STATUS)
+        self.change_window = None #system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.CHANGE_PARTY)
 
         self.temp_party1 = []
         self.temp_party2 = []
@@ -89,27 +91,32 @@ class Menu:
             
         screen.blit(self.setting_font, (320-self.setting_font.get_width()/2, 220))
         screen.blit(self.back_font, (320-self.back_font.get_width()/2, 250))
-    
-        self.item_window.draw(screen, game_self)
-        self.magic_window.draw(screen, game_self) 
-        self.status_window.draw(screen, game_self.party.member)
-        self.change_window.draw(screen, self.temp_party1)
+
+        if self.item_window != None:
+            self.item_window.draw(screen, game_self)
+        if self.magic_window != None:
+            self.magic_window.draw(screen, game_self)
+        if self.status_window != None:
+            self.status_window.draw(screen, game_self.party.member)
+        if self.change_window != None:
+            self.change_window.draw(screen, self.temp_party1)
  
 
     def menu_handler(self, event, game_self):
 
-        if self.item_window.is_visible == True:
+        if self.item_window != None and self.item_window.is_visible == True:
             self.item_window.system_notify_window_handler(event, game_self, game_self.party.member)
             return
-        elif self.magic_window.is_visible == True:
+        elif self.magic_window != None and self.magic_window.is_visible == True:
             self.magic_window.system_notify_window_handler(event, game_self, game_self.party.member)
             return
-        elif self.status_window.is_visible == True:
+        elif self.status_window != None and self.status_window.is_visible == True:
             self.status_window.system_notify_window_handler(event, game_self, game_self.party.member)
             return
-        elif self.change_window.is_visible == True:
+        elif self.change_window != None and self.change_window.is_visible == True:
             self.change_window.system_notify_window_handler(event, game_self, self.temp_party1)
             return
+
         
 
         #moves the cursor up
@@ -131,11 +138,20 @@ class Menu:
             self.menu = self.ITEM
             if game_self.party.member == []:
                 game_self.game_state = CITY
+                game_self.city = city.City()
+                game_self.menu = None
                 return
             if game_self.party.member[0].coordinate != [-1,-1,-1]:
                 game_self.game_state = DUNGEON
+                game_self.menu = None
+                game_self.dungeon = dungeon.Dungeon()
+
+                #dungeon load?????
             else:
                 game_self.game_state = CITY
+                game_self.city = city.City()
+                game_self.menu = None
+
 
 
       
@@ -143,17 +159,21 @@ class Menu:
             game_self.select_se.play()
             if self.menu == self.ITEM:
                 if len(game_self.party.member) > 0:
+                    self.item_window = system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.USE_ITEM)
                     self.item_window.is_visible = True
             if self.menu == self.MAGIC:
                 if len(game_self.party.member) > 0:
+                    self.magic_window = system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.USE_MAGIC)
                     self.magic_window.is_visible = True
             if self.menu == self.STATUS:
                 if len(game_self.party.member) > 0:
+                    self.status_window = system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.VIEW_STATUS)
                     self.status_window.is_visible = True
             if self.menu == self.CHANGE:
                 if len(game_self.party.member) > 0:
                     for character in game_self.party.member:
                         self.temp_party1.append(character)
+                    self.change_window = system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.CHANGE_PARTY)
                     self.change_window.is_visible = True
             if self.menu == self.SETTINGS:
 
@@ -178,8 +198,15 @@ class Menu:
                 self.menu = self.ITEM
                 if game_self.party.member == []:
                     game_self.game_state = CITY
+                    game_self.city = city.City()
+                    game_self.menu = None
                     return
                 if game_self.party.member[0].coordinate != [-1,-1,-1]:
                     game_self.game_state = DUNGEON
+                    game_self.menu = None
+                    game_self.dungeon = dungeon.Dungeon()
+                    #dungeon load????
                 else:
                     game_self.game_state = CITY
+                    game_self.city = city.City()
+                    game_self.menu = None

@@ -6,6 +6,7 @@ from pygame.locals import *
 import window
 import system_notify
 import save
+import city
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -48,13 +49,13 @@ class House:
 
 
         #create extra window for rest
-        self.who_rest = system_notify.System_notify_window(Rect(240, 80 ,240, 240), self.REST + 4)
-        self.house_change = system_notify.Confirm_window(Rect(180, 80 ,360, 110), self.REFORM + 5)
-        self.save_confirm = system_notify.Confirm_window(Rect(150, 150, 200, 110), 100)
-        self.load_confirm = system_notify.Confirm_window(Rect(150, 150, 200, 110), 101)
+        self.who_rest = None #system_notify.System_notify_window(Rect(240, 80 ,240, 240), system_notify.System_notify_window.REST)
+        self.house_change = None #system_notify.Confirm_window(Rect(180, 80 ,360, 110), system_notify.Confirm_window.HOUSE_CHANGE)
+        self.save_confirm = None #system_notify.Confirm_window(Rect(150, 150, 200, 110), system_notify.Confirm_window.SAVE)
+        self.load_confirm = None #system_notify.Confirm_window(Rect(150, 150, 200, 110), system_notify.Confirm_window.LOAD)
 
-        self.item_out_window = system_notify.System_notify_window(Rect(200,120,340, 240), 6)
-        self.item_in_window = system_notify.System_notify_window(Rect(200,120,340, 240), 7)
+        self.item_out_window = None #system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.ITEM_OUT)
+        self.item_in_window = None #system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.ITEM_IN)
 
  
 
@@ -130,36 +131,45 @@ class House:
 
 
         #draws extra window
-        self.who_rest.draw(screen,game_self.party.member)
-        self.house_change.draw(screen, game_self, game_self.party.member)
-        self.save_confirm.draw(screen, game_self, None)
-        self.load_confirm.draw(screen, game_self, None)
+        if self.who_rest != None:
+            self.who_rest.draw(screen,game_self.party.member)
+        if self.house_change != None:
+            self.house_change.draw(screen, game_self, game_self.party.member)
+        if self.save_confirm != None:
+            self.save_confirm.draw(screen, game_self, None)
+        if self.load_confirm != None:
+            self.load_confirm.draw(screen, game_self, None)
 
-        self.item_out_window.draw(screen,game_self)
-        self.item_in_window.draw(screen,game_self)
+        if self.item_out_window != None:
+            self.item_out_window.draw(screen,game_self)
+        if self.item_in_window != None:
+            self.item_in_window.draw(screen,game_self)
 
     
     def house_handler(self, game_self, event):
         """event handler for house"""
 
-        if self.who_rest.is_visible:
+        if self.who_rest != None and self.who_rest.is_visible:
             self.who_rest.system_notify_window_handler( event, game_self, game_self.party.member)
             return
-        elif self.house_change.is_visible:
+        elif self.house_change != None and self.house_change.is_visible:
             self.house_change.confirm_window_handler( game_self, event, game_self.party.member)
             return
-        elif self.save_confirm.is_visible:
+        elif self.save_confirm != None and self.save_confirm.is_visible:
             self.save_confirm.confirm_window_handler(game_self, event, None)
             return
-        elif self.load_confirm.is_visible:
+        elif self.load_confirm != None and self.load_confirm.is_visible:
             self.load_confirm.confirm_window_handler(game_self, event, None)
             return
-        elif self.item_out_window.is_visible:
+        elif self.item_out_window != None and self.item_out_window.is_visible:
             self.item_out_window.system_notify_window_handler(event, game_self, game_self.party.member)
             return
-        elif self.item_in_window.is_visible:
+        elif self.item_in_window != None and self.item_in_window.is_visible:
             self.item_in_window.system_notify_window_handler(event, game_self, game_self.party.member)
             return
+
+
+ 
 
   
         #moves the cursor up
@@ -185,28 +195,41 @@ class House:
 
             if self.menu == self.REST:
                 if len(game_self.party.member) > 0:
+                    self.who_rest = system_notify.System_notify_window(Rect(240, 80 ,240, 240), system_notify.System_notify_window.REST)
                     self.who_rest.is_visible = True
             elif self.menu == self.ITEM_OUT:
                 if len(game_self.party.member) > 0:
+                    self.item_out_window = system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.ITEM_OUT)
                     self.item_out_window.is_visible = True
             elif self.menu == self.ITEM_IN:
                 if len(game_self.party.member) > 0:
+                    self.item_in_window = system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.ITEM_IN)
                     self.item_in_window.is_visible = True
             elif self.menu == self.SAVE:
+                self.save_confirm = system_notify.Confirm_window(Rect(150, 150, 200, 110), system_notify.Confirm_window.SAVE)
                 self.save_confirm.is_visible = True
             elif self.menu == self.LOAD:
+                self.load_confirm = system_notify.Confirm_window(Rect(150, 150, 200, 110), system_notify.Confirm_window.LOAD)
                 self.load_confirm.is_visible = True
             elif self.menu == self.REFORM:
                 if len(game_self.party.member) > 0:
+                    self.house_change = system_notify.Confirm_window(Rect(180, 80 ,360, 110), system_notify.Confirm_window.HOUSE_CHANGE)
                     self.house_change.is_visible = True
             elif self.menu == self.BACK:
                 game_self.game_state = CITY
                 self.menu = self.REST
+                game_self.city = city.City()
+                game_self.house = None
+
+
+
+
 
         if event.type == KEYUP and (event.key ==K_x):
             game_self.game_state = CITY
-            self.menu = self.REST
-                       
+            self.menu = self.REST 
+            game_self.city = city.City()
+            game_self.house = None
 
             
 

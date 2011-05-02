@@ -7,6 +7,7 @@ import system_notify
 
 import character_view
 import shop_window
+import city
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -43,12 +44,12 @@ class Shop:
         self.back_font = self.menu_font.render(u"街に戻る", True, COLOR_WHITE)
                         
         #setup extra windows
-        self.donate_money = system_notify.System_notify_window(Rect(200, 120 ,240, 240), self.DONATE - 2)
-        self.remove_curse = system_notify.System_notify_window(Rect(150, 120, 340, 240), self.CURSE )
-        self.buy_house = system_notify.Confirm_window(Rect(100, 160, 300, 120), self.BUY_HOUSE - 4)
+        self.donate_money = None #system_notify.System_notify_window(Rect(200, 120 ,240, 240), system_notify.System_notify_window.DONATE)
+        self.remove_curse = None #system_notify.System_notify_window(Rect(150, 120, 340, 240), system_notify.System_notify_window.CURSE )
+        self.buy_house = None #system_notify.Confirm_window(Rect(100, 160, 300, 120), system_notify.Confirm_window.HOUSE)
 
-        self.shop_window = shop_window.Shop_window(Rect(200, 50, 240, 380))
-        self.sell_window = system_notify.System_notify_window(Rect(200,120,340, 240), 5)
+        self.shop_window = None #shop_window.Shop_window(Rect(200, 50, 240, 380))
+        self.sell_window = None #system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.SELL)
 
 
         #it stores, item id, number left, ...
@@ -137,32 +138,38 @@ class Shop:
         screen.blit(self.back_font, ((MENU_CENTER-self.back_font.get_width())/2, 190+house_diff))
 
         #draw extra window
-        self.donate_money.draw(screen, game_self.party.member)
-        self.remove_curse.draw(screen, game_self.party.member)
-        self.buy_house.draw(screen, game_self, game_self.party.member)
-        self.sell_window.draw(screen, game_self.party.member)
+        if self.donate_money != None:
+            self.donate_money.draw(screen, game_self.party.member)
+        if self.remove_curse != None:
+            self.remove_curse.draw(screen, game_self.party.member)
+        if self.buy_house != None:
+            self.buy_house.draw(screen, game_self, game_self.party.member)
+        if self.sell_window != None:
+            self.sell_window.draw(screen, game_self.party.member)
 
-        self.shop_window.draw( screen, game_self)
+        if self.shop_window != None:
+            self.shop_window.draw( screen, game_self)
 
 
 def shop_handler(self,event):
     """event handler of shop"""
 
-    if self.shop.donate_money.is_visible:
+    if self.shop.donate_money != None and self.shop.donate_money.is_visible:
         self.shop.donate_money.system_notify_window_handler( event, self, self.party.member)
         return
-    elif self.shop.remove_curse.is_visible:
+    elif self.shop.remove_curse != None and self.shop.remove_curse.is_visible:
         self.shop.remove_curse.system_notify_window_handler( event, self, self.party.member)
         return
-    elif self.shop.buy_house.is_visible:
+    elif self.shop.buy_house != None and self.shop.buy_house.is_visible:
         self.shop.buy_house.confirm_window_handler( self, event, self.party.member)
         return
-    elif self.shop.shop_window.is_visible:
+    elif self.shop.shop_window != None and self.shop.shop_window.is_visible:
         self.shop.shop_window.shop_window_handler( event, self)
         return
-    elif self.shop.sell_window.is_visible:
+    elif self.shop.sell_window != None and self.shop.sell_window.is_visible:
         self.shop.sell_window.system_notify_window_handler( event, self, self.party.member)
         return
+    
 
         
     #moves the cursor up
@@ -184,28 +191,38 @@ def shop_handler(self,event):
     #select the menu items
     if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         if self.shop.menu == Shop.BUY:
+            self.shop.shop_window = shop_window.Shop_window(Rect(200, 50, 240, 380))
             self.shop.shop_window.is_visible = True
         elif self.shop.menu == Shop.SELL:
+            self.shop.sell_window = system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.SELL)
             self.shop.sell_window.is_visible = True
         elif self.shop.menu == Shop.CURSE:
+            self.shop.remove_curse = system_notify.System_notify_window(Rect(150, 120, 340, 240), system_notify.System_notify_window.CURSE )
             self.shop.remove_curse.is_visible = True
         elif self.shop.menu == Shop.DONATE:
+            self.shop.donate_money = system_notify.System_notify_window(Rect(200, 120 ,240, 240), system_notify.System_notify_window.DONATE)
             self.shop.donate_money.is_visible = True
         elif self.shop.menu == Shop.BUY_HOUSE:
+            self.shop.buy_house = system_notify.Confirm_window(Rect(100, 160, 300, 120), system_notify.Confirm_window.HOUSE)
             self.shop.buy_house.is_visible = True
         elif self.shop.menu == Shop.BACK:
             self.game_state = CITY
             self.shop.menu = Shop.BUY
             self.shop.music = 0
+            self.shop = None
+            self.city = city.City()
         self.select_se.play()
+
 
     if event.type == KEYUP and (event.key ==K_x):
         self.game_state = CITY
         self.shop.menu = Shop.BUY
         self.shop.music = 0
-        self.cancel_se.play()
         for item_list in self.shop.stock:
             item_list.sort(cmp=lambda x, y: cmp(x.id, y.id), reverse=False)
+        self.shop = None
+        self.city = city.City()
+        self.cancel_se.play()
 
         
 

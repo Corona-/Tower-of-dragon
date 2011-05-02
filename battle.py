@@ -10,6 +10,7 @@ import math
 import battle_command
 import character
 import item
+import city
 
 import battle_window
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
@@ -714,14 +715,25 @@ class Battle:
 
                 if player_count_movable( game_self.party.member ) == 0:
                     #game_over
+                
+                    game_self.dungeon.battle_flag = 0
+                    game_self.dungeon.battle = None
+                    game_self.dungeon.music = 0
+
                     for character in game_self.party.member:
                         game_self.dungeon_characters.append( character)
 
                     game_self.party.member = []
 
                     game_self.game_state = CITY
+                    game_self.dungeon = None
+                    game_self.city = city.City()
                 else:
                     #win
+                                        
+                    game_self.dungeon.battle_flag = 0
+                    game_self.dungeon.battle = None
+                    game_self.dungeon.music = 0
 
                     count = 0
                     for character in game_self.party.member:
@@ -734,13 +746,6 @@ class Battle:
                             character.exp += int(math.ceil(self.exp/count))
                             character.money += int(math.ceil(self.gold/count))
                     pass
-
-
-                game_self.party.direction = 0
-                game_self.dungeon.battle_flag = 0
-                game_self.dungeon.battle = None
-                game_self.dungeon.music = 0
-            
 
 
 

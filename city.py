@@ -199,14 +199,14 @@ def city_handler(self, event):
         elif self.city.menu == City.CASTLE:
             self.game_state = CASTLE
             self.city = None
-            self.castle = castle.Castle
+            self.castle = castle.Castle()
         elif self.city.menu == City.TOWER:
             if len(self.party.member) == 0:
                 self.city.music = 1
             else:
                 self.game_state = TOWER
                 self.city = None
-                self.tower = tower.Tower
+                self.tower = tower.Tower()
 
 
     elif event.type == KEYUP and event.key == K_x:

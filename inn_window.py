@@ -43,7 +43,7 @@ class Inn_window(window.Window):
         self.price4_font = self.menu_font.render(u"200TG", True, COLOR_WHITE)
         self.price5_font = self.menu_font.render(u"500TG", True, COLOR_WHITE)
 
-        self.who_rest = system_notify.System_notify_window(Rect(240, 80 ,240, 240), self.REST)
+        self.who_rest = None #system_notify.System_notify_window(Rect(240, 80 ,240, 240), system_notify.System_notify_window.REST)
         
     def draw(self, screen, character):
         """draw the window on the screen"""
@@ -82,16 +82,18 @@ class Inn_window(window.Window):
         screen.blit(self.price5_font, (self.right - 20 - self.price5_font.get_width() , self.top+165))
 
         #draws extra window
-        self.who_rest.draw(screen, character)
+        if self.who_rest != None:
+            self.who_rest.draw(screen, character)
 
 
     def inn_window_handler(self, event, game_self, character):
 
-        if self.who_rest.is_visible == True:
+        if self.who_rest != None and self.who_rest.is_visible == True:
             self.who_rest.system_notify_window_handler( event, game_self, character)
             return
 
         if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+            self.who_rest = system_notify.System_notify_window(Rect(240, 80 ,240, 240), system_notify.System_notify_window.REST)
             self.who_rest.is_visible = True
                         
         if event.type == KEYUP and event.key == K_x:

@@ -42,10 +42,23 @@ BUSIN　依頼？
 	モンスター状態抵抗率（計算）
 	アイテム使用のところに装備も
 
+	ショップアイテム
+	Shop初期化しても保存できるように
+
 	装備はずす？
 	メモリ消費抑える
 	コンティニューでロード追加ね
-	タイトル、towerofdragon,cityでメモリ消費抑えてみてる
+	基本場所終了
+	追加ウィンドウ修正必要
+	移動
+	castle delete_confirm
+	bar status_view
+	battle enemy_select_window どうするか・・・
+	dungeon downstair window 遅い？
+	shop_window skip しました
+
+	dungeon init 階のマップロード？
+
 		装備各職業用の番号。
 		ステ表示、PT表示のAC修正
 

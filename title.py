@@ -107,7 +107,7 @@ def title_handler(self, event):
             self.title = None
             self.city = city.City()
         elif self.title.menu == Title.CONTINUE:
-            #save.load( self, self)
+            save.load( self, self)
             self.game_state = CITY
             self.title = None
             self.city = city.City()

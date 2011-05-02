@@ -44,7 +44,7 @@ class Temple_window(window.Window):
         self.to_cure = []
 
         #extra window
-        self.cure_pay_window = system_notify.System_notify_window(Rect(200,120,340, 240),13) 
+        self.cure_pay_window = None #system_notify.System_notify_window(Rect(200,120,340, 240),system_notify.System_notify_window.TEMPLE_PAY) 
 
     def draw(self,screen, game_self):
         window.Window.draw(self, screen)        
@@ -88,12 +88,13 @@ class Temple_window(window.Window):
             screen.blit(cost_font, (self.right-20-cost_font.get_width(), self.top+50+(i%10)*30))
             i = i + 1
 
-        self.cure_pay_window.draw(screen, game_self)
+        if self.cure_pay_window != None:
+            self.cure_pay_window.draw(screen, game_self)
         
 
     def temple_window_handler(self, event, game_self):
 
-        if self.cure_pay_window.is_visible == True:
+        if self.cure_pay_window != None and self.cure_pay_window.is_visible == True:
             self.cure_pay_window.system_notify_window_handler( event, game_self, game_self.party.member)
             return
         
@@ -137,6 +138,7 @@ class Temple_window(window.Window):
 
 
             else:
+                self.cure_pay_window = system_notify.System_notify_window(Rect(200,120,340, 240),system_notify.System_notify_window.TEMPLE_PAY) 
                 self.cure_pay_window.is_visible = True
 
 

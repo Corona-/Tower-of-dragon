@@ -6,6 +6,7 @@ import window
 
 import inn_window
 import system_notify
+import city
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -49,14 +50,13 @@ class Inn:
 
 
         #initialize extra window
-        self.inn_window = inn_window.Inn_window(Rect(80, 100, 340, 200))
-        self.save_confirm = system_notify.Confirm_window(Rect(150, 150, 200, 110), 100)
-        self.load_confirm = system_notify.Confirm_window(Rect(150, 150, 200, 110), 101)
+        self.inn_window = None #inn_window.Inn_window(Rect(80, 100, 340, 200))
+        self.save_confirm = None #system_notify.Confirm_window(Rect(150, 150, 200, 110), system_notify.Confirm_window.SAVE)
+        self.load_confirm = None #system_notify.Confirm_window(Rect(150, 150, 200, 110), system_notify.Confirm_window.LOAD)
 
-        self.item_out_window = system_notify.System_notify_window(Rect(200,120,340, 240), 6)
-        self.item_in_window = system_notify.System_notify_window(Rect(200,120,340, 240), 7)
-
-                
+        self.item_out_window = None #system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.ITEM_OUT)
+        self.item_in_window = None #system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.ITEM_IN)
+             
         self.music = 0
 
     def update(self):
@@ -117,30 +117,35 @@ class Inn:
         screen.blit(self.back_font, ((MENU_CENTER-self.back_font.get_width())/2, 190))
 
         #draw extra window
-        self.inn_window.draw(screen, game_self.party.member)
-        self.save_confirm.draw(screen, game_self, None)
-        self.load_confirm.draw(screen, game_self, None)
+        if self.inn_window != None:
+            self.inn_window.draw(screen, game_self.party.member)
+        if self.save_confirm != None:
+            self.save_confirm.draw(screen, game_self, None)
+        if self.load_confirm != None:
+            self.load_confirm.draw(screen, game_self, None)
 
-        self.item_out_window.draw(screen, game_self)
-        self.item_in_window.draw(screen, game_self)
+        if self.item_out_window != None:
+            self.item_out_window.draw(screen, game_self)
+        if self.item_in_window != None:
+            self.item_in_window.draw(screen, game_self)
                 
 
 def inn_handler(self, event):
     """event handler of inn"""
 
-    if self.inn.inn_window.is_visible:
+    if self.inn.inn_window != None and self.inn.inn_window.is_visible:
         self.inn.inn_window.inn_window_handler(event, self, self.party.member)
         return
-    elif self.inn.save_confirm.is_visible:
+    elif self.inn.save_confirm != None and self.inn.save_confirm.is_visible:
         self.inn.save_confirm.confirm_window_handler(self, event, None)
         return
-    elif self.inn.load_confirm.is_visible:
+    elif self.inn.load_confirm != None and self.inn.load_confirm.is_visible:
         self.inn.load_confirm.confirm_window_handler(self, event, None)
         return
-    elif self.inn.item_out_window.is_visible:
+    elif self.inn.item_out_window != None and self.inn.item_out_window.is_visible:
         self.inn.item_out_window.system_notify_window_handler( event, self, self.party.member)
         return
-    elif self.inn.item_in_window.is_visible:
+    elif self.inn.item_in_window != None and self.inn.item_in_window.is_visible:
         self.inn.item_in_window.system_notify_window_handler(event, self, self.party.member)
         return
 
@@ -161,28 +166,38 @@ def inn_handler(self, event):
     if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         if self.inn.menu == Inn.REST:
             if len(self.party.member) > 0:
+                self.inn.inn_window = inn_window.Inn_window(Rect(80, 100, 340, 200))
                 self.inn.inn_window.is_visible = True
         elif self.inn.menu == Inn.ITEM_OUT:
             if len(self.party.member) > 0:
+                self.inn.item_out_window = system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.ITEM_OUT)
                 self.inn.item_out_window.is_visible = True
         elif self.inn.menu == Inn.ITEM_IN:
             if len(self.party.member) > 0:
+                self.inn.item_in_window = system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.ITEM_IN)
                 self.inn.item_in_window.is_visible = True
         elif self.inn.menu == Inn.SAVE:
+            self.inn.save_confirm = system_notify.Confirm_window(Rect(150, 150, 200, 110), system_notify.Confirm_window.SAVE)
             self.inn.save_confirm.is_visible = True
         elif self.inn.menu == Inn.LOAD:
+            self.inn.load_confirm = system_notify.Confirm_window(Rect(150, 150, 200, 110), system_notify.Confirm_window.LOAD)
             self.inn.load_confirm.is_visible = True
         elif self.inn.menu == Inn.BACK:
             self.game_state = CITY
             self.inn.menu = Inn.REST
             self.inn.music = 0
+            self.inn = None
+            self.city = city.City()
         self.select_se.play()
+
 
     if event.type == KEYUP and (event.key ==K_x):
         self.cancel_se.play()
         self.game_state = CITY
         self.inn.menu = Inn.REST
         self.inn.music = 0
+        self.inn = None
+        self.city = city.City()
         
        
 

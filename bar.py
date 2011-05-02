@@ -5,6 +5,7 @@ from pygame.locals import *
 import window
 import character_view
 import system_notify
+import city
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -54,13 +55,13 @@ class Bar:
         self.music = 0
 
         # +2 is adjustment between character_view
-        self.party_add = character_view.Character_view(Rect(80, 60, 480, 360), self.ADD + 2)
-        self.party_remove = character_view.Character_view(Rect(80, 60, 480, 360), self.REMOVE + 2)
-        self.character_check = character_view.Character_view(Rect(80, 60, 480, 360), self.CHECK + 2)
+        self.party_add = None #character_view.Character_view(Rect(80, 60, 480, 360), character_view.Character_view.ADD)
+        self.party_remove = None #character_view.Character_view(Rect(80, 60, 480, 360), character_view.Character_view.REMOVE)
+        self.character_check = None #character_view.Character_view(Rect(80, 60, 480, 360), character_view.Character_view.CHECK)
         self.status_view = character_view.Status_view_window(Rect(20,20,600, 440))
-        self.share_money = system_notify.System_notify_window(Rect(220,140,220, 50), self.SHARE - 3)
-        self.donate_money = system_notify.System_notify_window(Rect(200, 120 ,240, 240), self.DONATE - 3)
-        self.collect_money = system_notify.System_notify_window(Rect(200,120,240,240), 8)
+        self.share_money = None #system_notify.System_notify_window(Rect(220,140,220, 50), system_notify.System_notify.SHARE)
+        self.donate_money = None #system_notify.System_notify_window(Rect(200, 120 ,240, 240), system_notify.System_notify.DONATE)
+        self.collect_money = None #system_notify.System_notify_window(Rect(200,120,240,240), system_notify.System_notify.COLLECT)
    
     def update(self):
         if self.music == 0:
@@ -135,36 +136,43 @@ class Bar:
         screen.blit(self.back_font, ((MENU_CENTER-self.back_font.get_width())/2, 220))
 
         #draw extra window
-        self.party_add.draw(screen, game_self.characters)
-        self.party_remove.draw(screen, game_self.party.member)
-        self.character_check.draw(screen, game_self.party.member)
-        self.status_view.draw(screen, game_self.party.member)
-        self.share_money.draw(screen, game_self.party.member)
-        self.donate_money.draw(screen, game_self.party.member)
-        self.collect_money.draw(screen, game_self.party.member)
+        if self.party_add != None:
+           self.party_add.draw(screen, game_self.characters)
+        if self.party_remove != None:
+            self.party_remove.draw(screen, game_self.party.member)
+        if self.character_check != None:
+            self.character_check.draw(screen, game_self.party.member)
+        if self.status_view != None:
+            self.status_view.draw(screen, game_self.party.member)
+        if self.share_money != None:
+            self.share_money.draw(screen, game_self.party.member)
+        if self.donate_money != None:
+            self.donate_money.draw(screen, game_self.party.member)
+        if self.collect_money != None:
+            self.collect_money.draw(screen, game_self.party.member)
 
 def bar_handler(self, event):
     """event handler of bar"""
 
-    if self.bar.status_view.is_visible:
+    if self.bar.status_view != None and self.bar.status_view.is_visible:
         self.bar.status_view.status_view_window_handler(self, event, self.party.member)
         return
-    elif self.bar.party_add.is_visible:
+    elif self.bar.party_add != None and self.bar.party_add.is_visible:
         self.bar.party_add.character_view_handler(self, event, self.characters)
         return
-    elif self.bar.party_remove.is_visible:
+    elif self.bar.party_remove != None and self.bar.party_remove.is_visible:
         self.bar.party_remove.character_view_handler(self, event, self.party.member)
         return
-    elif self.bar.character_check.is_visible:
+    elif self.bar.character_check != None and self.bar.character_check.is_visible:
         self.bar.character_check.character_view_handler(self, event, self.party.member)
         return
-    elif self.bar.share_money.is_visible:
+    elif self.bar.share_money != None and self.bar.share_money.is_visible:
         self.bar.share_money.system_notify_window_handler(event, self, None)
         return
-    elif self.bar.donate_money.is_visible:
+    elif self.bar.donate_money != None and self.bar.donate_money.is_visible:
         self.bar.donate_money.system_notify_window_handler(event, self, self.party.member)
         return
-    elif self.bar.collect_money.is_visible:
+    elif self.bar.collect_money != None and self.bar.collect_money.is_visible:
         self.bar.collect_money.system_notify_window_handler(event, self, self.party.member)
         return
        
@@ -182,32 +190,41 @@ def bar_handler(self, event):
     if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         if self.bar.menu == Bar.ADD:
             if len(self.characters) > 0:
+                self.bar.party_add = character_view.Character_view(Rect(80, 60, 480, 360), character_view.Character_view.ADD)
                 self.bar.party_add.is_visible = True
         elif self.bar.menu == Bar.REMOVE:
             if len(self.party.member) > 0:
+                self.bar.party_remove = character_view.Character_view(Rect(80, 60, 480, 360), character_view.Character_view.REMOVE)
                 self.bar.party_remove.is_visible = True
         elif self.bar.menu == Bar.CHECK:
             if len(self.party.member) > 0:
+                self.bar.character_check = character_view.Character_view(Rect(80, 60, 480, 360), character_view.Character_view.CHECK)
                 self.bar.character_check.is_visible = True
         elif self.bar.menu == Bar.SHARE:
             if len(self.party.member) > 0:
+                self.bar.share_money = system_notify.System_notify_window(Rect(220,140,220, 50), system_notify.System_notify_window.SHARE)
                 self.bar.share_money.is_visible = True
         elif self.bar.menu == Bar.DONATE:
             if len(self.party.member) > 0:
+                self.bar.donate_money = system_notify.System_notify_window(Rect(200, 120 ,240, 240), system_notify.System_notify_window.DONATE)
                 self.bar.donate_money.is_visible = True
         elif self.bar.menu == Bar.COLLECT:
             if len(self.party.member) > 0:
+                self.bar.collect_money = system_notify.System_notify_window(Rect(200,120,240,240), system_notify.System_notify_window.COLLECT)
                 self.bar.collect_money.is_visible = True
         elif self.bar.menu == Bar.BACK:
             self.game_state = CITY
             self.bar.menu = Bar.ADD
             self.bar.music = 0
+            self.city = city.City()
+            self.bar = None
         self.select_se.play()
-
 
     if event.type == KEYUP and (event.key == K_x):
         self.game_state = CITY
         self.bar.menu = Bar.ADD
         self.cancel_se.play()
         self.bar.music = 0
+        self.city = city.City()
+        self.bar = None
 
