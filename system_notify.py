@@ -48,26 +48,26 @@ class System_notify_window(window.Window):
         self.menu_font = pygame.font.Font("ipag.ttf", 20)
 
         #initialize extra windows
-        self.donate_window = Donate_window(Rect(150, 160 ,300, 150))
-        self.inn_not_enough = Donate_finish_window(Rect(150, 160 ,300, 50), Donate_finish_window.NOT_ENOUGH)
-        self.resting_window = Rest_window(Rect(100, 160 ,400, 50), Rest_window.REST)
-        self.house_buy_message = Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.BUY_HOUSE)                
-        self.house_reform_message = Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.REFORM_HOUSE)
-        self.character_sell_window = shop_window.Sell_window(Rect(120, 50, 400, 360))
-        self.collect_message = Donate_finish_window(Rect(150, 160, 300, 50), Donate_finish_window.COLLECT)
+        self.donate_window = None #Donate_window(Rect(150, 160 ,300, 150))
+        self.inn_not_enough = None #Donate_finish_window(Rect(150, 160 ,300, 50), Donate_finish_window.NOT_ENOUGH)
+        self.resting_window = None #Rest_window(Rect(100, 160 ,400, 50), Rest_window.REST)
+        self.house_buy_message = None #Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.BUY_HOUSE)                
+        self.house_reform_message = None #Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.REFORM_HOUSE)
+        self.character_sell_window = None #shop_window.Sell_window(Rect(120, 50, 400, 360))
+        self.collect_message = None #Donate_finish_window(Rect(150, 160, 300, 50), Donate_finish_window.COLLECT)
 
 
-        self.item_hold_window = Item_select_window( Rect(120, 50, 400, 360), 0)
-        self.item_receive_window = Item_select_window( Rect(120, 50, 400, 360), 1) 
+        self.item_hold_window = None #Item_select_window( Rect(120, 50, 400, 360), Item_select_window.ITEM_OUT)
+        self.item_receive_window = None #Item_select_window( Rect(120, 50, 400, 360), Item_select_window.ITEM_IN) 
 
-        self.status_view = character_view.Status_view_window(Rect(20, 20, 600, 440))
+        self.status_view = None #character_view.Status_view_window(Rect(20, 20, 600, 440))
 
-        self.item_view = Item_view(Rect(120, 50, 400, 360))
-        self.magic_all_view = Magic_all_view(Rect(80, 50, 280 ,120))
+        self.item_view = None #Item_view(Rect(120, 50, 400, 360))
+        self.magic_all_view = None #Magic_all_view(Rect(80, 50, 280 ,120))
 
-        self.temple_not_enough = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.TEMPLE_NOT_ENOUGH)
-        self.temple_not_movable = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.TEMPLE_NOT_MOVABLE)
-        self.temple_curing = temple_window.Curing_window(Rect(60, 40, 520, 400))
+        self.temple_not_enough = None #Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.TEMPLE_NOT_ENOUGH)
+        self.temple_not_movable = None #Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.TEMPLE_NOT_MOVABLE)
+        self.temple_curing = None #temple_window.Curing_window(Rect(60, 40, 520, 400))
         self.cured = False
 
         
@@ -149,27 +149,42 @@ class System_notify_window(window.Window):
                     screen.blit(name_font, (self.centerx - name_font.get_width()/2, self.top+50+i*30))
                     i+= 1
 
-                if len(character) > 0:   
-                    self.donate_window.draw(screen, character[self.menu])
-                    self.resting_window.draw(screen, character[self.menu])
-                self.inn_not_enough.draw(screen)
-                self.house_buy_message.draw(screen)
-                self.house_reform_message.draw(screen)
-                self.character_sell_window.draw(screen, character[self.menu]) 
-                self.collect_message.draw(screen)
-                self.temple_not_enough.draw(screen)
-                self.temple_not_movable.draw(screen)
+                if len(character) > 0:
+                    if self.donate_window != None:
+                        self.donate_window.draw(screen, character[self.menu])
+                    if self.resting_window != None:
+                        self.resting_window.draw(screen, character[self.menu])
+                if self.inn_not_enough != None:
+                    self.inn_not_enough.draw(screen)
+                if self.house_buy_message != None:
+                    self.house_buy_message.draw(screen)
+                if self.house_reform_message != None:
+                    self.house_reform_message.draw(screen)
+                if self.character_sell_window != None:
+                    self.character_sell_window.draw(screen, character[self.menu])
+                if self.collect_message != None:
+                    self.collect_message.draw(screen)
+                if self.temple_not_enough != None:
+                    self.temple_not_enough.draw(screen)
+                if self.temple_not_movable != None:
+                    self.temple_not_movable.draw(screen)
 
-                self.status_view.draw(screen, character)
+                if self.status_view != None:
+                    self.status_view.draw(screen, character)
+
+
 
                 if self.instruction == self.TEMPLE_PAY:
-                    self.temple_curing.draw(screen, game_self)
+                    if self.temple_curing != None:
+                        self.temple_curing.draw(screen, game_self)
 
                 if self.instruction == self.USE_ITEM:
-                    self.item_view.draw(screen, game_self)
+                    if self.item_view != None:
+                        self.item_view.draw(screen, game_self)
 
                 if self.instruction == self.USE_MAGIC:
-                    self.magic_all_view.draw(screen, game_self)
+                    if self.magic_all_view != None:
+                        self.magic_all_view.draw(screen, game_self)
 
             elif self.instruction == self.ITEM_OUT or self.instruction == self.ITEM_IN:
 
@@ -196,63 +211,70 @@ class System_notify_window(window.Window):
 
 
                 #for items it passes game_self for character
-                self.item_hold_window.draw(screen, game_self) 
-                self.item_receive_window.draw(screen, game_self) 
+                if self.item_hold_window != None:
+                    self.item_hold_window.draw(screen, game_self)
+                if self.item_receive_window != None:
+                    self.item_receive_window.draw(screen, game_self) 
                        
 
 
 
     def system_notify_window_handler(self, event, game_self, character):
 
-        if self.donate_window.is_visible:
+        if self.donate_window != None and self.donate_window.is_visible:
             self.donate_window.donate_window_handler(event, game_self, character[self.menu])
             return
-        elif self.inn_not_enough.is_visible:
+        elif self.inn_not_enough != None and self.inn_not_enough.is_visible:
             self.inn_not_enough.donate_finish_window_handler(event, game_self)
             return
-        elif self.resting_window.is_visible:
+        elif self.resting_window != None and self.resting_window.is_visible:
             self.resting_window.resting_window_handler(event, game_self)
             return
-        elif self.house_buy_message.is_visible:
+        elif self.house_buy_message != None and self.house_buy_message.is_visible:
             self.house_buy_message.donate_finish_window_handler(event, game_self)
             return
-        elif self.house_reform_message.is_visible:
+        elif self.house_reform_message != None and self.house_reform_message.is_visible:
             self.house_reform_message.donate_finish_window_handler(event, game_self)
             return
-        elif self.character_sell_window.is_visible:
+        elif self.character_sell_window != None and self.character_sell_window.is_visible:
             self.character_sell_window.character_sell_window_handler( event, game_self)
             return
-        elif self.item_hold_window.is_visible:
+        elif self.item_hold_window != None and self.item_hold_window.is_visible:
             self.item_hold_window.item_select_window_handler( event, game_self)
             return
-        elif self.item_receive_window.is_visible:
+        elif self.item_receive_window != None and self.item_receive_window.is_visible:
             self.item_receive_window.item_select_window_handler( event, game_self)
             return
-        elif self.collect_message.is_visible:
+        elif self.collect_message != None and self.collect_message.is_visible:
             self.collect_message.donate_finish_window_handler(event, game_self)
             return
-        elif self.status_view.is_visible:
+        elif self.status_view != None and self.status_view.is_visible:
             self.status_view.status_view_window_handler(game_self, event, game_self.party.member)
             return
-        elif self.item_view.is_visible:
+        elif self.item_view != None and self.item_view.is_visible:
             self.item_view.item_view_handler(event, game_self)
             return
-        elif self.magic_all_view.is_visible:
+        elif self.magic_all_view != None and self.magic_all_view.is_visible:
             self.magic_all_view.magic_all_view_handler(event, game_self)
             return
-        elif self.temple_not_enough.is_visible:
+        elif self.temple_not_enough != None and self.temple_not_enough.is_visible:
             self.temple_not_enough.donate_finish_window_handler(event, game_self)
             return
-        elif self.temple_not_movable.is_visible:
+        elif self.temple_not_movable != None and self.temple_not_movable.is_visible:
             self.temple_not_movable.donate_finish_window_handler(event, game_self)
             return
-        elif self.temple_curing.is_visible:
+        elif self.temple_curing != None and self.temple_curing.is_visible:
             self.temple_curing.curing_window_handler(event, game_self)
             return
         
         if self.instruction == self.SHARE:        
             if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
                 self.is_visible = False
+
+
+
+
+
 
         elif self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL or self.instruction == self.ITEM_OUT or self.instruction == self.ITEM_IN or self.instruction == self.COLLECT or self.instruction == self.USE_ITEM or self.instruction == self.USE_MAGIC or self.instruction == self.VIEW_STATUS or self.instruction == self.CHANGE_PARTY or self.instruction == self.TEMPLE_PAY:
             
@@ -263,6 +285,7 @@ class System_notify_window(window.Window):
                 
                 if self.instruction == self.DONATE:
                     if len(character) > 0:
+                        self.donate_window = Donate_window(Rect(150, 160 ,300, 150))
                         self.donate_window.is_visible = True
                 elif self.instruction == self.CURSE:
                     pass
@@ -282,16 +305,21 @@ class System_notify_window(window.Window):
                         if game_self.party.member[self.menu].money > payment:
                             game_self.party.house += 1
                             game_self.party.member[self.menu].money -= payment
+                            self.house_reform_message = Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.REFORM_HOUSE)
                             game_self.house.house_change.who_pay_window.house_reform_message.is_visible = True
                         else:
+                            self.inn_not_enough = Donate_finish_window(Rect(150, 160 ,300, 50), Donate_finish_window.NOT_ENOUGH)
                             self.inn_not_enough.is_visible = True
                         return
                     # buy a house with 10000                    
                     if game_self.party.member[self.menu].money > 10000:
                         game_self.party.house = 1
                         game_self.party.member[self.menu].money -= 10000
+                        self.house_buy_message = Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.BUY_HOUSE)                
+
                         game_self.shop.buy_house.who_pay_window.house_buy_message.is_visible = True
                     else:
+                        self.inn_not_enough = Donate_finish_window(Rect(150, 160 ,300, 50), Donate_finish_window.NOT_ENOUGH)
                         self.inn_not_enough.is_visible = True
                 elif self.instruction == self.REST and len(game_self.party.member) > 0:
                     #get the item chosen to rest for and if money is not enough, open inn_not_enough window
@@ -302,7 +330,7 @@ class System_notify_window(window.Window):
                     elif game_self.game_state == HOUSE:
                         rest.rest(self, game_self, game_self.party.house, 0)                         
                         
-                    if self.inn_not_enough.is_visible:
+                    if self.inn_not_enough != None and self.inn_not_enough.is_visible:
                         return
 
                     #check exp and lv up
@@ -315,6 +343,8 @@ class System_notify_window(window.Window):
                             rest.level_up(self, game_self.party.member[self.menu], game_self.inn.inn_window.menu, change)
                         elif game_self.game_state == HOUSE:
                             rest.level_up(self, game_self.party.member[self.menu], game_self.party.house, change)
+
+                        self.resting_window = Rest_window(Rect(100, 160 ,400, 50), Rest_window.REST)
                             
                         self.resting_window.get_change_status_values(change)
                         #show message of sleeping...
@@ -323,6 +353,8 @@ class System_notify_window(window.Window):
                         self.resting_window.is_visible = True
                         #show message for lv up                        
                     else:
+                        self.resting_window = Rest_window(Rect(100, 160 ,400, 50), Rest_window.REST)
+
                         self.resting_window.get_change_status_values(change)
                         #window to show next
                         #show message of sleeping...
@@ -335,12 +367,16 @@ class System_notify_window(window.Window):
                     #print change
 
                 elif self.instruction == self.SELL:
+                    self.character_sell_window = shop_window.Sell_window(Rect(120, 50, 400, 360))
                     self.character_sell_window.is_visible = True
                 elif self.instruction == self.ITEM_OUT:
+                    self.item_hold_window = Item_select_window( Rect(120, 50, 400, 360), Item_select_window.ITEM_OUT)
                     self.item_hold_window.is_visible = True
                 elif self.instruction == self.ITEM_IN:
+                    self.item_receive_window = Item_select_window( Rect(120, 50, 400, 360), Item_select_window.ITEM_IN) 
                     self.item_receive_window.is_visible = True
-                elif self.instruction == self.COLLECT:
+                elif self.instruction == self.COLLECT:  
+                    self.collect_message = Donate_finish_window(Rect(150, 160, 300, 50), Donate_finish_window.COLLECT)
                     self.collect_message.is_visible = True
                     total_money = 0
                     for character in game_self.party.member:
@@ -348,10 +384,13 @@ class System_notify_window(window.Window):
                         character.money = 0
                     game_self.party.member[self.menu].money = total_money
                 elif self.instruction == self.USE_ITEM:
+                    self.item_view = Item_view(Rect(120, 50, 400, 360))
                     self.item_view.is_visible = True
                 elif self.instruction == self.USE_MAGIC:
+                    self.magic_all_view = Magic_all_view(Rect(80, 50, 280 ,120))
                     self.magic_all_view.is_visible = True
                 elif self.instruction == self.VIEW_STATUS:
+                    self.status_view = character_view.Status_view_window(Rect(20, 20, 600, 440))
                     self.status_view.menu = self.menu
                     self.status_view.is_visible = True          
                 elif self.instruction == self.CHANGE_PARTY:
@@ -396,18 +435,18 @@ class System_notify_window(window.Window):
                                 else:
                                     self.cured = False
 
+                            self.temple_curing = temple_window.Curing_window(Rect(60, 40, 520, 400))
                             self.temple_curing.is_visible = True
                         else:
+                            self.temple_not_enough = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.TEMPLE_NOT_ENOUGH)
                             self.temple_not_enough.is_visible = True
                             pass
                     else:
+                        self.temple_not_movable = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.TEMPLE_NOT_MOVABLE)
                         self.temple_not_movable.is_visible = True
                         pass
                     pass
-                        
-                
-                
-            
+       
 
             if event.type == KEYUP and event.key == K_x:
                 self.menu = 0
@@ -701,9 +740,11 @@ class Donate_finish_window(window.Window):
                 self.is_visible = False
                 #it is only used when buying a house and not enough money
                 #it doesn't matter if it is not since it is initialized and should be false
-                game_self.shop.buy_house.who_pay_window.is_visible = False
-                game_self.shop.buy_house.who_pay_window.menu = 0
-                game_self.shop.buy_house.is_visible = False
+                if game_self.shop != None:
+                    if game_self.shop.buy_house != None:
+                        game_self.shop.buy_house.who_pay_window.is_visible = False
+                        game_self.shop.buy_house.who_pay_window.menu = 0
+                        game_self.shop.buy_house.is_visible = False
 
          
         elif self.instruction == self.FINISH:
@@ -713,16 +754,20 @@ class Donate_finish_window(window.Window):
         elif self.instruction == self.BUY_HOUSE:
             if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
-                game_self.shop.buy_house.who_pay_window.is_visible = False
-                game_self.shop.buy_house.is_visible = False
-                #move the cursor to correct spot
-                game_self.shop.menu += 1
+                if game_self.shop != None:
+                    if game_self.shop.buy_house != None:
+                        game_self.shop.buy_house.who_pay_window.is_visible = False
+                        game_self.shop.buy_house.is_visible = False
+                    #move the cursor to correct spot
+                    game_self.shop.menu += 1
 
         elif self.instruction == self.REFORM_HOUSE:
             if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
-                game_self.house.house_change.who_pay_window.is_visible = False
-                game_self.house.house_change.is_visible = False
+                if game_self.house.house_change.who_pay_window != None:
+                    game_self.house.house_change.who_pay_window.is_visible = False
+                if game_self.house.house_change != None:
+                    game_self.house.house_change.is_visible = False
                 #move the cursor to correct spot
                 if game_self.party.house == 5:
                     game_self.house.menu += 1

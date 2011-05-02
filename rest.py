@@ -4,6 +4,7 @@ import pygame
 from pygame.locals import *
 import window
 import random
+import system_notify
 
 COLOR_WHITE = (255,255,255)
 COLOR_GLAY = (128,128,128)
@@ -39,6 +40,8 @@ def rest(self, game_self, rest_level, inn):
         cure = (int)(game_self.party.member[self.menu].max_hp)
 
     if game_self.party.member[self.menu].money < payment:
+        self.inn_not_enough = system_notify.Donate_finish_window(Rect(150, 160 ,300, 50), system_notify.Donate_finish_window.NOT_ENOUGH)
+
         self.inn_not_enough.is_visible = True
     else:
         if inn:
