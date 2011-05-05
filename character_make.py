@@ -244,6 +244,6 @@ def character_make_handler(self, event):
         self.character_make.select_window.select_window_handler(self, event)
         return
 
-    if event.type == KEYUP and event.key == K_x:
+    if event.type == KEYDOWN and event.key == K_x:
         self.character_make = Character_make()
         self.game_state = CASTLE

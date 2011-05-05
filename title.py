@@ -89,17 +89,17 @@ def title_handler(self, event):
     """event handler of title"""
 
     #moves cursor up
-    if event.type == KEYUP and event.key == K_UP:
+    if event.type == KEYDOWN and event.key == K_UP:
         self.title.menu -= 1
         if self.title.menu < 0:
             self.title.menu = 0
     #moves cursor down
-    elif event.type == KEYUP and event.key == K_DOWN:
+    elif event.type == KEYDOWN and event.key == K_DOWN:
         self.title.menu += 1
         if self.title.menu > 2:
             self.title.menu = 2
     #select menu item
-    if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+    if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         self.title.music = 0
 
         if self.title.menu == Title.START:

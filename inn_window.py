@@ -92,20 +92,20 @@ class Inn_window(window.Window):
             self.who_rest.system_notify_window_handler( event, game_self, character)
             return
 
-        if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+        if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
             self.who_rest = system_notify.System_notify_window(Rect(240, 80 ,240, 240), system_notify.System_notify_window.REST)
             self.who_rest.is_visible = True
                         
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             self.menu = 0
             self.is_visible = False
 
-        if event.type == KEYUP and event.key == K_UP:
+        if event.type == KEYDOWN and event.key == K_UP:
             self.menu -= 1
             if self.menu < 0:
                 self.menu = self.MENU_MAX
 
-        if event.type == KEYUP and event.key == K_DOWN:
+        if event.type == KEYDOWN and event.key == K_DOWN:
             self.menu += 1
             if self.menu > self.MENU_MAX:
                 self.menu = 0

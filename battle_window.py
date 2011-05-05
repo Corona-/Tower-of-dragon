@@ -83,7 +83,7 @@ class Enemy_select_window(window.Window):
         
         character = game_self.party.member[ battle_in.selected ]
 
-        if event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+        if event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
             if battle_in.menu == battle_in.FIGHT:
                 game_self.dungeon.battle.party_movement.append( battle_command.Battle_command( character, battle_in.FIGHT, self.menu))
             if battle_in.menu == battle_in.CURSE:
@@ -107,7 +107,7 @@ class Enemy_select_window(window.Window):
             
 
 
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             self.menu = self.FRONT_1
             self.is_visible = False
         

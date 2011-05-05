@@ -96,18 +96,18 @@ def temple_handler(self, event):
         self.temple.temple_cure_window.temple_window_handler(event, self)
         return
     
-    if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+    if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
         self.cursor_se.play()
         self.temple.menu -= 1
         if self.temple.menu < 0:
             self.temple.menu = MENU_MAX
-    elif event.type == KEYUP and event.key == K_DOWN:
+    elif event.type == KEYDOWN and event.key == K_DOWN:
         self.cursor_se.play()
         self.temple.menu += 1
         if self.temple.menu > MENU_MAX:
             self.temple.menu = 0
 
-    if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+    if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         if self.temple.menu == Temple.CURE:
             self.temple.temple_cure_window = temple_window.Temple_window( Rect(60, 50, 520, 360))
             self.temple.temple_cure_window.is_visible = True
@@ -125,7 +125,7 @@ def temple_handler(self, event):
 
 
 
-    if event.type == KEYUP and (event.key ==K_x):
+    if event.type == KEYDOWN and (event.key ==K_x):
         self.game_state = CITY
         self.temple.menu = Temple.CURE
         self.temple.music = 0

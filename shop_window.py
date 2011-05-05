@@ -120,26 +120,26 @@ class Shop_window(window.Window):
 
 
         #moves the cursor up
-        if event.type == KEYUP and event.key == K_UP:
+        if event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
             self.menu -= 1
             if self.menu < 0:
                 self.menu = self.MENU_MAX
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             self.menu += 1
             if self.menu > self.MENU_MAX:
                 self.menu = 0
 
         #moves back to shop
-        elif event.type == KEYUP and event.key == K_x:
+        elif event.type == KEYDOWN and event.key == K_x:
             game_self.cancel_se.play()
             self.menu = 0
             self.is_visible =False
 
         #select category to buy
-        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+        elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
             self.buy_window.is_visible = True
  
 
@@ -251,21 +251,21 @@ class Buy_window(window.Window):
 
 
         #moves back to shop
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             game_self.cancel_se.play()
             self.menu = 0
             self.page = 0
             self.is_visible =False
 
         #moves the cursor up
-        elif event.type == KEYUP and event.key == K_UP:
+        elif event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
             self.menu -= 1
             if self.menu < 0:
                 self.menu = 0
                 
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             if len(self.category_item) > self.menu+self.page*10+1:
                 self.menu += 1
@@ -274,14 +274,14 @@ class Buy_window(window.Window):
 
 
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_LEFT:
+        elif event.type == KEYDOWN and event.key == K_LEFT:
             game_self.cursor_se.play()
             if self.page > 0:
                 self.page-= 1
                 self.menu = 0
 
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_RIGHT:
+        elif event.type == KEYDOWN and event.key == K_RIGHT:
             game_self.cursor_se.play()
             if len(self.category_item) > (self.page+1)*10:
                 self.page += 1
@@ -289,7 +289,7 @@ class Buy_window(window.Window):
 
 
         #moves the cursor down
-        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+        elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
             if len(self.category_item) > 0:
                 game_self.select_se.play()
                 self.character_select.is_visible = True
@@ -359,27 +359,27 @@ class Sell_window(window.Window):
         character = game_self.party.member[game_self.shop.sell_window.menu]
 
         #moves back to shop
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             game_self.cancel_se.play()
             self.menu = 0
             self.is_visible =False
 
         #moves the cursor up
-        elif event.type == KEYUP and event.key == K_UP:
+        elif event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
             self.menu -= 1
             if self.menu < 0:
                 self.menu = 0
                 
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             if len(character.items) > self.menu+1:
                 self.menu += 1
                 if self.menu > self.MENU_MAX:
                     self.menu = self.MENU_MAX
 
-        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+        elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
             if len(character.items) > 0:
                 self.sold_item_window.is_visible = True
                 money = character.items[self.menu].price
@@ -474,7 +474,7 @@ class Character_select_window(window.Window):
         length = len(game_self.party.member)-1
 
         #moves back to item window
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             game_self.cancel_se.play()
             self.menu = 0
             self.is_visible =False
@@ -482,7 +482,7 @@ class Character_select_window(window.Window):
 
 
         #moves the cursor up
-        elif event.type == KEYUP and event.key == K_UP:
+        elif event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
             self.menu -= 1
             self.status.menu -= 1
@@ -491,7 +491,7 @@ class Character_select_window(window.Window):
                 self.status.menu = length
                 
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             self.menu += 1
             self.status.menu += 1
@@ -500,12 +500,12 @@ class Character_select_window(window.Window):
                 self.status.menu = 0
 
         #status view
-        elif event.type == KEYUP and event.key == K_LSHIFT:
+        elif event.type == KEYDOWN and event.key == K_LSHIFT:
             game_self.cursor_se.play()
             self.status.is_visible = True
 
         #buy
-        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+        elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
             game_self.select_se.play()
 
             #get the cost of the item

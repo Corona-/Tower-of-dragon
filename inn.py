@@ -151,19 +151,19 @@ def inn_handler(self, event):
 
     
     #moves the cursor up
-    if event.type == KEYUP and event.key == K_UP:
+    if event.type == KEYDOWN and event.key == K_UP:
         self.cursor_se.play()
         self.inn.menu -= 1
         if self.inn.menu < 0:
             self.inn.menu = MENU_MAX
     #moves the cursor down
-    elif event.type == KEYUP and event.key == K_DOWN:
+    elif event.type == KEYDOWN and event.key == K_DOWN:
         self.cursor_se.play
         self.inn.menu += 1
         if self.inn.menu > MENU_MAX:
             self.inn.menu = 0
 
-    if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+    if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         if self.inn.menu == Inn.REST:
             if len(self.party.member) > 0:
                 self.inn.inn_window = inn_window.Inn_window(Rect(80, 100, 340, 200))
@@ -191,7 +191,7 @@ def inn_handler(self, event):
         self.select_se.play()
 
 
-    if event.type == KEYUP and (event.key ==K_x):
+    if event.type == KEYDOWN and (event.key ==K_x):
         self.cancel_se.play()
         self.game_state = CITY
         self.inn.menu = Inn.REST

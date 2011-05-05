@@ -89,19 +89,19 @@ class Alignment_window(window.Window):
 
     def alignment_window_handler(self, game_self, event):
 
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             game_self.character_make.fieldvalues = []
 
-        if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+        if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
             self.menu -= 1
             if self.menu < 0:
                 self.menu = self.MENU_MAX
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             self.menu += 1
             if self.menu > self.MENU_MAX:
                 self.menu = 0
 
-        if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+        if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
             if self.menu == self.GOOD:
                 game_self.character_make.alignment = 1
             elif self.menu == self.NEUTRAL:
@@ -219,7 +219,7 @@ class Job_window(window.Window):
 
     def job_window_handler(self, game_self, event):
 
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             self.menu = self.WARRIOR
             self.is_visible = False
 
@@ -234,16 +234,16 @@ class Job_window(window.Window):
             game_self.character_make.agility = 0
             game_self.character_make.luck = 0
 
-        if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+        if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
             self.menu -= 1
             if self.menu < 0:
                 self.menu = self.MENU_MAX
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             self.menu += 1
             if self.menu > self.MENU_MAX:
                 self.menu = 0
 
-        if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+        if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
             if self.menu == self.WARRIOR:
                 game_self.character_make.job = 0
             elif self.menu == self.FIGHTER:
@@ -346,7 +346,7 @@ class Bonus_window(window.Window):
 
     def bonus_window_handler(self, game_self, event):
 
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             self.menu = self.STRENGTH
             self.is_visible = False
 
@@ -365,17 +365,17 @@ class Bonus_window(window.Window):
 
 
 
-        if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+        if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
             self.menu -= 1
             if self.menu < 0:
                 self.menu = self.MENU_MAX
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             self.menu += 1
             if self.menu > self.MENU_MAX:
                 self.menu = 0
 
         #adds bonus points if it is below max
-        if event.type == KEYUP and event.key == K_RIGHT:
+        if event.type == KEYDOWN and event.key == K_RIGHT:
             if self.menu == self.STRENGTH:
                 if game_self.character_make.strength_plus < 10 and game_self.character_make.bonus_point > 0:
                     game_self.character_make.strength_plus += 1
@@ -402,7 +402,7 @@ class Bonus_window(window.Window):
                     game_self.character_make.bonus_point -= 1
                     
         #decreases the bonus if it is greater than 0    
-        if event.type == KEYUP and event.key == K_LEFT: 
+        if event.type == KEYDOWN and event.key == K_LEFT: 
             if self.menu == self.STRENGTH:
                 if game_self.character_make.strength_plus > 0:
                     game_self.character_make.strength_plus -= 1
@@ -429,7 +429,7 @@ class Bonus_window(window.Window):
                     game_self.character_make.bonus_point += 1
 
 
-        if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+        if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
             self.is_visible = False
             game_self.character_make.select_window.is_visible = True
 
@@ -480,22 +480,22 @@ class Select_window(window.Window):
 
     def select_window_handler(self, game_self, event):
 
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             self.menu = self.YES
             self.is_visible = False
 
             game_self.character_make.bonus_window.is_visible = True
 
-        if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+        if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
             self.menu -= 1
             if self.menu < 0:
                 self.menu = self.MENU_MAX
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             self.menu += 1
             if self.menu > self.MENU_MAX:
                 self.menu = 0
 
-        if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+        if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
             if self.menu == self.YES:
                 game_self.characters.append(character.Character(game_self.character_make.name, game_self.character_make.alignment, game_self.character_make.job,
                                 game_self.character_make.strength + game_self.character_make.strength_plus, game_self.character_make.intelligence + game_self.character_make.intelligence_plus, game_self.character_make.piety + game_self.character_make.piety_plus, game_self.character_make.vitality + game_self.character_make.vitality_plus, game_self.character_make.agility + game_self.character_make.agility_plus, game_self.character_make.luck + game_self.character_make.luck_plus,

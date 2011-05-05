@@ -146,7 +146,7 @@ def city_handler(self, event):
     """event handler of city"""
     #moves between menu items
     
-    if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+    if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
         self.cursor_se.play()
         self.city.menu -= 1
         if self.city.menu < 0:
@@ -154,7 +154,7 @@ def city_handler(self, event):
         if self.city.menu == 2 and self.party.house == 0:
             self.city.menu -= 1
 
-    elif event.type == KEYUP and event.key == K_DOWN:
+    elif event.type == KEYDOWN and event.key == K_DOWN:
         self.cursor_se.play()
         self.city.menu += 1
         if self.city.menu > MENU_MAX:
@@ -163,7 +163,7 @@ def city_handler(self, event):
             self.city.menu += 1
 
     #move to each menu item
-    if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+    if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
 
         self.select_se.play()
 
@@ -209,7 +209,7 @@ def city_handler(self, event):
                 self.tower = tower.Tower()
 
 
-    elif event.type == KEYUP and event.key == K_x:
+    elif event.type == KEYDOWN and event.key == K_x:
 
         self.game_state = MENU
         self.city = None

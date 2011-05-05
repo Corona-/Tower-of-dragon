@@ -176,18 +176,19 @@ def bar_handler(self, event):
         self.bar.collect_money.system_notify_window_handler(event, self, self.party.member)
         return
        
-    if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+    if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
         self.cursor_se.play()
         self.bar.menu -= 1
         if self.bar.menu < 0:
             self.bar.menu = MENU_MAX
-    elif event.type == KEYUP and event.key == K_DOWN:
+            
+    elif event.type == KEYDOWN and event.key == K_DOWN:
         self.cursor_se.play()
         self.bar.menu += 1
         if self.bar.menu > MENU_MAX:
             self.bar.menu = 0
             
-    if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+    if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         if self.bar.menu == Bar.ADD:
             if len(self.characters) > 0:
                 self.bar.party_add = character_view.Character_view(Rect(80, 60, 480, 360), character_view.Character_view.ADD)
@@ -220,7 +221,7 @@ def bar_handler(self, event):
             self.bar = None
         self.select_se.play()
 
-    if event.type == KEYUP and (event.key == K_x):
+    if event.type == KEYDOWN and (event.key == K_x):
         self.game_state = CITY
         self.bar.menu = Bar.ADD
         self.cancel_se.play()

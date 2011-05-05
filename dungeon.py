@@ -484,7 +484,7 @@ class Dungeon:
 
         encount = random.randint(1, 100)
 
-        if event.type == KEYUP and (event.key ==K_UP):
+        if event.type == KEYDOWN and (event.key ==K_UP):
             self.footstep_se.play()
             for character in game_self.party.member:
                 if (game_self.party.direction == 0):
@@ -502,19 +502,19 @@ class Dungeon:
                         character.coordinate[0] = decrement(character.coordinate[0],1)
             self.battle_encount( 10, game_self.party.member[0] )
             
-        if event.type == KEYUP and (event.key ==K_DOWN):
+        if event.type == KEYDOWN and (event.key ==K_DOWN):
             game_self.party.direction -= 2
             if game_self.party.direction < 0:
                 game_self.party.direction += 4
             self.battle_encount( 5, game_self.party.member[0] )
 
-        if event.type == KEYUP and (event.key ==K_LEFT):
+        if event.type == KEYDOWN and (event.key ==K_LEFT):
             game_self.party.direction -= 1
             if game_self.party.direction < 0:
                 game_self.party.direction = 3
             self.battle_encount( 5, game_self.party.member[0] )
 
-        if event.type == KEYUP and (event.key ==K_RIGHT):
+        if event.type == KEYDOWN and (event.key ==K_RIGHT):
             game_self.party.direction += 1
             if game_self.party.direction > 3:
                 game_self.party.direction = 0
@@ -524,7 +524,7 @@ class Dungeon:
       #print game_self.party.member[0].coordinate
 
 
-        if event.type == KEYUP and (event.key ==K_x):
+        if event.type == KEYDOWN and (event.key ==K_x):
             game_self.game_state = MENU
             game_self.menu = menu.Menu()
             game_self.dungeon = None
@@ -532,7 +532,7 @@ class Dungeon:
             #    character.coordinate = [-1,-1,-1]
             #self.music = 0
 
-        if event.type == KEYUP and (event.key ==K_z or event.key == K_SPACE or event.key == K_RETURN):
+        if event.type == KEYDOWN and (event.key ==K_z or event.key == K_SPACE or event.key == K_RETURN):
             if game_self.party.direction == 0:
                 if (self.horizontal_wall[y][x] == 2):
                     self.door_se.play()

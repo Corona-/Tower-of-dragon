@@ -98,31 +98,31 @@ class Temple_window(window.Window):
             self.cure_pay_window.system_notify_window_handler( event, game_self, game_self.party.member)
             return
         
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             self.menu = 0
             self.page = 0
             self.is_visible = False
             self.to_cure = []
 
-        if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+        if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
             self.menu -= 1
             if self.menu < 0:
                 self.menu = 0
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             if len(self.to_cure) > self.menu+self.page*10+1:
                 self.menu += 1
                 if self.menu > self.MENU_MAX:
                     self.menu = self.MENU_MAX
-        elif event.type == KEYUP and event.key == K_RIGHT:
+        elif event.type == KEYDOWN and event.key == K_RIGHT:
             if len(self.to_cure) > (self.page+1)*10:
                 self.page += 1
                 self.menu = 0
-        elif event.type == KEYUP and event.key == K_LEFT:
+        elif event.type == KEYDOWN and event.key == K_LEFT:
             if self.page > 0:
                 self.page -= 1
                 self.menu = 0
 
-        elif  event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+        elif  event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
             if len(self.to_cure) == 0: return
 
             if self.to_cure[self.menu+self.page*10].status == "OK":
@@ -220,7 +220,7 @@ class Curing_window(window.Window):
     def curing_window_handler(self, event, game_self):
 
         if self.count > 120:
-            if event.type == KEYUP and (event.key ==K_x or event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key ==K_x or event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
                 game_self.temple.temple_cure_window.cure_pay_window.menu = 0
                 game_self.temple.temple_cure_window.cure_pay_window.is_visible = False

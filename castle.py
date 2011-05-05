@@ -151,18 +151,18 @@ def castle_handler(self, event):
         return
     
     
-    if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+    if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
         self.cursor_se.play()
         self.castle.menu -= 1
         if self.castle.menu < 0:
             self.castle.menu = MENU_MAX
-    elif event.type == KEYUP and event.key == K_DOWN:
+    elif event.type == KEYDOWN and event.key == K_DOWN:
         self.cursor_se.play()
         self.castle.menu += 1
         if self.castle.menu > MENU_MAX:
             self.castle.menu = 0
 
-    if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+    if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         if self.castle.menu == Castle.NEW:
             self.game_state = CHARACTER_MAKE
         elif self.castle.menu == Castle.DELETE:
@@ -189,7 +189,7 @@ def castle_handler(self, event):
             self.city = city.City()
         self.select_se.play()
 
-    if event.type == KEYUP and (event.key ==K_x):
+    if event.type == KEYDOWN and (event.key ==K_x):
         self.game_state = CITY
         self.castle.menu = Castle.NEW
         self.castle.music = 0
@@ -338,31 +338,31 @@ class Change_job_window(window.Window):
             self.job_change_confirm.confirm_window_handler( game_self, event, self.possible_characters[self.menu])
             return
 
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             self.menu = 0
             self.page = 0
             self.is_visible = False
 
-        if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+        if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
             self.menu -= 1
             if self.menu < 0:
                 self.menu = 0
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             if len(self.possible_characters) > self.menu+self.page*10+1:
                 self.menu += 1
                 if self.menu > len(self.possible_characters)-1:
                     self.menu = len(self.possible_characters)-1
-        elif event.type == KEYUP and event.key == K_RIGHT:
+        elif event.type == KEYDOWN and event.key == K_RIGHT:
             if len(game_self.party.member) > (self.page+1)*10:
                 self.page += 1
                 self.menu = 0
-        elif event.type == KEYUP and event.key == K_LEFT:
+        elif event.type == KEYDOWN and event.key == K_LEFT:
             if self.page > 0:
                 self.page -= 1
                 self.menu = 0
 
         #TO-DO add enter and change job
-        if event.type == KEYUP and (event.key ==K_z or event.key == K_SPACE or event.key == K_RETURN):
+        if event.type == KEYDOWN and (event.key ==K_z or event.key == K_SPACE or event.key == K_RETURN):
             if self.possible_characters != []:
                 self.job_change_confirm.is_visible = True
             

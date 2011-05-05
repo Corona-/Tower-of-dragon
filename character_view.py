@@ -168,30 +168,30 @@ class Character_view(window.Window):
 
 
     def character_view_handler(self, game_self, event, character):
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             self.menu = 0
             self.page = 0
             self.is_visible = False
 
-        if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+        if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
             self.menu -= 1
             if self.menu < 0:
                 self.menu = 0
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             if len(character) > self.menu+self.page*10+1:
                 self.menu += 1
                 if self.menu > self.MENU_MAX:
                     self.menu = self.MENU_MAX
-        elif event.type == KEYUP and event.key == K_RIGHT:
+        elif event.type == KEYDOWN and event.key == K_RIGHT:
             if len(character) > (self.page+1)*10:
                 self.page += 1
                 self.menu = 0
-        elif event.type == KEYUP and event.key == K_LEFT:
+        elif event.type == KEYDOWN and event.key == K_LEFT:
             if self.page > 0:
                 self.page -= 1
                 self.menu = 0
 
-        elif  event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+        elif  event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
             if len(character) == 0: return
             if self.instruction == self.DELETE:
                 game_self.castle.delete_confirm.is_visible = True
@@ -279,21 +279,21 @@ class Delete_confirm_window(window.Window):
 
 
     def delete_confirm_window_handler(self, game_self, event, character):
-        if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+        if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
             self.menu -= 1
             if self.menu < 0:
                 self.menu = self.MENU_MAX
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
                 self.menu += 1
                 if self.menu > self.MENU_MAX:
                     self.menu = 0
 
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             self.menu = 0
             self.is_visible = False
 
 
-        elif  event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+        elif  event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
             if len(character) == 0: return
             if self.menu == self.YES:
                 del character[game_self.castle.character_delete.menu + game_self.castle.character_delete.page*10]
@@ -501,47 +501,47 @@ class Status_view_window(window.Window):
 
         if game_self.game_state == BAR:
 
-            if event.type == KEYUP and event.key == K_RIGHT:
+            if event.type == KEYDOWN and event.key == K_RIGHT:
                 self.menu += 1
                 game_self.bar.character_check.menu+=1
                 if self.menu >= len(character):
                     self.menu = 0
                     game_self.bar.character_check.menu = 0
                     
-            elif event.type == KEYUP and event.key == K_LEFT:
+            elif event.type == KEYDOWN and event.key == K_LEFT:
                 self.menu -= 1
                 game_self.bar.character_check.menu -= 1
                 if self.menu < 0:
                     self.menu = len(character)-1
                     game_self.bar.character_check.menu = len(character)-1
 
-            elif event.type == KEYUP and event.key == K_x:
+            elif event.type == KEYDOWN and event.key == K_x:
                 self.is_visible = False
 
 
         if game_self.game_state == SHOP:
 
-            if event.type == KEYUP and (event.key == K_LSHIFT or event.key == K_x):
+            if event.type == KEYDOWN and (event.key == K_LSHIFT or event.key == K_x):
                 self.is_visible = False
 
 
         if game_self.game_state == MENU:
 
 
-            if event.type == KEYUP and event.key == K_RIGHT:
+            if event.type == KEYDOWN and event.key == K_RIGHT:
                 self.menu += 1
                 game_self.menu.status_window.menu+=1
                 if self.menu >= len(character):
                     self.menu = 0
                     game_self.menu.status_window.menu = 0
                     
-            elif event.type == KEYUP and event.key == K_LEFT:
+            elif event.type == KEYDOWN and event.key == K_LEFT:
                 self.menu -= 1
                 game_self.menu.status_window.menu -= 1
                 if self.menu < 0:
                     self.menu = len(character)-1
                     game_self.menu.status_window.menu = len(character)-1
 
-            elif event.type == KEYUP and event.key == K_x:
+            elif event.type == KEYDOWN and event.key == K_x:
                 self.is_visible = False
             

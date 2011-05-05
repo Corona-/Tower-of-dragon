@@ -120,20 +120,20 @@ class Menu:
         
 
         #moves the cursor up
-        if event.type == KEYUP and event.key == K_UP:
+        if event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
             self.menu -= 1
             if self.menu < 0:
                 self.menu = self.MENU_MAX
  
         #moves the cursor up
-        if event.type == KEYUP and event.key == K_DOWN:
+        if event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             self.menu += 1
             if self.menu > self.MENU_MAX:
                 self.menu = 0
     
-        if event.type == KEYUP and (event.key ==K_x):
+        if event.type == KEYDOWN and (event.key ==K_x):
             game_self.cancel_se.play()
             self.menu = self.ITEM
             if game_self.party.member == []:
@@ -155,7 +155,7 @@ class Menu:
 
 
       
-        if event.type == KEYUP and (event.key ==K_z or event.key == K_SPACE or event.key == K_RETURN):
+        if event.type == KEYDOWN and (event.key ==K_z or event.key == K_SPACE or event.key == K_RETURN):
             game_self.select_se.play()
             if self.menu == self.ITEM:
                 if len(game_self.party.member) > 0:

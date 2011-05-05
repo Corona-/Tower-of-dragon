@@ -268,7 +268,7 @@ class System_notify_window(window.Window):
             return
         
         if self.instruction == self.SHARE:        
-            if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
                 self.is_visible = False
 
 
@@ -278,7 +278,7 @@ class System_notify_window(window.Window):
 
         elif self.instruction == self.DONATE or self.instruction == self.CURSE or self.instruction == self.PAY or self.instruction == self.REST or self.instruction == self.SELL or self.instruction == self.ITEM_OUT or self.instruction == self.ITEM_IN or self.instruction == self.COLLECT or self.instruction == self.USE_ITEM or self.instruction == self.USE_MAGIC or self.instruction == self.VIEW_STATUS or self.instruction == self.CHANGE_PARTY or self.instruction == self.TEMPLE_PAY:
             
-            if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
                 #if game_self.party.member[self.menu].status != "OK" and self.instruction != self.VIEW_STATUS:
                 #    return
 
@@ -448,19 +448,19 @@ class System_notify_window(window.Window):
                     pass
        
 
-            if event.type == KEYUP and event.key == K_x:
+            if event.type == KEYDOWN and event.key == K_x:
                 self.menu = 0
                 self.is_visible = False
                 if game_self.menu != None:
                     game_self.menu.temp_party1 = []
                     game_self.menu.temp_party2 = []
 
-            if event.type == KEYUP and event.key == K_UP:
+            if event.type == KEYDOWN and event.key == K_UP:
                 self.menu -= 1
                 if self.menu < 0:
                     self.menu = len(character)-1
 
-            if event.type == KEYUP and event.key == K_DOWN:
+            if event.type == KEYDOWN and event.key == K_DOWN:
                 self.menu += 1
                 if len(character) < self.menu+1:
                     self.menu = 0
@@ -531,7 +531,7 @@ class Donate_window(window.Window):
             return
  
 
-        if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+        if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
             donate_money = self.hundred_million*100000000 + self.ten_million*10000000 + self.million*1000000 + self.hun_thousand*100000+self.ten_thousand*10000+self.thousand*1000+self.hundred*100+self.ten*10+self.one
 
             self.menu = 0
@@ -561,7 +561,7 @@ class Donate_window(window.Window):
                     
 
             
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             self.menu = 0
 
             self.hundred_million = 0
@@ -577,18 +577,18 @@ class Donate_window(window.Window):
             self.is_visible = False
 
             
-        elif event.type == KEYUP and event.key == K_LEFT:
+        elif event.type == KEYDOWN and event.key == K_LEFT:
             self.menu += 1
             if self.menu > 8:
                 self.menu = 0
             
-        elif event.type == KEYUP and event.key == K_RIGHT:
+        elif event.type == KEYDOWN and event.key == K_RIGHT:
             self.menu -= 1
             if self.menu < 0:
                 self.menu = 8
 
         #maybe want to clean up this... 
-        elif event.type == KEYUP and event.key == K_UP:
+        elif event.type == KEYDOWN and event.key == K_UP:
             if self.menu == 0:
                 self.one += 1
                 if self.one > 9:
@@ -626,7 +626,7 @@ class Donate_window(window.Window):
                 if self.hundred_million > 9:
                     self.hundred_million = 0
 
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             if self.menu == 0:
                 self.one -= 1
                 if self.one < 0:
@@ -736,7 +736,7 @@ class Donate_finish_window(window.Window):
 
     def donate_finish_window_handler(self, event, game_self):
         if self.instruction == self.NOT_ENOUGH:          
-            if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
                 #it is only used when buying a house and not enough money
                 #it doesn't matter if it is not since it is initialized and should be false
@@ -748,11 +748,11 @@ class Donate_finish_window(window.Window):
 
          
         elif self.instruction == self.FINISH:
-            if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
 
         elif self.instruction == self.BUY_HOUSE:
-            if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
                 if game_self.shop != None:
                     if game_self.shop.buy_house != None:
@@ -762,7 +762,7 @@ class Donate_finish_window(window.Window):
                     game_self.shop.menu += 1
 
         elif self.instruction == self.REFORM_HOUSE:
-            if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
                 if game_self.house.house_change.who_pay_window != None:
                     game_self.house.house_change.who_pay_window.is_visible = False
@@ -773,16 +773,16 @@ class Donate_finish_window(window.Window):
                     game_self.house.menu += 1
                     
         elif self.instruction == self.TOO_MUCH_ITEM or self.instruction == self.SOLD_ITEM or self.instruction == self.COLLECT:
-            if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
 
         elif self.instruction == self.BUY_ITEM:
-            if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
                 if game_self.shop.shop_window.buy_window.character_select.no_more == 1:
                     game_self.shop.shop_window.buy_window.character_select.is_visible = False
         elif self.instruction == self.TEMPLE_NOT_ENOUGH or self.instruction == self.TEMPLE_NOT_MOVABLE:
-            if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
             
 
@@ -830,7 +830,7 @@ class Rest_window(window.Window):
             self.lv_up_window.level_up_window_handler(event, game_self)
 
         if self.instruction == self.REST:
-            if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.lv_up_window.is_visible = True
 
 
@@ -921,21 +921,21 @@ class Confirm_window(window.Window):
             self.who_pay_window.system_notify_window_handler(event, game_self, game_self.party.member)
             return
         
-        if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+        if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
             self.menu -= 1
             if self.menu < 0:
                 self.menu = self.MENU_MAX
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
                 self.menu += 1
                 if self.menu > self.MENU_MAX:
                     self.menu = 0
 
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             self.menu = 0
             self.is_visible = False
 
 
-        elif  event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+        elif  event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
             if self.instruction == self.HOUSE:
                 if self.menu == self.YES:
                     if len(game_self.party.member) > 0:
@@ -1242,7 +1242,7 @@ class level_up_window(window.Window):
 
     def level_up_window_handler(self, event , game_self):
 
-        if event.type == KEYUP and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+        if event.type == KEYDOWN and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
 
             if game_self.game_state == INN:
                 game_self.inn.inn_window.who_rest.resting_window = Rest_window(Rect(100, 160 ,400, 50), Rest_window.REST)
@@ -1368,21 +1368,21 @@ class Item_select_window(window.Window):
             elif game_self.game_state == HOUSE:
                 character = game_self.party.member[game_self.house.item_in_window.menu]
         #moves back to shop
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             game_self.cancel_se.play()
             self.menu = 0
             self.page = 0
             self.is_visible =False
 
         #moves the cursor up
-        elif event.type == KEYUP and event.key == K_UP:
+        elif event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
             self.menu -= 1
             if self.menu < 0:
                 self.menu = 0 
                 
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             if self.instruction == self.ITEM_OUT:
                 if len(character.items) > self.menu+1:
@@ -1404,7 +1404,7 @@ class Item_select_window(window.Window):
                             self.menu = self.MENU_MAX
 
 
-        elif event.type == KEYUP and event.key == K_RIGHT:
+        elif event.type == KEYDOWN and event.key == K_RIGHT:
             if self.instruction == self.ITEM_IN:
                 if game_self.game_state == INN:
                     if len(game_self.party.inn_item) > (self.page+1)*10:
@@ -1417,7 +1417,7 @@ class Item_select_window(window.Window):
                         self.page += 1
                         self.menu = 0
                 
-        elif event.type == KEYUP and event.key == K_LEFT:
+        elif event.type == KEYDOWN and event.key == K_LEFT:
             if self.instruction == self.ITEM_IN:
                 if self.page > 0:
                     game_self.cursor_se.play()
@@ -1425,7 +1425,7 @@ class Item_select_window(window.Window):
                     self.menu = 0
 
 
-        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+        elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
             if self.instruction == self.ITEM_OUT:
                 #max item to store for inn is 20
                 if game_self.game_state == INN:
@@ -1525,25 +1525,25 @@ class Item_view(window.Window):
         character = game_self.party.member[game_self.menu.item_window.menu]
 
         #moves back to shop
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             game_self.cancel_se.play()
             self.menu = 0
             self.is_visible =False
 
         #moves the cursor up
-        elif event.type == KEYUP and event.key == K_UP:
+        elif event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
             self.menu -= 1
             if self.menu < 0:
                 self.menu = 0
                 
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             if len(character.items) > self.menu+1:
                 self.menu += 1
 
-        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+        elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
             if len(character.items) > 0:
                 self.item_todo_window.is_visible = True
 
@@ -1618,20 +1618,20 @@ class Magic_all_view(window.Window):
             return
 
         #moves back to shop
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             game_self.cancel_se.play()
             self.menu = 0
             self.is_visible =False
 
         #moves the cursor up
-        elif event.type == KEYUP and event.key == K_UP:
+        elif event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
             self.menu -= 7
             if self.menu < 0:
                 self.menu += 14
                 
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             self.menu += 7
             if self.menu > 13:
@@ -1639,7 +1639,7 @@ class Magic_all_view(window.Window):
 
                 
         #moves the cursor left
-        elif event.type == KEYUP and event.key == K_LEFT:
+        elif event.type == KEYDOWN and event.key == K_LEFT:
             game_self.cursor_se.play()
             self.menu -= 1
             if self.menu == 6:
@@ -1648,7 +1648,7 @@ class Magic_all_view(window.Window):
                 self.menu = 6
             
         #moves the cursor right
-        elif event.type == KEYUP and event.key == K_RIGHT:
+        elif event.type == KEYDOWN and event.key == K_RIGHT:
             game_self.cursor_se.play()
             self.menu += 1
             if self.menu == 7:
@@ -1656,7 +1656,7 @@ class Magic_all_view(window.Window):
             if self.menu > 13:
                 self.menu = 7
 
-        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+        elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
             game_self.select_se.play()
             self.magic_level_view.is_visible = True
 
@@ -1743,20 +1743,20 @@ class Magic_level(window.Window):
     def magic_level_view_handler( self, event, game_self):
 
         #moves back to shop
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             game_self.cancel_se.play()
             self.menu = 0
             self.is_visible =False
 
         #moves the cursor up
-        elif event.type == KEYUP and event.key == K_UP:
+        elif event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
             self.menu -= 1
             if self.menu < 0:
                 self.menu = 0
                 
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             self.menu += 1
             if self.menu > 5:
@@ -1764,7 +1764,7 @@ class Magic_level(window.Window):
 
                 
         #moves the cursor left
-        elif event.type == KEYUP and event.key == K_LEFT:
+        elif event.type == KEYDOWN and event.key == K_LEFT:
             game_self.cursor_se.play()
             game_self.menu.magic_window.magic_all_view.menu -= 1
             if game_self.menu.magic_window.magic_all_view.menu < 0:
@@ -1773,7 +1773,7 @@ class Magic_level(window.Window):
                 game_self.menu.magic_window.magic_all_view.menu = 13
             
         #moves the cursor right
-        elif event.type == KEYUP and event.key == K_RIGHT:
+        elif event.type == KEYDOWN and event.key == K_RIGHT:
             game_self.cursor_se.play()
             game_self.menu.magic_window.magic_all_view.menu += 1
             if game_self.menu.magic_window.magic_all_view.menu == 7:
@@ -1833,27 +1833,27 @@ class Target_select(window.Window):
     def target_select_handler(self, event, game_self):
 
         #moves back to shop
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             game_self.cancel_se.play()
             self.menu = 0
             self.is_visible =False
 
         #moves the cursor up
-        elif event.type == KEYUP and event.key == K_UP:
+        elif event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
             self.menu -= 1
             if self.menu < 0:
                 self.menu = 0
                 
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             self.menu += 1
             if self.menu+1 > len(game_self.party.member):
                 self.menu = len(game_self.party.member)-1
 
 
-        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+        elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
 
             if self.instruction == self.USE_ITEM:
                 user = game_self.party.member[game_self.menu.item_window.menu]
@@ -1973,27 +1973,27 @@ class Item_menu_select(window.Window):
             self.pass_target_window.target_select_handler( event, game_self)
             return
 
-        if event.type == KEYUP and event.key == K_x:
+        if event.type == KEYDOWN and event.key == K_x:
             game_self.cancel_se.play()
             self.menu = 0
             self.is_visible =False
 
         #moves the cursor up
-        elif event.type == KEYUP and event.key == K_UP:
+        elif event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
             self.menu -= 1
             if self.menu < 0:
                 self.menu = 0
                 
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             self.menu += 1
             if self.menu > self.MENU_MAX:
                 self.menu = self.MENU_MAX
 
 
-        elif event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+        elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
 
             character = game_self.party.member[game_self.menu.item_window.menu]
             use_item = character.items[game_self.menu.item_window.item_view.menu]

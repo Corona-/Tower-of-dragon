@@ -526,7 +526,7 @@ class Battle:
         
 
         if self.state == self.INIT:
-            if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN or event.key == K_x):
+            if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN or event.key == K_x):
                 self.state = self.COMMAND
 
             return
@@ -535,9 +535,9 @@ class Battle:
 
         elif self.state == self.COMMAND:
 
-            print self.selected
+            #print self.selected
 
-            if event.type == KEYUP and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
 
                 game_self.select_se.play()
                 
@@ -606,7 +606,7 @@ class Battle:
 
                 return
             
-            if event.type == KEYUP and event.key == K_UP: #moves the cursor up
+            if event.type == KEYDOWN and event.key == K_UP: #moves the cursor up
                 game_self.cursor_se.play()
                 self.menu -= 1
                 if self.menu == self.ITEM:
@@ -614,26 +614,26 @@ class Battle:
                 if self.menu < 0:
                     self.menu = self.ITEM
 
-            elif event.type == KEYUP and event.key == K_DOWN:
+            elif event.type == KEYDOWN and event.key == K_DOWN:
                 game_self.cursor_se.play()
                 self.menu += 1
                 if self.menu % 3 == 0:
                     self.menu -= 3
 
-            elif event.type == KEYUP and event.key == K_LEFT:
+            elif event.type == KEYDOWN and event.key == K_LEFT:
                 game_self.cursor_se.play()
                 self.menu -= 3
                 if self.menu < 0:
                     self.menu += MENU_MAX+1
 
-            elif event.type == KEYUP and event.key == K_RIGHT:
+            elif event.type == KEYDOWN and event.key == K_RIGHT:
                 game_self.cursor_se.play()
                 self.menu += 3
                 if self.menu > MENU_MAX:
                     self.menu = self.menu % (MENU_MAX+1)
 
 
-            if event.type == KEYUP and event.key == K_x:
+            if event.type == KEYDOWN and event.key == K_x:
                 if self.selected > 0:
                     self.selected -= 1
                     count = len(self.party_movement)
@@ -648,7 +648,7 @@ class Battle:
 
         elif self.state == self.BATTLE:
 
-            if event.type == KEYUP and (event.key == K_x or event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_x or event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
                 #game_self.dungeon.battle_flag = 0
                 #game_self.dungeon.battle = None
                 #ugame_self.dungeon.music = 0
@@ -711,7 +711,7 @@ class Battle:
 
         elif self.state == self.END:
             
-            if event.type == KEYUP and (event.key == K_x or event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+            if event.type == KEYDOWN and (event.key == K_x or event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
 
                 if player_count_movable( game_self.party.member ) == 0:
                     #game_over

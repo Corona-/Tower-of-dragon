@@ -71,19 +71,19 @@ class Tower:
 def tower_handler(self, event):
     """event handler of tower"""
     #moves the cursor up
-    if event.type == KEYUP and event.key == K_UP:
+    if event.type == KEYDOWN and event.key == K_UP:
         self.cursor_se.play()
         self.tower.menu -= 1
         if self.tower.menu < 0:
             self.tower.menu = MENU_MAX
     #moves the cursor down
-    elif event.type == KEYUP and event.key == K_DOWN:
+    elif event.type == KEYDOWN and event.key == K_DOWN:
         self.cursor_se.play()
         self.tower.menu += 1
         if self.tower.menu > MENU_MAX:
             self.tower.menu = 0
     #select the item
-    if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+    if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         if self.tower.menu == Tower.GO:
             self.game_state = DUNGEON
             for character in self.party.member:
@@ -98,7 +98,7 @@ def tower_handler(self, event):
         self.select_se.play()
 
 
-    if event.type == KEYUP and (event.key ==K_x):
+    if event.type == KEYDOWN and (event.key ==K_x):
         self.game_state = CITY
         self.tower.menu = Tower.GO
         self.tower = None

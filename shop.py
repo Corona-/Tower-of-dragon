@@ -173,7 +173,7 @@ def shop_handler(self,event):
 
         
     #moves the cursor up
-    if event.type == KEYUP and event.key == K_UP:
+    if event.type == KEYDOWN and event.key == K_UP:
         self.cursor_se.play()
         self.shop.menu -= 1
         if self.shop.menu < 0:
@@ -181,7 +181,7 @@ def shop_handler(self,event):
         if self.shop.menu == 4 and self.party.house > 0:
             self.shop.menu -= 1
     #moves the cursor down
-    elif event.type == KEYUP and event.key == K_DOWN:
+    elif event.type == KEYDOWN and event.key == K_DOWN:
         self.cursor_se.play()
         self.shop.menu += 1
         if self.shop.menu > MENU_MAX:
@@ -189,7 +189,7 @@ def shop_handler(self,event):
         if self.shop.menu == 4 and self.party.house > 0:
             self.shop.menu += 1
     #select the menu items
-    if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+    if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
         if self.shop.menu == Shop.BUY:
             self.shop.shop_window = shop_window.Shop_window(Rect(200, 50, 240, 380))
             self.shop.shop_window.is_visible = True
@@ -214,7 +214,7 @@ def shop_handler(self,event):
         self.select_se.play()
 
 
-    if event.type == KEYUP and (event.key ==K_x):
+    if event.type == KEYDOWN and (event.key ==K_x):
         self.game_state = CITY
         self.shop.menu = Shop.BUY
         self.shop.music = 0

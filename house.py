@@ -173,7 +173,7 @@ class House:
 
   
         #moves the cursor up
-        if event.type == KEYUP and event.key == K_UP:
+        if event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
             self.menu -= 1
             if self.menu < 0:
@@ -181,7 +181,7 @@ class House:
             if game_self.party.house == 5 and self.menu == 5:
                 self.menu -= 1
         #moves the cursor down
-        elif event.type == KEYUP and event.key == K_DOWN:
+        elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             self.menu += 1
             if self.menu > self.MENU_MAX:
@@ -189,7 +189,7 @@ class House:
             if game_self.party.house == 5 and self.menu == 5:
                 self.menu += 1
 
-        if event.type == KEYUP and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
+        if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
 
             game_self.select_se.play()
 
@@ -225,7 +225,7 @@ class House:
 
 
 
-        if event.type == KEYUP and (event.key ==K_x):
+        if event.type == KEYDOWN and (event.key ==K_x):
             game_self.game_state = CITY
             self.menu = self.REST 
             game_self.city = city.City()
