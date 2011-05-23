@@ -188,6 +188,7 @@ def inn_handler(self, event):
             self.inn.music = 0
             self.inn = None
             self.city = city.City()
+            self.city.menu = 1
         self.select_se.play()
 
 
@@ -198,6 +199,7 @@ def inn_handler(self, event):
         self.inn.music = 0
         self.inn = None
         self.city = city.City()
+        self.city.menu = 1
         
        
 

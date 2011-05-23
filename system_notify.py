@@ -1905,6 +1905,10 @@ class Target_select(window.Window):
 
                 if game_self.menu.item_window.item_view.menu > len(user.items)-1:
                     game_self.menu.item_window.item_view.menu -= 1
+
+                game_self.menu.item_window.item_view.item_todo_window.menu = 0
+
+
                     
                
                 pass
@@ -2010,6 +2014,7 @@ class Item_menu_select(window.Window):
                 else:
                     #not able to use in menu
                     pass
+                self.menu = 0
 
             if self.menu == self.EQUIP_ITEM:
 

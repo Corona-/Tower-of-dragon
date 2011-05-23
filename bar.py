@@ -218,6 +218,7 @@ def bar_handler(self, event):
             self.bar.menu = Bar.ADD
             self.bar.music = 0
             self.city = city.City()
+            self.city.menu = 0
             self.bar = None
         self.select_se.play()
 
@@ -227,5 +228,6 @@ def bar_handler(self, event):
         self.cancel_se.play()
         self.bar.music = 0
         self.city = city.City()
+        self.city.menu = 0
         self.bar = None
 

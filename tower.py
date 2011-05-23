@@ -95,6 +95,7 @@ def tower_handler(self, event):
             self.tower.menu = Tower.GO
             self.tower = None
             self.city = city.City()
+            self.city.menu = 6
         self.select_se.play()
 
 
@@ -103,5 +104,6 @@ def tower_handler(self, event):
         self.tower.menu = Tower.GO
         self.tower = None
         self.city = city.City()
+        self.city.menu = 6
         self.cancel_se.play()
 

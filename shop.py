@@ -211,6 +211,7 @@ def shop_handler(self,event):
             self.shop.music = 0
             self.shop = None
             self.city = city.City()
+            self.city.menu = 3
         self.select_se.play()
 
 
@@ -222,6 +223,7 @@ def shop_handler(self,event):
             item_list.sort(cmp=lambda x, y: cmp(x.id, y.id), reverse=False)
         self.shop = None
         self.city = city.City()
+        self.city.menu = 3
         self.cancel_se.play()
 
         

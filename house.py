@@ -219,6 +219,7 @@ class House:
                 game_self.game_state = CITY
                 self.menu = self.REST
                 game_self.city = city.City()
+                game_self.city.menu = 2
                 game_self.house = None
 
 
@@ -229,6 +230,7 @@ class House:
             game_self.game_state = CITY
             self.menu = self.REST 
             game_self.city = city.City()
+            game_self.city.menu = 2
             game_self.house = None
 
             

@@ -187,6 +187,7 @@ def castle_handler(self, event):
             self.castle.music = 0
             self.castle = None
             self.city = city.City()
+            self.city.menu = 5
         self.select_se.play()
 
     if event.type == KEYDOWN and (event.key ==K_x):
@@ -195,6 +196,7 @@ def castle_handler(self, event):
         self.castle.music = 0
         self.castle = None
         self.city = city.City()
+        self.city.menu = 5
 
         self.cancel_se.play()
 

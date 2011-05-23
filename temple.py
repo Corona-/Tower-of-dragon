@@ -120,6 +120,7 @@ def temple_handler(self, event):
             self.temple.music = 0
             self.temple = None
             self.city = city.City()
+            self.city.menu = 4
         self.select_se.play()
 
 
@@ -131,6 +132,7 @@ def temple_handler(self, event):
         self.temple.music = 0
         self.temple = None
         self.city = city.City()
+        self.city.menu = 4
         self.cancel_se.play()
         
 
