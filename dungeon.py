@@ -81,6 +81,16 @@ class Dungeon:
         self.doorList3 = load_side_images("Images/edgedoor_3.png", 64, 256, 1, 0, 1, 0)        
         self.doorList4 = load_side_images("Images/edgedoor_4.png", 32, 128, 1, 0, 1, 0)
 
+        #load ceiling images
+        self.ceiling2 = pygame.image.load("Images/ceiling_2.png").convert()
+        surface = pygame.Surface((512,128))
+        surface.blit(self.ceiling2, (0,0), (0,0,512,128))
+        surface.set_colorkey(surface.get_at((0,1)), RLEACCEL)
+        surface.convert()
+        self.ceiling2 = surface
+
+        self.ceilingedgeList2 = load_side_images("Images/ceilingedge_2.png", 192, 128, 191, 0, 0, 0)
+
         
         #load the map of the dungeon
         file = "tower_of_dragon.txt"
@@ -157,6 +167,11 @@ class Dungeon:
         else:
             #without magic or torch, it could see up to two walls or one block
             #it is [y][x] since it is stored by rows
+
+            #right now, ceiling would have nothing, so all of it needs it.
+            screen.blit(self.ceiling2, (64,-64))
+            screen.blit(self.ceilingedgeList2[0], (0,-64))
+            screen.blit(self.ceilingedgeList2[1], (448,-64))
 
             #if the player is looking up
             if ( game_self.party.direction == 0):
