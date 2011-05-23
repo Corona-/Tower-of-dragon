@@ -70,6 +70,9 @@ class System_notify_window(window.Window):
         self.temple_curing = None #temple_window.Curing_window(Rect(60, 40, 520, 400))
         self.cured = False
 
+        #if not movable, can't use shop
+        self.shop_not_movable = None
+        self.inn_not_movable = None
         
     def draw(self, screen, character):
             """draw the window on the screen"""
@@ -172,6 +175,10 @@ class System_notify_window(window.Window):
                 if self.status_view != None:
                     self.status_view.draw(screen, character)
 
+                if self.shop_not_movable != None:
+                    self.shop_not_movable.draw(screen)
+                if self.inn_not_movable != None:
+                    self.inn_not_movable.draw(screen)
 
 
                 if self.instruction == self.TEMPLE_PAY:
@@ -266,6 +273,12 @@ class System_notify_window(window.Window):
         elif self.temple_curing != None and self.temple_curing.is_visible:
             self.temple_curing.curing_window_handler(event, game_self)
             return
+        elif self.shop_not_movable != None and self.shop_not_movable.is_visible:
+            self.shop_not_movable.donate_finish_window_handler(event, game_self)
+            return
+        elif self.inn_not_movable != None and self.inn_not_movable.is_visible:
+            self.inn_not_movable.donate_finish_window_handler(event, game_self)
+            return
         
         if self.instruction == self.SHARE:        
             if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
@@ -325,6 +338,13 @@ class System_notify_window(window.Window):
                     #get the item chosen to rest for and if money is not enough, open inn_not_enough window
                     #else check exp points and rests
 
+                    #if character is not movable cannot rest
+                    if game_self.party.member[self.menu].status != "OK":
+                        self.inn_not_movable = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.TEMPLE_NOT_MOVABLE)
+                        self.inn_not_movable.is_visible = True
+                        return
+
+
                     if game_self.game_state == INN:
                         rest.rest(self, game_self, game_self.inn.inn_window.menu, 1)
                     elif game_self.game_state == HOUSE:
@@ -367,8 +387,12 @@ class System_notify_window(window.Window):
                     #print change
 
                 elif self.instruction == self.SELL:
-                    self.character_sell_window = shop_window.Sell_window(Rect(120, 50, 400, 360))
-                    self.character_sell_window.is_visible = True
+                    if game_self.party.member[self.menu].status != "OK":
+                        self.shop_not_movable = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.TEMPLE_NOT_MOVABLE)
+                        self.shop_not_movable.is_visible = True
+                    else:
+                        self.character_sell_window = shop_window.Sell_window(Rect(120, 50, 400, 360))
+                        self.character_sell_window.is_visible = True
                 elif self.instruction == self.ITEM_OUT:
                     self.item_hold_window = Item_select_window( Rect(120, 50, 400, 360), Item_select_window.ITEM_OUT)
                     self.item_hold_window.is_visible = True

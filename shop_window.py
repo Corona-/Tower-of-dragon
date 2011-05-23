@@ -421,6 +421,8 @@ class Character_select_window(window.Window):
         self.buy_window = system_notify.Donate_finish_window( Rect(150, 160 ,300, 50), 4)
         self.not_enough_window = system_notify.Donate_finish_window( Rect(150, 160 ,300, 50), 0)
         self.too_much_item_window = system_notify.Donate_finish_window( Rect(150, 160 ,300, 50), 5)
+        self.not_movable = system_notify.Donate_finish_window( Rect(150,160,300,50), system_notify.Donate_finish_window.TEMPLE_NOT_MOVABLE)
+        
                 
 
     def draw(self, screen, game_self):
@@ -454,6 +456,7 @@ class Character_select_window(window.Window):
         self.buy_window.draw( screen)
         self.not_enough_window.draw(screen)
         self.too_much_item_window.draw(screen)
+        self.not_movable.draw(screen)
 
         
     def character_select_handler(self, event, game_self):
@@ -469,6 +472,9 @@ class Character_select_window(window.Window):
             return
         elif self.too_much_item_window.is_visible == True:
             self.too_much_item_window.donate_finish_window_handler( event, game_self)
+            return
+        elif self.not_movable.is_visible == True:
+            self.not_movable.donate_finish_window_handler( event, game_self)
             return
 
         length = len(game_self.party.member)-1
@@ -511,8 +517,11 @@ class Character_select_window(window.Window):
             #get the cost of the item
             category_item = game_self.shop.shop_window.buy_window.category_item
             item_menu = game_self.shop.shop_window.buy_window.menu
+
+            if game_self.party.member[self.menu].status != "OK":
+                self.not_movable.is_visible = True
             
-            if game_self.party.member[self.menu].money > int(game_self.item_data[category_item[item_menu].id][2]) and len(game_self.party.member[self.menu].items) < 10:
+            elif game_self.party.member[self.menu].money > int(game_self.item_data[category_item[item_menu].id][2]) and len(game_self.party.member[self.menu].items) < 10:
                 game_self.party.member[self.menu].money -= int(game_self.item_data[category_item[item_menu].id][2])
                 game_self.party.member[self.menu].items.append( item.Item( game_self.item_data[category_item[item_menu].id] ))
 
