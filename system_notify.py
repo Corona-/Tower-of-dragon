@@ -408,7 +408,7 @@ class System_notify_window(window.Window):
                         character.money = 0
                     game_self.party.member[self.menu].money = total_money
                 elif self.instruction == self.USE_ITEM:
-                    self.item_view = Item_view(Rect(120, 50, 400, 360))
+                    self.item_view = Item_view(Rect(70, 50, 450, 360))
                     self.item_view.is_visible = True
                 elif self.instruction == self.USE_MAGIC:
                     self.magic_all_view = Magic_all_view(Rect(80, 50, 280 ,120))
@@ -1498,6 +1498,8 @@ class Item_view(window.Window):
         self.is_visible = False
 
         self.menu = 0
+        self.equip = 0
+        self.select = 0
 
         self.top = rectangle.top
         self.left = rectangle.left
@@ -1529,14 +1531,32 @@ class Item_view(window.Window):
         if character.items != []:
             #draws rectangle on the menu item size of rectangle has width of window rectangle - edge_length*2
             #the height depends on the size of font
-            pygame.draw.rect(screen, COLOR_GLAY, Rect( self.left+4, self.top+55 + 30*self.menu,(self.right-self.left)-8,30), 0)
+            #pygame.draw.rect(screen, COLOR_GLAY, Rect( self.left+4, self.top+55 + 30*self.menu,(self.right-self.left)-8,30), 0)
+            if self.select == 0:
+                pygame.draw.rect(screen, COLOR_GLAY, Rect( self.left+4, self.top+55 + 30*self.menu,self.right-320,30), 0)
+        if self.select == 1:
+            pygame.draw.rect(screen, COLOR_GLAY, Rect( self.right-250, self.top+55 + 30*self.equip, 246, 30), 0)
+
 
 
         i = 0
-        for item in character.items:
-            item_font = self.menu_font.render( item.name, True, COLOR_WHITE)
-            screen.blit ( item_font, (self.centerx - item_font.get_width()/2, self.top+60+i*30))
+        for item_c in character.items:
+            item_font = self.menu_font.render( item_c.name, True, COLOR_WHITE)
+            #screen.blit ( item_font, (self.centerx - item_font.get_width()/2, self.top+60+i*30))
+            screen.blit ( item_font, (self.left+20, self.top+60+i*30))
+
             i += 1
+
+        i = 0
+        for equip in character.equip:
+            if isinstance( equip, item.Item):
+                equip_font = self.menu_font.render( "E:" + equip.name, True, COLOR_WHITE)
+                screen.blit( equip_font, (self.right-220, self.top+60+i*30))
+            else:
+                equip_font = self.menu_font.render( "----------", True, COLOR_WHITE)
+                screen.blit( equip_font, (self.right-220, self.top+60+i*30))
+                
+            i+= 1
 
         self.item_todo_window.draw(screen, game_self)
         
@@ -1557,19 +1577,40 @@ class Item_view(window.Window):
         #moves the cursor up
         elif event.type == KEYDOWN and event.key == K_UP:
             game_self.cursor_se.play()
-            self.menu -= 1
-            if self.menu < 0:
-                self.menu = 0
+            if self.select == 0:
+                self.menu -= 1
+                if self.menu < 0:
+                    self.menu = 0
+            else:
+                self.equip -= 1
+                if self.equip < 0:
+                    self.equip = 0
                 
         #moves the cursor down
         elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
-            if len(character.items) > self.menu+1:
+            if self.select == 0 and len(character.items) > self.menu+1:
                 self.menu += 1
-
+            if self.select == 1 and self.equip < 5:
+                self.equip += 1
+                
+        elif event.type == KEYDOWN and event.key == K_LEFT:
+            game_self.cursor_se.play()
+            if self.select == 1:
+                self.select = 0
+        elif event.type == KEYDOWN and event.key == K_RIGHT:
+            game_self.cursor_se.play()
+            if self.select == 0:
+                self.select = 1
+                
         elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
-            if len(character.items) > 0:
+            if self.select == 0 and len(character.items) > 0:
                 self.item_todo_window.is_visible = True
+            if self.select == 1:
+                if isinstance( character.equip[self.equip], item.Item) and len(character.items) < character.item_max:
+                    character.items.append( character.equip[self.equip] )
+                    character.equip[self.equip] = 0
+                pass
 
 
 
@@ -2135,6 +2176,10 @@ class Item_menu_select(window.Window):
                         character.equip[5] = use_item
                     del character.items[game_self.menu.item_window.item_view.menu]
 
+                if game_self.menu.item_window.item_view.menu >= len(character.items):
+                    game_self.menu.item_window.item_view.menu -= 1
+                    if game_self.menu.item_window.item_view.menu < 0:
+                        game_self.menu.item_window.item_view.menu = 0
 
                 self.is_visible = False
                 self.menu = 0

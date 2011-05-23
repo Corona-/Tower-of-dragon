@@ -26,7 +26,7 @@ MENU_MAX = 1
 
 class Dungeon:
 
-    def __init__(self):
+    def __init__(self, floor):
 
         self.enemy_data = []
         temp = []
@@ -106,6 +106,8 @@ class Dungeon:
         self.object = []
 
         self.temp = []
+
+        self.floor = floor
 
         #reads as left top is 0,0 and right down is 19,19
         for i in range(0, 20):

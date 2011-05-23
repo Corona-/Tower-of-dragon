@@ -6,7 +6,6 @@
 BUSIN　性格がある　戦闘。信頼などに影響？
 BUSIN　自分の作ったキャラとデフォルトのキャラのイベント？
 BUSIN　依頼？
-七つのダンジョン？
 宝箱レベル、盗賊レベル
 	罠：魔法を忘れる、灰化…etc
 
@@ -41,24 +40,18 @@ BUSIN　依頼？
 			ほかにもあるかも
 
 	モンスター状態抵抗率（計算）
-	アイテム使用のところに装備も
 
 	ショップアイテム
 	Shop初期化しても保存できるように
 
+		追加ウィンドウ修正必要
+		移動
+		castle delete_confirm
+		bar status_view
+		battle enemy_select_window どうするか・・・
+		dungeon downstair window 遅い？
+		shop_window skip しました
 
-
-	装備はずす？
-	コンティニューでロード追加
-	追加ウィンドウ修正必要
-	移動
-	castle delete_confirm
-	bar status_view
-	battle enemy_select_window どうするか・・・
-	dungeon downstair window 遅い？
-	shop_window skip しました
-
-	dungeon init 階のマップロード？
 
 		装備各職業用の番号。
 		ステ表示、PT表示のAC修正
@@ -90,7 +83,7 @@ BUSIN　依頼？
 
 友好的なコボルドだ
 
-光冠は、寺院に運ばれました
+ヨウムは、寺院に運ばれました
 
 セーブに必要なもの：
 	キャラ： items,equip	

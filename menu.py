@@ -132,27 +132,6 @@ class Menu:
             self.menu += 1
             if self.menu > self.MENU_MAX:
                 self.menu = 0
-    
-        if event.type == KEYDOWN and (event.key ==K_x):
-            game_self.cancel_se.play()
-            self.menu = self.ITEM
-            if game_self.party.member == []:
-                game_self.game_state = CITY
-                game_self.city = city.City()
-                game_self.menu = None
-                return
-            if game_self.party.member[0].coordinate != [-1,-1,-1]:
-                game_self.game_state = DUNGEON
-                game_self.menu = None
-                game_self.dungeon = dungeon.Dungeon()
-
-                #dungeon load?????
-            else:
-                game_self.game_state = CITY
-                game_self.city = city.City()
-                game_self.menu = None
-
-
 
       
         if event.type == KEYDOWN and (event.key ==K_z or event.key == K_SPACE or event.key == K_RETURN):
@@ -204,9 +183,31 @@ class Menu:
                 if game_self.party.member[0].coordinate != [-1,-1,-1]:
                     game_self.game_state = DUNGEON
                     game_self.menu = None
-                    game_self.dungeon = dungeon.Dungeon()
+                    game_self.dungeon = dungeon.Dungeon(game_self.party.member[0].coordinate[2])
                     #dungeon load????
                 else:
                     game_self.game_state = CITY
                     game_self.city = city.City()
                     game_self.menu = None
+
+
+        if event.type == KEYDOWN and (event.key ==K_x):
+            game_self.cancel_se.play()
+            self.menu = self.ITEM
+            if game_self.party.member == []:
+                game_self.game_state = CITY
+                game_self.city = city.City()
+                game_self.menu = None
+                return
+            if game_self.party.member[0].coordinate != [-1,-1,-1]:
+                game_self.game_state = DUNGEON
+                game_self.menu = None
+                game_self.dungeon = dungeon.Dungeon(game_self.party.member[0].coordinate[2])
+
+                #dungeon load?????
+            else:
+                game_self.game_state = CITY
+                game_self.city = city.City()
+                game_self.menu = None
+
+
