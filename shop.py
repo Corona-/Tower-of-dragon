@@ -64,7 +64,7 @@ class Shop:
         helmet_stock = [Shop_item(450, 1)]
         gauntlet_stock = []
         accessory_stock = [Shop_item(550,1),Shop_item(551,1),Shop_item(552,1)]
-        item_stock = [Shop_item(1,8),Shop_item(4,5),Shop_item(5,5), Shop_item(6,7)]
+        item_stock = [Shop_item(1,-1),Shop_item(4,5),Shop_item(5,5), Shop_item(6,-1)]
         
         self.stock.append(sword_stock)
         self.stock.append(katana_stock)

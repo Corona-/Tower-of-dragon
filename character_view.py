@@ -218,6 +218,7 @@ class Character_view(window.Window):
                 if len(game_self.party.member) < 6:
                     game_self.party.member.append(game_self.characters[game_self.bar.party_add.menu + game_self.bar.party_add.page*10])
                     game_self.party.alignment += game_self.characters[game_self.bar.party_add.menu + game_self.bar.party_add.page*10].alignment
+                    print game_self.party.alignment
                     del game_self.characters[game_self.bar.party_add.menu + game_self.bar.party_add.page*10]
                     if (game_self.bar.party_add.menu + game_self.bar.party_add.page*10)+1 > len(character):
                         game_self.bar.party_add.menu -=1
@@ -457,19 +458,19 @@ class Status_view_window(window.Window):
             screen.blit(character_agility_font, ( 150 , 230))
             screen.blit(character_luck_font, (150, 260))
 
-            screen.blit(hp_font, (250, 110))                                         
-            screen.blit(status_font, (250, 150))                                         
+            screen.blit(hp_font, (220, 110))                                         
+            screen.blit(status_font, (220, 150))                                         
 
-            screen.blit(character_hp_font, (330, 110))                                         
-            screen.blit(character_status_font, (330, 150))                                         
+            screen.blit(character_hp_font, (300, 110))                                         
+            screen.blit(character_status_font, (300, 150))                                         
 
-            screen.blit(age_font, (250, 200))     
-            screen.blit(marks_font, (250, 230))                                         
-            screen.blit(rip_font, (250, 260))
+            screen.blit(age_font, (220, 200))     
+            screen.blit(marks_font, (220, 230))                                         
+            screen.blit(rip_font, (220, 260))
 
-            screen.blit(character_age_font, (370, 200))                                          
-            screen.blit(character_marks_font, (370, 230))                                         
-            screen.blit(character_rip_font, (370 , 260))
+            screen.blit(character_age_font, (340, 200))                                          
+            screen.blit(character_marks_font, (340, 230))                                         
+            screen.blit(character_rip_font, (340 , 260))
 
             screen.blit(exp_font, (50, 300))
             screen.blit(gold_font, (50, 330))

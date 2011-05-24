@@ -112,7 +112,8 @@ class Character:
              strength_max, intelligence_max, piety_max, vitality_max, agility_max, luck_max,
              exp, next_exp, marks, rip, age, money,
              coordinate, status, hp, max_hp,
-             magician_mp, priest_mp, max_magician_mp, max_priest_mp, magic, priest_magic):
+             magician_mp, priest_mp, max_magician_mp, max_priest_mp, magic, priest_magic,
+             item_list, equip_list):
         self.name = name
         self.level = level
         self.alignment = alignment
@@ -155,6 +156,9 @@ class Character:
 
         #stable
         self.item_max = 10
+
+        self.items = item_list
+        self.equip = equip_list
 
 
     

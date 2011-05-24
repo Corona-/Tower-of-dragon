@@ -549,6 +549,9 @@ def shop_item_change( item_id, game_self, i ):
             if i == 1:
                 if item.id == item_id:
                     found = 101
+                    #if stock is negative it has infinity stock
+                    if item.stock < 0:
+                        return found
                     item.stock -= 1
                     if item.stock == 0:
                         del game_self.shop.stock[j][k]
