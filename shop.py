@@ -8,6 +8,7 @@ import system_notify
 import character_view
 import shop_window
 import city
+import save
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -51,32 +52,48 @@ class Shop:
         self.shop_window = None #shop_window.Shop_window(Rect(200, 50, 240, 380))
         self.sell_window = None #system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.SELL)
 
+        #see if temp file exists (before saving)
+        #if not, check if saved file exist (after saving)
+        #if not, place default shop data
+        try:
+            file = "Save/shop_item_temp.dat"
+            fp = open(file, "rb")
+        except IOError, (errno, msg):
 
-        #it stores, item id, number left, ...
-        self.stock = []
-        sword_stock = [Shop_item(100,6), Shop_item(101, 3)]
-        katana_stock = [Shop_item(150, 6), Shop_item(151, 3)]
-        blunt_stock = [Shop_item(200, 6), Shop_item(201, 3)]
-        gun_stock = [Shop_item(250, 6), Shop_item(251, 3)]
-        throw_stock = [Shop_item(300, 6), Shop_item(301, 3)]
-        shield_stock = [Shop_item(350, 6)]
-        armor_stock = [Shop_item(400, 6), Shop_item(401, 3), Shop_item(402, 1), Shop_item(403, 6), Shop_item(405, 3)]
-        helmet_stock = [Shop_item(450, 1)]
-        gauntlet_stock = []
-        accessory_stock = [Shop_item(550,1),Shop_item(551,1),Shop_item(552,1)]
-        item_stock = [Shop_item(1,-1),Shop_item(4,5),Shop_item(5,5), Shop_item(6,-1)]
-        
-        self.stock.append(sword_stock)
-        self.stock.append(katana_stock)
-        self.stock.append(blunt_stock)
-        self.stock.append(gun_stock)
-        self.stock.append(throw_stock)
-        self.stock.append(shield_stock)
-        self.stock.append(armor_stock)
-        self.stock.append(helmet_stock)
-        self.stock.append(gauntlet_stock)
-        self.stock.append(accessory_stock)
-        self.stock.append(item_stock)
+            try:
+                file = "Save/shop_item.dat"
+                fp = open(file, "rb")
+            except IOError, (errno, msg):
+                #it stores, item id, number left, ...
+                self.stock = []
+                sword_stock = [Shop_item(100,6), Shop_item(101, 3)]
+                katana_stock = [Shop_item(150, 6), Shop_item(151, 3)]
+                blunt_stock = [Shop_item(200, 6), Shop_item(201, 3)]
+                gun_stock = [Shop_item(250, 6), Shop_item(251, 3)]
+                throw_stock = [Shop_item(300, 6), Shop_item(301, 3)]
+                shield_stock = [Shop_item(350, 6)]
+                armor_stock = [Shop_item(400, 6), Shop_item(401, 3), Shop_item(402, 1), Shop_item(403, 6), Shop_item(405, 3)]
+                helmet_stock = [Shop_item(450, 1)]
+                gauntlet_stock = []
+                accessory_stock = [Shop_item(550,1),Shop_item(551,1),Shop_item(552,1)]
+                item_stock = [Shop_item(1,-1),Shop_item(4,5),Shop_item(5,5), Shop_item(6,-1)]
+                
+                self.stock.append(sword_stock)
+                self.stock.append(katana_stock)
+                self.stock.append(blunt_stock)
+                self.stock.append(gun_stock)
+                self.stock.append(throw_stock)
+                self.stock.append(shield_stock)
+                self.stock.append(armor_stock)
+                self.stock.append(helmet_stock)
+                self.stock.append(gauntlet_stock)
+                self.stock.append(accessory_stock)
+                self.stock.append(item_stock)
+            else:
+                save.load_shop_item(self, "Save/shop_item.dat")
+        else:
+            save.load_shop_item(self, "Save/shop_item_temp.dat")
+            print "saved on temp file"
 
         self.music = 0
 
@@ -209,6 +226,8 @@ def shop_handler(self,event):
             self.game_state = CITY
             self.shop.menu = Shop.BUY
             self.shop.music = 0
+            #save temp shop data
+            save.save_shop_item(self, "Save/shop_item_temp.dat")
             self.shop = None
             self.city = city.City()
             self.city.menu = 3
@@ -221,6 +240,7 @@ def shop_handler(self,event):
         self.shop.music = 0
         for item_list in self.shop.stock:
             item_list.sort(cmp=lambda x, y: cmp(x.id, y.id), reverse=False)
+        save.save_shop_item(self, "Save/shop_item_temp.dat")
         self.shop = None
         self.city = city.City()
         self.city.menu = 3

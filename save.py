@@ -6,8 +6,9 @@ import sitecustomize
 import sys
 import struct
 import item
-
+import shop
 import character
+import os
 
 def save( self, game_self ):
 
@@ -18,6 +19,26 @@ def save( self, game_self ):
     save_game_data(game_self)
 
     save_stored_item(game_self)
+
+    try:
+        file = "Save/shop_item_temp.dat"
+        fp = open( file, "rb")
+    except IOError, (errno, msg):
+        pass
+
+    else:
+        fp.close()
+
+        try:
+            file = "Save/shop_item.dat"
+            fp = open( file, "rb")
+        except IOError, (errno, msg):
+            pass
+        else:
+            fp.close()
+            os.remove( "Save/shop_item.dat")                
+
+        os.rename( "Save/shop_item_temp.dat", "Save/shop_item.dat")
 
 
 
@@ -511,5 +532,43 @@ def load_stored_item(game_self):
 
     for items in range(number_of_item):
         game_self.party.house_item.append( struct.unpack("i", fp.read(struct.calcsize("i")))[0])
+      
+    fp.close()
+
+
+def save_shop_item(game_self, path):
+
+    file = path
+    fp = open(file, "wb")
+    fp.seek(0)
+
+    #there are 11 categories of items
+    for item_list in game_self.shop.stock:
+        number_of_item = len(item_list)
+        fp.write(struct.pack("i", number_of_item))
+        for items in item_list:
+            fp.write(struct.pack("2i", items.id, items.stock))
+            
+    #cut remaining space
+    fp.truncate()
+    fp.close()
+
+def load_shop_item(self, path):
+    
+    file = path
+    fp = open(file, "rb")
+    fp.seek(0)
+
+    self.stock = []
+
+    for category in range(11):
+        number_of_item = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
+        item_list= []
+        for items in range(number_of_item):
+            item_id = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
+            stock = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
+            item_list.append( shop.Shop_item( item_id, stock))
+        self.stock.append( item_list)
+
       
     fp.close()

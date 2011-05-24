@@ -22,6 +22,8 @@ import character
 import character_make
 import item
 
+import os
+
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 HOUSE = 11
 MENU = 12
@@ -176,8 +178,19 @@ class tower_of_dragon:
         for event in pygame.event.get():  # create function of events
 
             if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):  # event to end program
-                    pygame.quit()
-                    sys.exit()
+                #if temp file exists, need to delete it
+                try:
+                    file = "Save/shop_item_temp.dat"
+                    fp = open( file, "rb")
+                except IOError, (errno, msg):
+                    pass
+
+                else:
+                    fp.close()               
+                    os.remove( "Save/shop_item_temp.dat")
+
+                pygame.quit()
+                sys.exit()
 
             if self.game_state == TITLE:
                 title.title_handler(self, event)
