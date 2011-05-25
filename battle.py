@@ -77,6 +77,37 @@ class Battle:
         self.enemyList = self.enemy_encount[0]
         self.enemyListBack = self.enemy_encount[1]
 
+        #store enemy for drop items
+        self.enemy_drop_items = []
+
+        #take probability (drop% * number of enemy)
+        #and if random value is less than that, add it to drop item
+        for enemy_group in self.enemyList:
+            i = 0
+            probability = 0
+            for item in enemy_group[0].drop_item:
+                if i%2==0:
+                    probability = item*len(enemy_group)
+                    i+= 1
+                    continue
+
+                random_value = random.randint(1,100)
+                if random_value < probability:
+                    self.enemy_drop_items.append(item)
+                i += 1
+
+        for enemy_group in self.enemyListBack:
+            i = 0
+            probability = 0
+            for item in enemy_group[0].drop_item:
+                if i%2==0:
+                    probability = item*len(enemy_group)
+
+                random_value = random.randint(1,100)
+                if random_value < probability:
+                    self.enemy_drop_items.append(item)
+                i += 1
+        print self.enemy_drop_items
 
         self.enemy_font = pygame.font.Font("ipag.ttf", 15)
 
@@ -126,6 +157,10 @@ class Battle:
         self.tomb = pygame.image.load("Images/tomb.png").convert()
         self.tomb.set_colorkey(self.tomb.get_at((0,0)), RLEACCEL)
 
+        #number of times player need to press key to get away from battle
+        #shows drop item gained from battle
+        self.drop_item_key = int(math.ceil(len(self.enemy_drop_items)/4.0))
+
      
     def update(self):
         if self.state == self.COMMAND:
@@ -137,77 +172,19 @@ class Battle:
     def draw(self, game_self, screen):
 
         if self.state == self.INIT:
-            if self.first == 0:
-                encount_se = pygame.mixer.Sound("SE/thunder.wav")
-                encount_se.play()
-                self.first = 1
-                pygame.mixer.music.stop()
-                
 
-
-            self.encount_window.draw(screen)
-            
-            screen.blit(self.battle_start_font, (230, 140))
+            self.battle_initiation(game_self, screen)
 
         if self.state == self.COMMAND:
-            game_self.party.draw(screen)
-            self.command_window.draw(screen)
-            self.enemy_window.draw(screen)
 
-            self.enemy_select_window.draw(screen)
+            self.draw_command_windows(game_self, screen)
 
-            if self.menu == self.FIGHT:
-                pygame.draw.rect(screen, COLOR_GLAY, Rect(370,185,100,30), 0)
-            elif self.menu == self.DEFEND:
-                pygame.draw.rect(screen, COLOR_GLAY, Rect(370,215,100,30), 0)
-            elif self.menu == self.ITEM:
-                pygame.draw.rect(screen, COLOR_GLAY, Rect(370,245,100,30), 0)            
-            elif self.menu == self.CURSE:
-                pygame.draw.rect(screen, COLOR_GLAY, Rect(490,185,120,30), 0)            
-            elif self.menu == self.MAGIC:
-                pygame.draw.rect(screen, COLOR_GLAY, Rect(490,215,120,30), 0)            
-            elif self.menu == self.ESCAPE:
-                pygame.draw.rect(screen, COLOR_GLAY, Rect(490,245,120,30), 0)            
+            self.draw_command_selection(game_self, screen)
 
-            if self.selected < len(game_self.party.member):
-                character_font = self.menu_font.render( game_self.party.member[self.selected].name, True, COLOR_WHITE)     
-                screen.blit(character_font, ( 440, 140))
+            self.draw_battle_command(game_self, screen)
 
-
-            this_character = game_self.party.member[ self.selected ]
-  
-
-            screen.blit(self.select_font, (380, 140))
-            if character_attackable ( game_self, this_character):
-                screen.blit(self.battle_font, (380, 190))
-            else:
-                screen.blit(self.not_battle_font, (380,190))
-
-            screen.blit(self.defend_font, (380, 220))
-            screen.blit(self.item_font, (380, 250))
-           
-            if this_character.job == 3 or this_character.job == 19 or this_character.job == 20 or this_character.job == 21:
-                screen.blit(self.curse_font, (500, 190))
-            else:
-                screen.blit(self.not_curse_font, (500,190))
-
-            screen.blit(self.magic_font, (500, 220))
-            screen.blit(self.escape_font, (500, 250))
-    
-            #display the enemies names
-            count = 0
-            for group in self.enemyList:
-                movable_count = count_movable( group)
-                group_font = self.enemy_font.render( str(len(group))+group[0].name + " ("+str(movable_count)+")", True, COLOR_WHITE)
-                screen.blit(group_font, (20, 20+count*20))
-                count+=1
-                
-            count = 0
-            for group in self.enemyListBack:
-                movable_count = count_movable( group)
-                group_font = self.enemy_font.render( str(len(group))+group[0].name + " ("+str(movable_count)+")", True, COLOR_WHITE)
-                screen.blit(group_font, (340, 20+count*20))
-                count+=1
+            self.draw_enemy_names(game_self, screen)
+        
 
         if self.state == self.BATTLE:
 
@@ -486,23 +463,43 @@ class Battle:
                 battle_window = window.Window(Rect(10, 10, 620, 150))
                 battle_window.draw(screen)
 
-                count = 0
-                for member in game_self.party.member:
-                    if member.status == "OK" or member.status == "POISON" or member.status == "PALSY":
-                        count+= 1
+                if self.drop_item_key == int(math.ceil(len(self.enemy_drop_items)/4.0)):
+                    count = 0
+                    for member in game_self.party.member:
+                        if member.status == "OK" or member.status == "POISON" or member.status == "SLEEP":
+                            count+= 1
 
 
-                exp_font = u"生き残ったメンバーは " + str(int(math.ceil(self.exp/count))) + "EXPを得た"
-                gold_font = u"生き残ったメンバーは " + str(int(math.ceil(self.gold/count))) + "TPを手に入れた"
+                    exp_font = u"生き残ったメンバーは " + str(int(math.ceil(self.exp/count))) + "EXPを得た"
+                    gold_font = u"生き残ったメンバーは " + str(int(math.ceil(self.gold/count))) + "TPを手に入れた"
 
-                exp_font = self.menu_font.render( exp_font, True, COLOR_WHITE)
-                gold_font = self.menu_font.render( gold_font, True, COLOR_WHITE)
-            
-                screen.blit(exp_font, ( 320 - exp_font.get_width()/2, 50))
-                screen.blit(gold_font, ( 320 - gold_font.get_width()/2, 90))
+                    exp_font = self.menu_font.render( exp_font, True, COLOR_WHITE)
+                    gold_font = self.menu_font.render( gold_font, True, COLOR_WHITE)
+                
+                    screen.blit(exp_font, ( 320 - exp_font.get_width()/2, 50))
+                    screen.blit(gold_font, ( 320 - gold_font.get_width()/2, 90))
 
-                #drop item
+                else:
 
+                    #drop item
+                    if len(self.enemy_drop_items) > 4 and self.drop_item_key == 1:
+                        for items in range(0,4):
+                                                       
+                            item_font = game_self.item_data[self.enemy_drop_items[0]][0]
+                            item_font = item_font.strip("\"")
+                            item_font = unicode(item_font, encoding="sjis")
+                            
+                            item_font = self.menu_font.render( item_font + u"を拾った", True, COLOR_WHITE)
+                            screen.blit(item_font, (320 - item_font.get_width()/2, 20+items*30))
+
+                    else:
+                        for items in range(0, len(self.enemy_drop_items)):                
+                            item_font = game_self.item_data[self.enemy_drop_items[0]][0]
+                            item_font = item_font.strip("\"")
+                            item_font = unicode(item_font, encoding="sjis")
+                            
+                            item_font = self.menu_font.render( item_font + u"を拾った", True, COLOR_WHITE)
+                            screen.blit(item_font, (320 - item_font.get_width()/2, 20+items*30))
 
                   
     def battle_handler(self, game_self, event):
@@ -730,23 +727,124 @@ class Battle:
                     game_self.city = city.City()
                 else:
                     #win
-                                        
-                    game_self.dungeon.battle_flag = 0
-                    game_self.dungeon.battle = None
-                    game_self.dungeon.music = 0
-
-                    count = 0
-                    for character in game_self.party.member:
-                        if character.status == "OK" or character.status == "POISON" or character.status == "PALSY":
-                            count+= 1
 
 
-                    for character in game_self.party.member:
-                        if character.status == "OK" or character.status == "POISON" or character.status == "PALSY":                    
-                            character.exp += int(math.ceil(self.exp/count))
-                            character.money += int(math.ceil(self.gold/count))
-                    pass
+                    if self.drop_item_key == 0:                    
+                        game_self.dungeon.battle_flag = 0
+                        game_self.dungeon.battle = None
+                        game_self.dungeon.music = 0
 
+                        count = 0
+                        for character in game_self.party.member:
+                            if character.status == "OK" or character.status == "POISON" or character.status == "SLEEP":
+                                count+= 1
+
+
+                        for character in game_self.party.member:
+                            if character.status == "OK" or character.status == "POISON" or character.status == "SLEEP":                    
+                                character.exp += int(math.ceil(self.exp/count))
+                                character.money += int(math.ceil(self.gold/count))
+                        pass
+
+                        i = 0
+                        for chara in game_self.party.member:
+                            while (len(chara.items) < chara.item_max and i < len(self.enemy_drop_items)):
+                                chara.items.append( item.Item( game_self.item_data[self.enemy_drop_items[i]]))
+                                i += 1
+
+                    else:
+                        #there are drop items
+                        self.drop_item_key -= 1
+
+    #used in battle INIT
+    def battle_initiation(self, game_self, screen):
+        if self.first == 0:
+            encount_se = pygame.mixer.Sound("SE/thunder.wav")
+            encount_se.play()
+            self.first = 1
+            pygame.mixer.music.stop()
+            
+
+
+        self.encount_window.draw(screen)
+        
+        screen.blit(self.battle_start_font, (230, 140))
+
+    #Used in battle COMMAND
+    def draw_command_windows(self, game_self, screen):
+
+        #draw default battle window
+
+        #draw party information
+        game_self.party.draw(screen)
+        #draw command window
+        self.command_window.draw(screen)
+        #draw enemy information window
+        self.enemy_window.draw(screen)
+
+        #show rectangle around selected enemy when selecting target
+        self.enemy_select_window.draw(screen)
+
+    def draw_command_selection(self, game_self, screen):
+        #draw rectangle around selected command
+        if self.menu == self.FIGHT:
+            pygame.draw.rect(screen, COLOR_GLAY, Rect(370,185,100,30), 0)
+        elif self.menu == self.DEFEND:
+            pygame.draw.rect(screen, COLOR_GLAY, Rect(370,215,100,30), 0)
+        elif self.menu == self.ITEM:
+            pygame.draw.rect(screen, COLOR_GLAY, Rect(370,245,100,30), 0)            
+        elif self.menu == self.CURSE:
+            pygame.draw.rect(screen, COLOR_GLAY, Rect(490,185,120,30), 0)            
+        elif self.menu == self.MAGIC:
+            pygame.draw.rect(screen, COLOR_GLAY, Rect(490,215,120,30), 0)            
+        elif self.menu == self.ESCAPE:
+            pygame.draw.rect(screen, COLOR_GLAY, Rect(490,245,120,30), 0)            
+
+    def draw_battle_command(self, game_self, screen):
+        #character for setting a command
+        this_character = game_self.party.member[ self.selected ]
+
+        #font "行動:"
+        screen.blit(self.select_font, (380, 140))
+
+        #draw character's name
+        if self.selected < len(game_self.party.member):
+            character_font = self.menu_font.render( this_character.name, True, COLOR_WHITE)     
+            screen.blit(character_font, ( 440, 140))
+
+        #check if character is attackable with distance
+        if character_attackable ( game_self, this_character):
+            screen.blit(self.battle_font, (380, 190))
+        else:
+            screen.blit(self.not_battle_font, (380,190))
+
+        screen.blit(self.defend_font, (380, 220))
+        screen.blit(self.item_font, (380, 250))
+       
+        #only priests could select curse
+        if this_character.job == 3 or this_character.job == 19 or this_character.job == 20 or this_character.job == 21:
+            screen.blit(self.curse_font, (500, 190))
+        else:
+            screen.blit(self.not_curse_font, (500,190))
+
+        screen.blit(self.magic_font, (500, 220))
+        screen.blit(self.escape_font, (500, 250))
+        
+    def draw_enemy_names(self, game_self, screen):
+        #display the enemies names
+        count = 0
+        for group in self.enemyList:
+            movable_count = count_movable( group)
+            group_font = self.enemy_font.render( str(len(group))+group[0].name + " ("+str(movable_count)+")", True, COLOR_WHITE)
+            screen.blit(group_font, (20, 20+count*20))
+            count+=1
+            
+        count = 0
+        for group in self.enemyListBack:
+            movable_count = count_movable( group)
+            group_font = self.enemy_font.render( str(len(group))+group[0].name + " ("+str(movable_count)+")", True, COLOR_WHITE)
+            screen.blit(group_font, (340, 20+count*20))
+            count+=1
 
 
 

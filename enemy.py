@@ -96,24 +96,27 @@ class Enemy:
 
         if int(enemy[27]) > 0:
             self.drop_item.append(int(enemy[27]))
-            item_name = enemy[28]
-            item_name = item_name.strip("\"")
-            item_name = unicode(item_name, encoding="sjis")
-            self.drop_item.append(item_name)
+            self.drop_item.append(int(enemy[28]))
+            #item_name = enemy[28]
+            #item_name = item_name.strip("\"")
+            #item_name = unicode(item_name, encoding="sjis")
+            #self.drop_item.append(item_name)
  
         if int(enemy[29]) > 0:
             self.drop_item.append(int(enemy[29]))
-            item_name = enemy[30]
-            item_name = item_name.strip("\"")
-            item_name = unicode(item_name, encoding="sjis")
-            self.drop_item.append(item_name)
+            self.drop_item.append(int(enemy[30]))
+            #item_name = enemy[30]
+            #item_name = item_name.strip("\"")
+            #item_name = unicode(item_name, encoding="sjis")
+            #self.drop_item.append(item_name)
 
         if int(enemy[31]) > 0:
             self.drop_item.append(int(enemy[31]))
-            item_name = enemy[32]
-            item_name = item_name.strip("\"")
-            item_name = unicode(item_name, encoding="sjis")
-            self.drop_item.append(item_name)
+            self.drop_item.append(int(enemy[32]))
+            #item_name = enemy[32]
+            #item_name = item_name.strip("\"")
+            #item_name = unicode(item_name, encoding="sjis")
+            #self.drop_item.append(item_name)
          
         self.drop_gold = int(enemy[33])
         self.exp = int(enemy[34])
