@@ -202,7 +202,6 @@ class Dungeon:
         pass
     def draw(self, game_self, screen):
 
-        game_self.party.torch = 1
         if ( game_self.party.torch >= 1 ):
             self.draw_dungeon_with_light(game_self, screen)
         else:
@@ -535,9 +534,9 @@ class Dungeon:
 
             #draw up two wall on left three
             if (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 1):
-                screen.blit(self.edgeList3_2[0], (-320, 64))
+                screen.blit(self.edgeList3_3[0], (-320, 64))
             elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 2):
-                screen.blit(self.doorList3_2[0], (-320, 64))
+                screen.blit(self.doorList3_3[0], (-320, 64))
 
             #draw up two wall on left two
             if (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 1):
@@ -639,233 +638,802 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
 
 
+        #if player is looking right
+        elif (game_self.party.direction == 1):
+            
+            if (self.ground[y][x] == 0 ):
+                screen.blit(self.ground_center1, (32, 448))
 
-                             
+            #draw ground left
+            if (self.ground[decrement(y,1)][x] == 0 ):
+                screen.blit(self.ground_sideList1[0], (0, 448))
 
-##        #if player is looking right
-##        elif (game_self.party.direction == 1):
-##            
-##            if (self.ground[y][x] == 0 ):
-##                screen.blit(self.ground_center1, (32, 448))
-##
-##            #draw ground left
-##            if (self.ground[decrement(y,1)][x] == 0 ):
-##                screen.blit(self.ground_sideList1[0], (0, 448))
-##
-##            #draw ground right
-##            if (self.ground[increment(y,1)][x] == 0 ):
-##                screen.blit(self.ground_sideList1[1], (576, 448))
-##
-##            #draw ground up left
-##            if (self.ground[decrement(y,1)][increment(x,1)] == 0 ):
-##                screen.blit(self.ground_sideList2[0], (0, 320))             
-##
-##            #draw ground up right
-##            if (self.ground[increment(y,1)][increment(x,1)] == 0 ):
-##                screen.blit(self.ground_sideList2[1], (448, 320))             
-##            
-##            #draw ground up one
-##            if (self.ground[y][increment(x,1)] == 0 ):
-##                screen.blit(self.ground_center2, (64, 320))
-##
-##        
-##            #draw straight one block wall
-##            if (self.vertical_wall[y][increment(x,2)] == 1):
-##                screen.blit(self.center2, (192, 64))
-##            elif (self.vertical_wall[y][increment(x,2)] == 2):
-##                screen.blit(self.door2, (192, 64))
-##
-##            #draw up one wall on left
-##            if (self.horizontal_wall[y][increment(x,1)] == 1):
-##                screen.blit(self.edgeList2[0], (64, -64))
-##            elif (self.horizontal_wall[y][increment(x,1)] == 2):
-##                screen.blit(self.doorList2[0], (64, -64))
-##                
-##            #draw up one wall on right
-##            if (self.horizontal_wall[increment(y,1)][increment(x,1)] == 1):
-##                screen.blit(self.edgeList2[1], (448, -64))                
-##            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 2):
-##                screen.blit(self.doorList2[1], (448, -64))                
-##
-##            #draw left one up wall
-##            if (self.vertical_wall[decrement(y,1)][increment(x,1)] == 1):
-##                screen.blit(self.center1, (-448,-64))
-##            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 2):
-##                screen.blit(self.door1, (-448,-64))
-##
-##            #draw right one up wall
-##            if (self.vertical_wall[increment(y,1)][increment(x,1)] == 1):
-##                screen.blit(self.center1, (576,-64))
-##            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 2):
-##                screen.blit(self.door1, (576,-64))
-##
-##            #draw just up wall
-##            if (self.vertical_wall[y][increment(x,1)] == 1):
-##                screen.blit(self.center1, (64,-64))
-##            elif (self.vertical_wall[y][increment(x,1)] == 2):
-##                screen.blit(self.door1, (64,-64))
-##
-##            #draw wall on left
-##            if (self.horizontal_wall[y][x] == 1):
-##                screen.blit(self.edgeList1[0], (-192, -320))
-##            elif (self.horizontal_wall[y][x] == 2):
-##                screen.blit(self.doorList1[0], (-192, -320))
-##
-##            #draw wall on right
-##            if (self.horizontal_wall[increment(y,1)][x] == 1):
-##                screen.blit(self.edgeList1[1], (576, -320))
-##            elif (self.horizontal_wall[increment(y,1)][x] == 2):
-##                screen.blit(self.doorList1[1], (576, -320))
-##
-##        #if party is looking down
-##        elif (game_self.party.direction == 2):
-##            
-##            if (self.ground[y][x] == 0 ):
-##                screen.blit(self.ground_center1, (32, 448))
-##
-##            #draw ground left
-##            if (self.ground[y][increment(x,1)] == 0 ):
-##                screen.blit(self.ground_sideList1[0], (0, 448))
-##
-##            #draw ground right
-##            if (self.ground[y][decrement(x,1)] == 0 ):
-##                screen.blit(self.ground_sideList1[1], (576, 448))
-##
-##            #draw ground up left
-##            if (self.ground[increment(y,1)][increment(x,1)] == 0 ):
-##                screen.blit(self.ground_sideList2[0], (0, 320))             
-##
-##            #draw ground up right
-##            if (self.ground[increment(y,1)][decrement(x,1)] == 0 ):
-##                screen.blit(self.ground_sideList2[1], (448, 320))             
-##            
-##            #draw ground up one
-##            if (self.ground[increment(y,1)][x] == 0 ):
-##                screen.blit(self.ground_center2, (64, 320))
-##                
-##        
-##            #draw straight one block wall
-##            if (self.horizontal_wall[increment(y,2)][x] == 1):
-##                screen.blit(self.center2, (192, 64))
-##            elif (self.horizontal_wall[increment(y,2)][x] == 2):
-##                screen.blit(self.door2, (192, 64))
-##
-##            #draw up one wall on left
-##            if (self.vertical_wall[increment(y,1)][increment(x,1)] == 1):
-##                screen.blit(self.edgeList2[0], (64, -64))
-##            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 2):
-##                screen.blit(self.doorList2[0], (64, -64))
-##                
-##            #draw up one wall on right
-##            if (self.vertical_wall[increment(y,1)][x] == 1):
-##                screen.blit(self.edgeList2[1], (448, -64))                
-##            elif (self.vertical_wall[increment(y,1)][x] == 2):
-##                screen.blit(self.doorList2[1], (448, -64))                
-##
-##            #draw left one up wall
-##            if (self.horizontal_wall[increment(y,1)][increment(x,1)] == 1):
-##                screen.blit(self.center1, (-448,-64))
-##            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 2):
-##                screen.blit(self.door1, (-448,-64))
-##
-##            #draw right one up wall
-##            if (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 1):
-##                screen.blit(self.center1, (576,-64))
-##            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 2):
-##                screen.blit(self.door1, (576,-64))
-##
-##            #draw just up wall
-##            if (self.horizontal_wall[increment(y,1)][x] == 1):
-##                screen.blit(self.center1, (64,-64))
-##            if (self.horizontal_wall[increment(y,1)][x] == 2):
-##                screen.blit(self.door1, (64,-64))
-##
-##            #draw wall on left
-##            if (self.vertical_wall[y][increment(x,1)] == 1):
-##                screen.blit(self.edgeList1[0], (-192, -320))
-##            elif (self.vertical_wall[y][increment(x,1)] == 2):
-##                screen.blit(self.doorList1[0], (-192, -320))
-##
-##            #draw wall on right
-##            if (self.vertical_wall[y][x] == 1):
-##                screen.blit(self.edgeList1[1], (576, -320))
-##            elif (self.vertical_wall[y][x] == 2):
-##                screen.blit(self.doorList1[1], (576, -320))
-##
-##        #if the player is looking left
-##        elif (game_self.party.direction == 3):
-##
-##            if (self.ground[y][x] == 0 ):
-##                screen.blit(self.ground_center1, (32, 448))
-##
-##            #draw ground left
-##            if (self.ground[increment(y,1)][x] == 0 ):
-##                screen.blit(self.ground_sideList1[0], (0, 448))
-##
-##            #draw ground right
-##            if (self.ground[decrement(y,1)][x] == 0 ):
-##                screen.blit(self.ground_sideList1[1], (576, 448))
-##
-##            #draw ground up left
-##            if (self.ground[increment(y,1)][decrement(x,1)] == 0 ):
-##                screen.blit(self.ground_sideList2[0], (0, 320))             
-##
-##            #draw ground up right
-##            if (self.ground[decrement(y,1)][decrement(x,1)] == 0 ):
-##                screen.blit(self.ground_sideList2[1], (448, 320))             
-##            
-##            #draw ground up one
-##            if (self.ground[y][decrement(x,1)] == 0 ):
-##                screen.blit(self.ground_center2, (64, 320))
-##
-##        
-##            #draw straight one block wall
-##            if (self.vertical_wall[y][decrement(x,1)] == 1):
-##                screen.blit(self.center2, (192, 64))
-##            elif (self.vertical_wall[y][decrement(x,1)] == 2):
-##                screen.blit(self.door2, (192, 64))
-##
-##            #draw up one wall on left
-##            if (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 1):
-##                screen.blit(self.edgeList2[0], (64, -64))
-##            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 2):
-##                screen.blit(self.doorList2[0], (64, -64))
-##                
-##            #draw up one wall on right
-##            if (self.horizontal_wall[y][decrement(x,1)] == 1):
-##                screen.blit(self.edgeList2[1], (448, -64))                
-##            elif (self.horizontal_wall[y][decrement(x,1)] == 2):
-##                screen.blit(self.doorList2[1], (448, -64))                
-##
-##            #draw left one up wall
-##            if (self.vertical_wall[increment(y,1)][x] == 1):
-##                screen.blit(self.center1, (-448,-64))
-##            elif (self.vertical_wall[increment(y,1)][x] == 2):
-##                screen.blit(self.door1, (-448,-64))
-##
-##            #draw right one up wall
-##            if (self.vertical_wall[decrement(y,1)][x] == 1):
-##                screen.blit(self.center1, (576,-64))
-##            if (self.vertical_wall[decrement(y,1)][x] == 2):
-##                screen.blit(self.door1, (576,-64))
-##
-##            #draw just up wall
-##            if (self.vertical_wall[y][x] == 1):
-##                screen.blit(self.center1, (64,-64))
-##            elif (self.vertical_wall[y][x] == 2):
-##                screen.blit(self.door1, (64,-64))
-##
-##            #draw wall on left
-##            if (self.horizontal_wall[increment(y,1)][x] == 1):
-##                screen.blit(self.edgeList1[0], (-192, -320))
-##            elif (self.horizontal_wall[increment(y,1)][x] == 2):
-##                screen.blit(self.doorList1[0], (-192, -320))
-##
-##            #draw wall on right
-##            if (self.horizontal_wall[y][x] == 1):
-##                screen.blit(self.edgeList1[1], (576, -320))
-##            elif (self.horizontal_wall[y][x] == 2):
-##                screen.blit(self.doorList1[1], (576, -320))
+            #draw ground right
+            if (self.ground[increment(y,1)][x] == 0 ):
+                screen.blit(self.ground_sideList1[1], (576, 448))
+
+            #draw ground up left
+            if (self.ground[decrement(y,1)][increment(x,1)] == 0 ):
+                screen.blit(self.ground_sideList2[0], (0, 320))             
+
+            #draw ground up right
+            if (self.ground[increment(y,1)][increment(x,1)] == 0 ):
+                screen.blit(self.ground_sideList2[1], (448, 320))             
+
+            #draw ground up left
+            if (self.ground[decrement(y,1)][increment(x,2)] == 0 ):
+                screen.blit(self.ground_sideList3[0], (-128, 256))             
+
+            #draw ground up right
+            if (self.ground[increment(y,1)][increment(x,2)] == 0 ):
+                screen.blit(self.ground_sideList3[1], (384, 256))             
+
+            #draw ground up left
+            if (self.ground[decrement(y,2)][increment(x,2)] == 0 ):
+                screen.blit(self.ground_sideList3_2[0], (0, 256))             
+
+            #draw ground up right
+            if (self.ground[increment(y,2)][increment(x,2)] == 0 ):
+                screen.blit(self.ground_sideList3_2[1], (576, 256))
+
+
+            #draw ground up left
+            if (self.ground[decrement(y,1)][increment(x,3)] == 0 ):
+                screen.blit(self.ground_sideList4[0], (128, 224))             
+
+            #draw ground up right
+            if (self.ground[increment(y,1)][increment(x,3)] == 0 ):
+                screen.blit(self.ground_sideList4[1], (352, 224))
+
+            #draw ground up left
+            if (self.ground[decrement(y,2)][increment(x,3)] == 0 ):
+                screen.blit(self.ground_sideList4_2[0], (0, 224))             
+
+            #draw ground up right
+            if (self.ground[increment(y,2)][increment(x,3)] == 0 ):
+                screen.blit(self.ground_sideList4_2[1], (416, 224))
+
+
+            #draw ground up one
+            if (self.ground[y][increment(x,1)] == 0 ):
+                screen.blit(self.ground_center2, (64, 320))
+
+            #draw ground up two
+            if (self.ground[y][increment(x,2)] == 0 ):
+                screen.blit(self.ground_center3, (192, 256))
+                
+            #draw ground up three
+            if (self.ground[y][increment(x,3)] == 0 ):
+                screen.blit(self.ground_center4, (256, 224))
+                
+
+
+            #draw straight three block wall left two
+            if (self.vertical_wall[decrement(y,2)][increment(x,4)] == 1):
+                screen.blit(self.center4, (160, 160))
+            elif (self.vertical_wall[decrement(y,2)][increment(x,4)] == 2):
+                screen.blit(self.door4, (160,160))                                               
+
+            #draw straight three block wall left one
+            if (self.vertical_wall[decrement(y,1)][increment(x,4)] == 1):
+                screen.blit(self.center4, (224, 160))
+            elif (self.vertical_wall[decrement(y,1)][increment(x,4)] == 2):
+                screen.blit(self.door4, (224,160))                                               
+
+            #draw straight three block wall
+            if (self.vertical_wall[y][increment(x,4)] == 1):
+                screen.blit(self.center4, (288, 160))
+            elif (self.vertical_wall[y][increment(x,4)] == 2):
+                screen.blit(self.door4, (288,160))
+
+            #draw straight three block wall right one
+            if (self.vertical_wall[increment(y,1)][increment(x,4)] == 1):
+                screen.blit(self.center4, (352, 160))
+            elif (self.vertical_wall[increment(y,1)][increment(x,4)] == 2):
+                screen.blit(self.door4, (352,160))                                               
+
+            #draw straight three block wall right two
+            if (self.vertical_wall[increment(y,2)][increment(x,4)] == 1):
+                screen.blit(self.center4, (416, 160))
+            elif (self.vertical_wall[increment(y,2)][increment(x,4)] == 2):
+                screen.blit(self.door4, (416,160))
+
+
+            #draw up three wall on left three
+            if (self.horizontal_wall[decrement(y,2)][increment(x,3)] == 1):
+                screen.blit(self.edgeList4_3[0], (0, 128))
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,3)] == 2):
+                screen.blit(self.doorList4_3[0], (0, 128))
+
+            #draw up three wall on left two
+            if (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 1):
+                screen.blit(self.edgeList4_2[0], (128, 128))
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 2):
+                screen.blit(self.doorList4_2[0], (128, 128))
+
+
+            #draw up three wall on left
+            if (self.horizontal_wall[y][increment(x,3)] == 1):
+                screen.blit(self.edgeList4[0], (256, 128))
+            elif (self.horizontal_wall[y][increment(x,3)] == 2):
+                screen.blit(self.doorList4[0], (256, 128))
+
+            #draw up three wall on right three
+            if (self.horizontal_wall[increment(y,3)][increment(x,3)] == 1):
+                screen.blit(self.edgeList4_3[1], (480, 128))                
+            elif (self.horizontal_wall[increment(y,3)][increment(x,3)] == 2):
+                screen.blit(self.doorList4_3[1], (480, 128))  
+
+            #draw up three wall on right two
+            if (self.horizontal_wall[increment(y,2)][increment(x,3)] == 1):
+                screen.blit(self.edgeList4_2[1], (416, 128))                
+            elif (self.horizontal_wall[increment(y,2)][increment(x,3)] == 2):
+                screen.blit(self.doorList4_2[1], (416, 128))                               
+
+            #draw up three wall on right
+            if (self.horizontal_wall[increment(y,1)][increment(x,3)] == 1):
+                screen.blit(self.edgeList4[1], (352, 128))                
+            elif (self.horizontal_wall[increment(y,1)][increment(x,3)] == 2):
+                screen.blit(self.doorList4[1], (352, 128))                
+
+            #draw straight two block wall left two
+            if (self.vertical_wall[decrement(y,2)][increment(x,3)] == 1):
+                screen.blit(self.center3, (0, 128))
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 2):
+                screen.blit(self.door3, (0,128))
+
+            #draw straight two block wall left one
+            if (self.vertical_wall[decrement(y,1)][increment(x,3)] == 1):
+                screen.blit(self.center3, (128, 128))
+            elif (self.vertical_wall[decrement(y,1)][increment(x,3)] == 2):
+                screen.blit(self.door3, (128,128))
+
+            #draw straight two block wall
+            if (self.vertical_wall[y][increment(x,3)] == 1):
+                screen.blit(self.center3, (256, 128))
+            elif (self.vertical_wall[y][increment(x,3)] == 2):
+                screen.blit(self.door3, (256,128))
+
+            #draw straight two block wall right one
+            if (self.vertical_wall[increment(y,1)][increment(x,3)] == 1):
+                screen.blit(self.center3, (384, 128))
+            elif (self.vertical_wall[increment(y,1)][increment(x,3)] == 2):
+                screen.blit(self.door3, (384,128))
+
+            #draw straight two block wall right two
+            if (self.vertical_wall[increment(y,2)][increment(x,3)] == 1):
+                screen.blit(self.center3, (512, 128))
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 2):
+                screen.blit(self.door3, (512,128))
+
+
+
+            #draw up two wall on left three
+            if (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 1):
+                screen.blit(self.edgeList3_3[0], (-320, 64))
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 2):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+
+            #draw up two wall on left two
+            if (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 1):
+                screen.blit(self.edgeList3_2[0], (-64, 64))
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 2):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+
+            #draw up two wall on left
+            if (self.horizontal_wall[y][increment(x,2)] == 1):
+                screen.blit(self.edgeList3[0], (192, 64))
+            elif (self.horizontal_wall[y][increment(x,2)] == 2):
+                screen.blit(self.doorList3[0], (192, 64))
+                
+            #draw up two wall on right three
+            if (self.horizontal_wall[increment(y,3)][increment(x,2)] == 1):
+                screen.blit(self.edgeList3_3[1], (640, 64))                
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 2):
+                screen.blit(self.doorList3_3[1], (640, 64))    
+
+
+            #draw up two wall on right two
+            if (self.horizontal_wall[increment(y,2)][increment(x,2)] == 1):
+                screen.blit(self.edgeList3_2[1], (512, 64))                
+            elif (self.horizontal_wall[increment(y,2)][increment(x,2)] == 2):
+                screen.blit(self.doorList3_2[1], (512, 64))    
+
+            #draw up two wall on right
+            if (self.horizontal_wall[increment(y,1)][increment(x,2)] == 1):
+                screen.blit(self.edgeList3[1], (384, 64))                
+            elif (self.horizontal_wall[increment(y,1)][increment(x,2)] == 2):
+                screen.blit(self.doorList3[1], (384, 64))  
+
+
+            #draw straight one block wall left one
+            if (self.vertical_wall[decrement(y,1)][increment(x,2)] == 1):
+                screen.blit(self.center2, (-64, 64))
+            elif (self.vertical_wall[decrement(y,1)][increment(x,2)] == 2):
+                screen.blit(self.door2, (-64,64))
+        
+            #draw straight one block wall
+            if (self.vertical_wall[y][increment(x,2)] == 1):
+                screen.blit(self.center2, (192, 64))
+            elif (self.vertical_wall[y][increment(x,2)] == 2):
+                screen.blit(self.door2, (192, 64))
+
+            #draw straight one block wall right one
+            if (self.vertical_wall[increment(y,1)][increment(x,2)] == 1):
+                screen.blit(self.center2, (448, 64))
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 2):
+                screen.blit(self.door2, (448,64))
+
+                
+
+            #draw up one wall on left
+            if (self.horizontal_wall[y][increment(x,1)] == 1):
+                screen.blit(self.edgeList2[0], (64, -64))
+            elif (self.horizontal_wall[y][increment(x,1)] == 2):
+                screen.blit(self.doorList2[0], (64, -64))
+                
+            #draw up one wall on right
+            if (self.horizontal_wall[increment(y,1)][increment(x,1)] == 1):
+                screen.blit(self.edgeList2[1], (448, -64))                
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 2):
+                screen.blit(self.doorList2[1], (448, -64))                
+
+            #draw left one up wall
+            if (self.vertical_wall[decrement(y,1)][increment(x,1)] == 1):
+                screen.blit(self.center1, (-448,-64))
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 2):
+                screen.blit(self.door1, (-448,-64))
+
+            #draw right one up wall
+            if (self.vertical_wall[increment(y,1)][increment(x,1)] == 1):
+                screen.blit(self.center1, (576,-64))
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 2):
+                screen.blit(self.door1, (576,-64))
+
+            #draw just up wall
+            if (self.vertical_wall[y][increment(x,1)] == 1):
+                screen.blit(self.center1, (64,-64))
+            elif (self.vertical_wall[y][increment(x,1)] == 2):
+                screen.blit(self.door1, (64,-64))
+
+            #draw wall on left
+            if (self.horizontal_wall[y][x] == 1):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            elif (self.horizontal_wall[y][x] == 2):
+                screen.blit(self.doorList1[0], (-192, -320))
+
+            #draw wall on right
+            if (self.horizontal_wall[increment(y,1)][x] == 1):
+                screen.blit(self.edgeList1[1], (576, -320))
+            elif (self.horizontal_wall[increment(y,1)][x] == 2):
+                screen.blit(self.doorList1[1], (576, -320))
+
+        #if party is looking down
+        elif (game_self.party.direction == 2):
+            
+            if (self.ground[y][x] == 0 ):
+                screen.blit(self.ground_center1, (32, 448))
+
+            #draw ground left
+            if (self.ground[y][increment(x,1)] == 0 ):
+                screen.blit(self.ground_sideList1[0], (0, 448))
+
+            #draw ground right
+            if (self.ground[y][decrement(x,1)] == 0 ):
+                screen.blit(self.ground_sideList1[1], (576, 448))
+
+            #draw ground up left
+            if (self.ground[increment(y,1)][increment(x,1)] == 0 ):
+                screen.blit(self.ground_sideList2[0], (0, 320))             
+
+            #draw ground up right
+            if (self.ground[increment(y,1)][decrement(x,1)] == 0 ):
+                screen.blit(self.ground_sideList2[1], (448, 320))
+
+            #draw ground up left
+            if (self.ground[increment(y,2)][increment(x,1)] == 0 ):
+                screen.blit(self.ground_sideList3[0], (-128, 256))             
+
+            #draw ground up right
+            if (self.ground[increment(y,2)][decrement(x,1)] == 0 ):
+                screen.blit(self.ground_sideList3[1], (384, 256))
+
+            #draw ground up left
+            if (self.ground[increment(y,2)][increment(x,2)] == 0 ):
+                screen.blit(self.ground_sideList3_2[0], (0, 256))             
+
+            #draw ground up right
+            if (self.ground[increment(y,2)][decrement(x,2)] == 0 ):
+                screen.blit(self.ground_sideList3_2[1], (576, 256))
+
+
+            #draw ground up left
+            if (self.ground[increment(y,3)][increment(x,1)] == 0 ):
+                screen.blit(self.ground_sideList4[0], (128, 224))             
+
+            #draw ground up right
+            if (self.ground[increment(y,3)][decrement(x,1)] == 0 ):
+                screen.blit(self.ground_sideList4[1], (352, 224))
+
+            #draw ground up left
+            if (self.ground[increment(y,3)][increment(x,2)] == 0 ):
+                screen.blit(self.ground_sideList4_2[0], (0, 224))             
+
+            #draw ground up right
+            if (self.ground[increment(y,3)][decrement(x,2)] == 0 ):
+                screen.blit(self.ground_sideList4_2[1], (416, 224))
+
+            #draw ground up one
+            if (self.ground[increment(y,1)][x] == 0 ):
+                screen.blit(self.ground_center2, (64, 320))
+
+            #draw ground up two
+            if (self.ground[increment(y,2)][x] == 0 ):
+                screen.blit(self.ground_center3, (192, 256))
+                
+            #draw ground up three
+            if (self.ground[increment(y,3)][x] == 0 ):
+                screen.blit(self.ground_center4, (256, 224))
+
+
+            #draw straight three block wall left two
+            if (self.horizontal_wall[increment(y,4)][increment(x,2)] == 1):
+                screen.blit(self.center4, (160, 160))
+            elif (self.horizontal_wall[increment(y,4)][increment(x,2)] == 2):
+                screen.blit(self.door4, (160,160))                                               
+
+            #draw straight three block wall left one
+            if (self.horizontal_wall[increment(y,4)][increment(x,1)] == 1):
+                screen.blit(self.center4, (224, 160))
+            elif (self.horizontal_wall[increment(y,4)][increment(x,1)] == 2):
+                screen.blit(self.door4, (224,160))                                               
+
+            #draw straight three block wall
+            if (self.horizontal_wall[increment(y,4)][x] == 1):
+                screen.blit(self.center4, (288, 160))
+            elif (self.horizontal_wall[increment(y,4)][x] == 2):
+                screen.blit(self.door4, (288,160))
+
+            #draw straight three block wall right one
+            if (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 1):
+                screen.blit(self.center4, (352, 160))
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 2):
+                screen.blit(self.door4, (352,160))                                               
+
+            #draw straight three block wall right two
+            if (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 1):
+                screen.blit(self.center4, (416, 160))
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 2):
+                screen.blit(self.door4, (416,160))
+
+            #draw up three wall on left three
+            if (self.vertical_wall[increment(y,3)][increment(x,3)] == 1):
+                screen.blit(self.edgeList4_3[0], (0, 128))
+            elif (self.vertical_wall[increment(y,3)][increment(x,3)] == 2):
+                screen.blit(self.doorList4_3[0], (0, 128))
+
+            #draw up three wall on left two
+            if (self.vertical_wall[increment(y,3)][increment(x,2)] == 1):
+                screen.blit(self.edgeList4_2[0], (128, 128))
+            elif (self.vertical_wall[increment(y,3)][increment(x,2)] == 2):
+                screen.blit(self.doorList4_2[0], (128, 128))
+
+
+            #draw up three wall on left
+            if (self.vertical_wall[increment(y,3)][increment(x,1)] == 1):
+                screen.blit(self.edgeList4[0], (256, 128))
+            elif (self.vertical_wall[increment(y,3)][increment(x,1)] == 2):
+                screen.blit(self.doorList4[0], (256, 128))
+
+
+            #draw up three wall on right three
+            if (self.vertical_wall[increment(y,3)][decrement(x,2)] == 1):
+                screen.blit(self.edgeList4_3[1], (480, 128))                
+            elif (self.vertical_wall[increment(y,3)][decrement(x,2)] == 2):
+                screen.blit(self.doorList4_3[1], (480, 128))  
+
+            #draw up three wall on right two
+            if (self.vertical_wall[increment(y,3)][decrement(x,1)] == 1):
+                screen.blit(self.edgeList4_2[1], (416, 128))                
+            elif (self.vertical_wall[increment(y,3)][decrement(x,1)] == 2):
+                screen.blit(self.doorList4_2[1], (416, 128))                               
+
+            #draw up three wall on right
+            if (self.vertical_wall[increment(y,3)][x] == 1):
+                screen.blit(self.edgeList4[1], (352, 128))                
+            elif (self.vertical_wall[increment(y,3)][x] == 2):
+                screen.blit(self.doorList4[1], (352, 128))                
+
+
+
+            #draw straight two block wall left one
+            if (self.horizontal_wall[increment(y,3)][increment(x,2)] == 1):
+                screen.blit(self.center3, (0, 128))
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 2):
+                screen.blit(self.door3, (0,128))
+
+
+            #draw straight two block wall left one
+            if (self.horizontal_wall[increment(y,3)][increment(x,1)] == 1):
+                screen.blit(self.center3, (128, 128))
+            elif (self.horizontal_wall[increment(y,3)][increment(x,1)] == 2):
+                screen.blit(self.door3, (128,128))
+
+            #draw straight two block wall
+            if (self.horizontal_wall[increment(y,3)][x] == 1):
+                screen.blit(self.center3, (256, 128))
+            elif (self.horizontal_wall[increment(y,3)][x] == 2):
+                screen.blit(self.door3, (256,128))
+
+            #draw straight two block wall right one
+            if (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 1):
+                screen.blit(self.center3, (384, 128))
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 2):
+                screen.blit(self.door3, (384,128))
+
+            #draw straight two block wall right two
+            if (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 1):
+                screen.blit(self.center3, (512, 128))
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 2):
+                screen.blit(self.door3, (512,128))
+
+
+            #draw up two wall on left three
+            if (self.vertical_wall[increment(y,2)][increment(x,3)] == 1):
+                screen.blit(self.edgeList3_3[0], (-320, 64))
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 2):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+
+            #draw up two wall on left two
+            if (self.vertical_wall[increment(y,2)][increment(x,2)] == 1):
+                screen.blit(self.edgeList3_2[0], (-64, 64))
+            elif (self.vertical_wall[increment(y,2)][increment(x,2)] == 2):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+
+            #draw up two wall on left
+            if (self.vertical_wall[increment(y,2)][increment(x,1)] == 1):
+                screen.blit(self.edgeList3[0], (192, 64))
+            elif (self.vertical_wall[increment(y,2)][increment(x,1)] == 2):
+                screen.blit(self.doorList3[0], (192, 64))
+                
+            #draw up two wall on right three
+            if (self.vertical_wall[increment(y,2)][decrement(x,2)] == 1):
+                screen.blit(self.edgeList3_3[1], (640, 64))                
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 2):
+                screen.blit(self.doorList3_3[1], (640, 64))    
+
+
+            #draw up two wall on right two
+            if (self.vertical_wall[increment(y,2)][decrement(x,1)] == 1):
+                screen.blit(self.edgeList3_2[1], (512, 64))                
+            elif (self.vertical_wall[increment(y,2)][decrement(x,1)] == 2):
+                screen.blit(self.doorList3_2[1], (512, 64))    
+
+            #draw up two wall on right
+            if (self.vertical_wall[increment(y,2)][x] == 1):
+                screen.blit(self.edgeList3[1], (384, 64))                
+            elif (self.vertical_wall[increment(y,2)][x] == 2):
+                screen.blit(self.doorList3[1], (384, 64))  
+
+            #draw straight one block wall left one
+            if (self.horizontal_wall[increment(y,2)][increment(x,1)] == 1):
+                screen.blit(self.center2, (-64, 64))
+            elif (self.horizontal_wall[increment(y,2)][increment(x,1)] == 2):
+                screen.blit(self.door2, (-64,64))
+        
+            #draw straight one block wall
+            if (self.horizontal_wall[increment(y,2)][x] == 1):
+                screen.blit(self.center2, (192, 64))
+            elif (self.horizontal_wall[increment(y,2)][x] == 2):
+                screen.blit(self.door2, (192, 64))
+
+            #draw straight one block wall right one
+            if (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 1):
+                screen.blit(self.center2, (448, 64))
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 2):
+                screen.blit(self.door2, (448,64))
+
+            #draw up one wall on left
+            if (self.vertical_wall[increment(y,1)][increment(x,1)] == 1):
+                screen.blit(self.edgeList2[0], (64, -64))
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 2):
+                screen.blit(self.doorList2[0], (64, -64))
+                
+            #draw up one wall on right
+            if (self.vertical_wall[increment(y,1)][x] == 1):
+                screen.blit(self.edgeList2[1], (448, -64))                
+            elif (self.vertical_wall[increment(y,1)][x] == 2):
+                screen.blit(self.doorList2[1], (448, -64))                
+
+            #draw left one up wall
+            if (self.horizontal_wall[increment(y,1)][increment(x,1)] == 1):
+                screen.blit(self.center1, (-448,-64))
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 2):
+                screen.blit(self.door1, (-448,-64))
+
+            #draw right one up wall
+            if (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 1):
+                screen.blit(self.center1, (576,-64))
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 2):
+                screen.blit(self.door1, (576,-64))
+
+            #draw just up wall
+            if (self.horizontal_wall[increment(y,1)][x] == 1):
+                screen.blit(self.center1, (64,-64))
+            if (self.horizontal_wall[increment(y,1)][x] == 2):
+                screen.blit(self.door1, (64,-64))
+
+            #draw wall on left
+            if (self.vertical_wall[y][increment(x,1)] == 1):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            elif (self.vertical_wall[y][increment(x,1)] == 2):
+                screen.blit(self.doorList1[0], (-192, -320))
+
+            #draw wall on right
+            if (self.vertical_wall[y][x] == 1):
+                screen.blit(self.edgeList1[1], (576, -320))
+            elif (self.vertical_wall[y][x] == 2):
+                screen.blit(self.doorList1[1], (576, -320))
+
+        #if the player is looking left
+        elif (game_self.party.direction == 3):
+
+            if (self.ground[y][x] == 0 ):
+                screen.blit(self.ground_center1, (32, 448))
+
+            #draw ground left
+            if (self.ground[increment(y,1)][x] == 0 ):
+                screen.blit(self.ground_sideList1[0], (0, 448))
+
+            #draw ground right
+            if (self.ground[decrement(y,1)][x] == 0 ):
+                screen.blit(self.ground_sideList1[1], (576, 448))
+
+            #draw ground up left
+            if (self.ground[increment(y,1)][decrement(x,1)] == 0 ):
+                screen.blit(self.ground_sideList2[0], (0, 320))             
+
+            #draw ground up right
+            if (self.ground[decrement(y,1)][decrement(x,1)] == 0 ):
+                screen.blit(self.ground_sideList2[1], (448, 320))             
+            
+            #draw ground up left
+            if (self.ground[increment(y,1)][decrement(x,2)] == 0 ):
+                screen.blit(self.ground_sideList3[0], (-128, 256))             
+
+            #draw ground up right
+            if (self.ground[decrement(y,1)][decrement(x,2)] == 0 ):
+                screen.blit(self.ground_sideList3[1], (384, 256))             
+
+            #draw ground up left
+            if (self.ground[increment(y,2)][decrement(x,2)] == 0 ):
+                screen.blit(self.ground_sideList3_2[0], (0, 256))             
+
+            #draw ground up right
+            if (self.ground[decrement(y,2)][decrement(x,2)] == 0 ):
+                screen.blit(self.ground_sideList3_2[1], (576, 256))
+
+            #draw ground up left
+            if (self.ground[increment(y,1)][decrement(x,3)] == 0 ):
+                screen.blit(self.ground_sideList4[0], (128, 224))             
+
+            #draw ground up right
+            if (self.ground[decrement(y,1)][decrement(x,3)] == 0 ):
+                screen.blit(self.ground_sideList4[1], (352, 224))
+
+            #draw ground up left
+            if (self.ground[increment(y,2)][decrement(x,3)] == 0 ):
+                screen.blit(self.ground_sideList4_2[0], (0, 224))             
+
+            #draw ground up right
+            if (self.ground[decrement(y,2)][decrement(x,3)] == 0 ):
+                screen.blit(self.ground_sideList4_2[1], (416, 224))
+
+            #draw ground up one
+            if (self.ground[y][decrement(x,1)] == 0 ):
+                screen.blit(self.ground_center2, (64, 320))
+
+            #draw ground up two
+            if (self.ground[y][decrement(x,2)] == 0 ):
+                screen.blit(self.ground_center3, (192, 256))
+                
+            #draw ground up three
+            if (self.ground[y][decrement(x,3)] == 0 ):
+                screen.blit(self.ground_center4, (256, 224))
+                                
+            #draw straight three block wall left two
+            if (self.vertical_wall[increment(y,2)][decrement(x,3)] == 1):
+                screen.blit(self.center4, (160, 160))
+            elif (self.vertical_wall[increment(y,2)][decrement(x,3)] == 2):
+                screen.blit(self.door4, (160,160))                                               
+
+            #draw straight three block wall left one
+            if (self.vertical_wall[increment(y,1)][decrement(x,3)] == 1):
+                screen.blit(self.center4, (224, 160))
+            elif (self.vertical_wall[increment(y,1)][decrement(x,3)] == 2):
+                screen.blit(self.door4, (224,160))                                               
+
+            #draw straight three block wall
+            if (self.vertical_wall[y][decrement(x,3)] == 1):
+                screen.blit(self.center4, (288, 160))
+            elif (self.vertical_wall[y][decrement(x,3)] == 2):
+                screen.blit(self.door4, (288,160))
+
+            #draw straight three block wall right one
+            if (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 1):
+                screen.blit(self.center4, (352, 160))
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 2):
+                screen.blit(self.door4, (352,160))                                               
+
+            #draw straight three block wall right two
+            if (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 1):
+                screen.blit(self.center4, (416, 160))
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 2):
+                screen.blit(self.door4, (416,160))
+
+            #draw up three wall on left three
+            if (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 1):
+                screen.blit(self.edgeList4_3[0], (0, 128))
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 2):
+                screen.blit(self.doorList4_3[0], (0, 128))
+
+            #draw up three wall on left two
+            if (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 1):
+                screen.blit(self.edgeList4_2[0], (128, 128))
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 2):
+                screen.blit(self.doorList4_2[0], (128, 128))
+
+            #draw up three wall on left
+            if (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 1):
+                screen.blit(self.edgeList4[0], (256, 128))
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 2):
+                screen.blit(self.doorList4[0], (256, 128))
+
+            #draw up three wall on right three
+            if (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 1):
+                screen.blit(self.edgeList4_3[1], (480, 128))                
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 2):
+                screen.blit(self.doorList4_3[1], (480, 128))  
+
+            #draw up three wall on right two
+            if (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 1):
+                screen.blit(self.edgeList4_2[1], (416, 128))                
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 2):
+                screen.blit(self.doorList4_2[1], (416, 128))                               
+
+            #draw up three wall on right
+            if (self.horizontal_wall[y][decrement(x,3)] == 1):
+                screen.blit(self.edgeList4[1], (352, 128))                
+            elif (self.horizontal_wall[y][decrement(x,3)] == 2):
+                screen.blit(self.doorList4[1], (352, 128))  
+
+            #draw straight two block wall left two
+            if (self.vertical_wall[increment(y,2)][decrement(x,2)] == 1):
+                screen.blit(self.center3, (0, 128))
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 2):
+                screen.blit(self.door3, (0,128))
+
+            #draw straight two block wall left one
+            if (self.vertical_wall[increment(y,1)][decrement(x,2)] == 1):
+                screen.blit(self.center3, (128, 128))
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 2):
+                screen.blit(self.door3, (128,128))
+
+            #draw straight two block wall
+            if (self.vertical_wall[y][decrement(x,2)] == 1):
+                screen.blit(self.center3, (256, 128))
+            elif (self.vertical_wall[y][decrement(x,2)] == 2):
+                screen.blit(self.door3, (256,128))
+
+            #draw straight two block wall right one
+            if (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 1):
+                screen.blit(self.center3, (384, 128))
+            elif (self.vertical_wall[increment(y,1)][decrement(x,2)] == 2):
+                screen.blit(self.door3, (384,128))
+
+            #draw straight two block wall right two
+            if (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 1):
+                screen.blit(self.center3, (512, 128))
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 2):
+                screen.blit(self.door3, (512,128))
+
+            #draw up two wall on left three
+            if (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 1):
+                screen.blit(self.edgeList3_3[0], (-320, 64))
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 2):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+
+            #draw up two wall on left two
+            if (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 1):
+                screen.blit(self.edgeList3_2[0], (-64, 64))
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 2):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+
+            #draw up two wall on left
+            if (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 1):
+                screen.blit(self.edgeList3[0], (192, 64))
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 2):
+                screen.blit(self.doorList3[0], (192, 64))
+                
+            #draw up two wall on right three
+            if (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 1):
+                screen.blit(self.edgeList3_3[1], (640, 64))                
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 2):
+                screen.blit(self.doorList3_3[1], (640, 64))    
+
+
+            #draw up two wall on right two
+            if (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 1):
+                screen.blit(self.edgeList3_2[1], (512, 64))                
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 2):
+                screen.blit(self.doorList3_2[1], (512, 64))    
+
+            #draw up two wall on right
+            if (self.horizontal_wall[y][decrement(x,2)] == 1):
+                screen.blit(self.edgeList3[1], (384, 64))                
+            elif (self.horizontal_wall[y][decrement(x,2)] == 2):
+                screen.blit(self.doorList3[1], (384, 64))  
+                
+            #draw straight one block wall left one
+            if (self.vertical_wall[increment(y,1)][decrement(x,1)] == 1):
+                screen.blit(self.center2, (-64, 64))
+            elif (self.vertical_wall[increment(y,1)][decrement(x,1)] == 2):
+                screen.blit(self.door2, (-64,64))
+        
+            #draw straight one block wall
+            if (self.vertical_wall[y][decrement(x,1)] == 1):
+                screen.blit(self.center2, (192, 64))
+            elif (self.vertical_wall[y][decrement(x,1)] == 2):
+                screen.blit(self.door2, (192, 64))
+
+            #draw straight one block wall right one
+            if (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 1):
+                screen.blit(self.center2, (448, 64))
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 2):
+                screen.blit(self.door2, (448,64))
+
+
+            #draw up one wall on left
+            if (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 1):
+                screen.blit(self.edgeList2[0], (64, -64))
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 2):
+                screen.blit(self.doorList2[0], (64, -64))
+                
+            #draw up one wall on right
+            if (self.horizontal_wall[y][decrement(x,1)] == 1):
+                screen.blit(self.edgeList2[1], (448, -64))                
+            elif (self.horizontal_wall[y][decrement(x,1)] == 2):
+                screen.blit(self.doorList2[1], (448, -64))                
+
+            #draw left one up wall
+            if (self.vertical_wall[increment(y,1)][x] == 1):
+                screen.blit(self.center1, (-448,-64))
+            elif (self.vertical_wall[increment(y,1)][x] == 2):
+                screen.blit(self.door1, (-448,-64))
+
+            #draw right one up wall
+            if (self.vertical_wall[decrement(y,1)][x] == 1):
+                screen.blit(self.center1, (576,-64))
+            if (self.vertical_wall[decrement(y,1)][x] == 2):
+                screen.blit(self.door1, (576,-64))
+
+            #draw just up wall
+            if (self.vertical_wall[y][x] == 1):
+                screen.blit(self.center1, (64,-64))
+            elif (self.vertical_wall[y][x] == 2):
+                screen.blit(self.door1, (64,-64))
+
+            #draw wall on left
+            if (self.horizontal_wall[increment(y,1)][x] == 1):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            elif (self.horizontal_wall[increment(y,1)][x] == 2):
+                screen.blit(self.doorList1[0], (-192, -320))
+
+            #draw wall on right
+            if (self.horizontal_wall[y][x] == 1):
+                screen.blit(self.edgeList1[1], (576, -320))
+            elif (self.horizontal_wall[y][x] == 2):
+                screen.blit(self.doorList1[1], (576, -320))
 
 
     def draw_dungeon_no_light(self, game_self, screen):
