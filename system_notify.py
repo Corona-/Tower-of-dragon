@@ -970,14 +970,14 @@ class Confirm_window(window.Window):
                 else:
                     game_self.shop.buy_house.is_visible = False
 
-            if self.instruction == self.HOUSE_CHANGE:
+            elif self.instruction == self.HOUSE_CHANGE:
                 if self.menu == self.YES:
                     if len(game_self.party.member) > 0:
                         self.who_pay_window.is_visible = True
                 else:
                     game_self.house.house_change.is_visible = False
     
-            if self.instruction == self.SAVE:
+            elif self.instruction == self.SAVE:
                 if self.menu == self.YES:
                     save.save( self, game_self)
                     if game_self.inn != None:
@@ -990,7 +990,7 @@ class Confirm_window(window.Window):
                     if game_self.house != None:
                         game_self.house.save_confirm.is_visible = False
     
-            if self.instruction == self.LOAD:
+            elif self.instruction == self.LOAD:
                 if self.menu == self.YES:
                     save.load( self, game_self)
                     if game_self.inn != None:
@@ -1003,7 +1003,7 @@ class Confirm_window(window.Window):
                     if game_self.house != None:
                         game_self.house.load_confirm.is_visible = False
 
-            if self.instruction == self.JOB_CHANGE:
+            elif self.instruction == self.JOB_CHANGE:
                 if self.menu == self.YES:
 
                     if character.job == 0:
@@ -1079,13 +1079,14 @@ class Confirm_window(window.Window):
                     pass
                 else:
                     game_self.castle.change_job_window.job_change_confirm.is_visible = False
-            if self.instruction == self.DOWNSTAIRS:
+            elif self.instruction == self.DOWNSTAIRS:
                 if self.menu == self.YES:
                     for character in game_self.party.member:
                         character.coordinate[2] = character.coordinate[2]-1
 
                     #TO-DO load new floor
-                    game_self.dungeon = dungeon.Dungeon(character.coordinate[2])
+                    if character.coordinate[2] != 0:
+                        game_self.dungeon = dungeon.Dungeon(character.coordinate[2])
                         
                     #return to tower   
                     if game_self.party.member[0].coordinate[2] == 0:
@@ -1108,7 +1109,7 @@ class Confirm_window(window.Window):
                     self.is_visible = False
                     self = None
 
-            if self.instruction == self.UPSTAIRS:
+            elif self.instruction == self.UPSTAIRS:
                 if self.menu == self.YES:
                     for character in game_self.party.member:
                         character.coordinate[2] = character.coordinate[2]+1

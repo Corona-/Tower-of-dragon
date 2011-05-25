@@ -465,6 +465,14 @@ def save_game_data(game_self):
     #store the house level
     fp.write(struct.pack("i", game_self.party.house))
 
+    #store party name
+    uname = game_self.party.party_name.encode('utf-8')
+    #store length of the name
+    fp.write(struct.pack( "i", len(uname)))
+    #store actual name
+    fp.write(struct.pack( str(len(uname)) + "s", uname))
+    
+
     #cut remaining space
     fp.truncate()
     fp.close()
@@ -484,6 +492,10 @@ def load_game_data(game_self):
     #store the house level
     game_self.party.house = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
 
+    #load party name
+    name_length = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
+    game_self.party.party_name = u"" + struct.unpack( str(name_length) + "s", fp.read(struct.calcsize("s")*name_length))[0]
+  
     fp.close()
 
 def save_stored_item(game_self):
