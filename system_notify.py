@@ -12,6 +12,7 @@ import character_view
 import random
 import temple_window
 import tower
+import dungeon
 
 COLOR_WHITE = (255,255,255)
 COLOR_GLAY = (128,128,128)
@@ -870,6 +871,7 @@ class Confirm_window(window.Window):
     SAVE, LOAD = 100, 101
     JOB_CHANGE = 20
     DOWNSTAIRS = 30
+    UPSTAIRS= 31
 
 
     YES, NO = 0, 1
@@ -918,8 +920,9 @@ class Confirm_window(window.Window):
              confirm_font = self.menu_font.render( character.name + u"は" + u"転職します", True, COLOR_WHITE)
          elif self.instruction == self.DOWNSTAIRS:
              confirm_font = self.menu_font.render( u"下りる階段があります　下りますか？", True, COLOR_WHITE)
-            
-             
+         elif self.instruction == self.UPSTAIRS:
+             confirm_font = self.menu_font.render( u"上る階段があります　上りますか？", True, COLOR_WHITE)
+               
 
          yes_font = self.menu_font.render( u"はい", True, COLOR_WHITE) 
          no_font = self.menu_font.render( u"いいえ", True, COLOR_WHITE) 
@@ -1082,6 +1085,7 @@ class Confirm_window(window.Window):
                         character.coordinate[2] = character.coordinate[2]-1
 
                     #TO-DO load new floor
+                    game_self.dungeon = dungeon.Dungeon(character.coordinate[2])
                         
                     #return to tower   
                     if game_self.party.member[0].coordinate[2] == 0:
@@ -1103,8 +1107,17 @@ class Confirm_window(window.Window):
                 else:
                     self.is_visible = False
                     self = None
-                
-                pass
+
+            if self.instruction == self.UPSTAIRS:
+                if self.menu == self.YES:
+                    for character in game_self.party.member:
+                        character.coordinate[2] = character.coordinate[2]+1
+
+                    game_self.dungeon = dungeon.Dungeon(character.coordinate[2])
+
+                else:
+                    self.is_visible = False
+                    self = None
                     
 
 
@@ -1501,6 +1514,7 @@ class Item_view(window.Window):
         self.equip = 0
         self.select = 0
 
+
         self.top = rectangle.top
         self.left = rectangle.left
         self.right = rectangle.right
@@ -1517,10 +1531,15 @@ class Item_view(window.Window):
     def draw(self, screen, game_self):
 
         if self.is_visible == False: return
+
+    
         
         window.Window.draw(self, screen)
 
         character = game_self.party.member[game_self.menu.item_window.menu]
+
+        if character.items == []:
+            self.select = 1
 
         name_font = self.menu_font.render( character.name, True, COLOR_WHITE)
 

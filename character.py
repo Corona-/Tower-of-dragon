@@ -103,7 +103,9 @@ class Character:
         elif probability <= 200:
             self.money = random.randint(380, 800)
 
+        #ac change from permanant skill
         self.permanant_ac = 0
+        #ac change from battle
         self.battle_ac = 0
  
         

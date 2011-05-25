@@ -143,6 +143,8 @@ class Enemy:
         self.blind_resistance = int(enemy[51])
         
         self.level = int(enemy[52])
+
+        self.attack_times = int(enemy[53])
         
 
         

@@ -107,42 +107,43 @@ class Dungeon:
 
         self.temp = []
 
-        self.floor = floor
+        self.floor = floor-1
 
         #reads as left top is 0,0 and right down is 19,19
         for i in range(0, 20):
             for j in range(0, 21):
-                self.temp.append(int(map_data[35+i][j*2:j*2+2], 16))
+                self.temp.append(int(map_data[35+i+self.floor*20][j*2:j*2+2], 16))
             self.vertical_wall.append(self.temp)
             self.temp = []
 
         for i in range(0, 21):
             for j in range(0,20):
-                self.temp.append(int(map_data[635+i][j*2:j*2+2], 16))
+                self.temp.append(int(map_data[635+i+self.floor*20][j*2:j*2+2], 16))
             self.horizontal_wall.append(self.temp)
             self.temp = []
 
         for i in range(0, 20):
             for j in range(0,20):
-                self.temp.append(int(map_data[1265+i][j*2:j*2+2], 16))
+                self.temp.append(int(map_data[1265+i+self.floor*20][j*2:j*2+2], 16))
             self.ground.append(self.temp)
             self.temp = []
         
         for i in range(0, 20):
             for j in range(0,20):
-                self.temp.append(int(map_data[1865+i][j*2:j*2+2], 16))
+                self.temp.append(int(map_data[1865+i+self.floor*20][j*2:j*2+2], 16))
             self.space.append(self.temp)
             self.temp = []
             
         for i in range(0, 20):
            for j in range(0,20):
-               self.temp.append(int(map_data[2465+i][j*2:j*2+2], 16))
+               self.temp.append(int(map_data[2465+i+self.floor*20][j*2:j*2+2], 16))
            self.object.append(self.temp)
            self.temp = []
 
 
         #draw extra window
         self.downstairs_window = None #system_notify.Confirm_window( Rect(160, 150, 380, 110) , system_notify.Confirm_window.DOWNSTAIRS)
+        self.upstairs_window = None
 
     def update(self):
 
@@ -481,13 +482,17 @@ class Dungeon:
 
         if self.downstairs_window != None:
             self.downstairs_window.draw( screen, game_self, None)
-
+        if self.upstairs_window != None:
+            self.upstairs_window.draw( screen, game_self, None)
 
     def dungeon_handler(self, game_self, event):
         """event handler for dungeon"""
 
         if self.downstairs_window != None and self.downstairs_window.is_visible == True:
             self.downstairs_window.confirm_window_handler( game_self, event, None)
+            return
+        elif self.upstairs_window != None and self.upstairs_window.is_visible == True:
+            self.upstairs_window.confirm_window_handler( game_self, event, None)
             return
 
         if self.battle_flag == 1:
@@ -583,21 +588,12 @@ class Dungeon:
             if self.ground[y][x] == 2:
                 self.downstairs_window = system_notify.Confirm_window( Rect(160, 150, 380, 110) , system_notify.Confirm_window.DOWNSTAIRS)
                 self.downstairs_window.is_visible = True
-##                for character in game_self.party.member:
-##                    character.coordinate[2] = character.coordinate[2]-1
-##                #return to tower
-##                
-##                if game_self.party.member[0].coordinate[2] == 0:
-##                    game_self.game_state = TOWER
-##                    i = 0
-##                    for charcter in game_self.party.member:
-##                        game_self.party.member[i].coordinate = [-1,-1,-1]
-##                        i += 1
-##                    self.battle = None
-##                    self.battle_flag = 0
-##                    self.music = 0
-##                    game_self.party.direction = 0
-##                    print game_self.party.member[0].coordinate
+
+            #上る階段があります　上りますか　はい　いいえ
+            if self.ground[y][x] == 1:
+                self.upstairs_window = system_notify.Confirm_window( Rect(160, 150, 380, 110) , system_notify.Confirm_window.UPSTAIRS)
+                self.upstairs_window.is_visible = True
+                
                     
                     
                 pass

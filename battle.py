@@ -121,7 +121,7 @@ class Battle:
         self.damage_set = 0
         #actual damage
         self.damage = 0
-        #number to need keyboard until next command comes up
+        #number to need keyboard access until next command comes up
         self.group_access = 0
 
         #decides for some probability
@@ -222,6 +222,7 @@ class Battle:
                 battle_font1 = battle_command.character.name + u"は" + self.target_font + u"を" + u"突き刺した"
 
                 if self.hit_set == 0:
+                    self.hit = 0
                     if isinstance( battle_command.character, character.Character):
                         #calculate hit or miss
                         str_bonus = calculate_str_bonus( battle_command.character )
@@ -237,16 +238,17 @@ class Battle:
                         accuracy_decision = 19 + battle_command.target - self.target_group[self.offset].ac - accuracy
 
                         if accuracy_decision < 0:
-                            accuracy_ecision = 0
+                            accuracy_decision = 0
 
                         accuracy_total = int( (19- accuracy_decision)*5)
+                        
+                        hit_times = calculate_hit_time(battle_command.character)
 
-                        accuracy_probability = random.randint(1, 100)
-
-                        if accuracy_probability < accuracy_total:
-                            self.hit = 1
-                        else:
-                            self.hit = 0
+                        for attack in range(hit_times):
+                            accuracy_probability = random.randint(1,100)
+                            if accuracy_probability < accuracy_total:
+                                self.hit += 1
+                                
                     else:
 
                         accuracy1 = 19 - self.target_group[target].ac - battle_command.character.level
@@ -257,26 +259,23 @@ class Battle:
 
                         accuracy_total = int( (19-accuracy1)*5)
 
-                        accuracy_probability = random.randint(1,100)
+                        for attack in range(battle_command.character.attack_times):
+                            accuracy_probability = random.randint(1,100)
+                            if accuracy_probability < accuracy_total:
+                                self.hit += 1
 
-                        if accuracy_probability < accuracy_total:
-                            self.hit = 1
-                        else:
-                            self.hit = 0
                     self.hit_set = 1
 
 
-                if self.hit == 1:    
+                if self.hit >= 1:    
                 
                     #print battle_font1
-                    #calculate hit times
-                    hit_times = calculate_hit_time(battle_command.character)
 
-                    battle_font2 = str(hit_times) + u"回当たり "
+                    battle_font2 = str(self.hit) + u"回当たり "
 
                     #calculate damage
                     if (self.damage_set == 0):
-                        self.damage = calculate_damage(battle_command.character)
+                        self.damage = calculate_damage(battle_command.character, self.hit)
                         self.damage_set = 1
                         #need to select target on enemy in random
                         if isinstance( self.target_group[0], character.Character):
@@ -888,17 +887,37 @@ def select_enemy( enemy_data, floor ):
         enemy_total.append(enemy_front)
         enemy_total.append(enemy_back)
 
+    if floor == 2:
+
+        
+
+        for group in range(1, 4):
+            enemy_id = random.randint(6,10)
+
+            enemy_count = random.randint(1,6)
+
+            enemy_group = []
+
+            for i in range(enemy_count):
+                enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ]))
+
+            enemy_front.append(enemy_group)
+
+        enemy_total.append(enemy_front)
+        enemy_total.append(enemy_back)
+            
+
 
     return enemy_total
             
 
 def calculate_hit_time( chara ):
 
-    hit_time = 1
+    #need fix?
+    return calculate_level_bonus(chara)
 
-    return hit_time
 
-def calculate_damage( chara):
+def calculate_damage( chara, hit_times):
 
     damage = 0
 
@@ -918,9 +937,15 @@ def calculate_damage( chara):
     if isinstance( chara,enemy.Enemy):
         damage = chara.strength
 
-    damage = random.randint(1, damage)
+    max_damage = damage
 
-    return damage
+    total_damage = 0
+    for i in range(hit_times):
+        damage = random.randint(1, max_damage)
+        total_damage += damage
+
+    
+    return total_damage
 
 
 def enemy_movement( enemyList, enemyListBack, game_self):
