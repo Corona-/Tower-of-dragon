@@ -239,6 +239,10 @@ class Dungeon:
 
         if event.type == KEYDOWN and (event.key ==K_UP):
             self.footstep_se.play()
+            
+            if game_self.party.torch > 0:
+                game_self.party.torch -= 1
+                
             for character in game_self.party.member:
                 if (game_self.party.direction == 0):
                     #if there is a wall in front, can't move up

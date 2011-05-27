@@ -20,6 +20,8 @@ COLOR_BLACK = (0,0,0)
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 HOUSE = 11
+MENU = 12
+DUNGEON = 100
 
 class System_notify_window(window.Window):
 
@@ -1533,11 +1535,13 @@ class Item_view(window.Window):
 
         if self.is_visible == False: return
 
-    
-        
+
         window.Window.draw(self, screen)
 
-        character = game_self.party.member[game_self.menu.item_window.menu]
+        if game_self.game_state == MENU:
+            character = game_self.party.member[game_self.menu.item_window.menu]
+        elif game_self.game_state == DUNGEON:
+            character = game_self.party.member[game_self.dungeon.battle.selected]
 
         if character.items == []:
             self.select = 1
@@ -1586,7 +1590,10 @@ class Item_view(window.Window):
             self.item_todo_window.item_menu_select_handler(event, game_self)
             return
 
-        character = game_self.party.member[game_self.menu.item_window.menu]
+        if game_self.game_state == MENU:
+            character = game_self.party.member[game_self.menu.item_window.menu]
+        if game_self.game_state == DUNGEON:
+            character = game_self.party.member[game_self.dungeon.battle.selected]
 
         #moves back to shop
         if event.type == KEYDOWN and event.key == K_x:
@@ -1664,8 +1671,12 @@ class Magic_all_view(window.Window):
         
         window.Window.draw(self, screen)
 
-        character = game_self.party.member[game_self.menu.magic_window.menu]
+        if game_self.game_state == MENU:
+            character = game_self.party.member[game_self.menu.magic_window.menu]
+        elif game_self.game_state == DUNGEON:
+            character = game_self.party.member[game_self.dungeon.battle.selected]
 
+            
         name_font = self.menu_font.render( character.name, True, COLOR_WHITE)
 
         screen.blit( name_font, (self.left+20, self.top+20))
@@ -1774,8 +1785,13 @@ class Magic_level(window.Window):
         
         window.Window.draw(self, screen)
 
-        level = game_self.menu.magic_window.magic_all_view.menu
-        character = game_self.party.member[game_self.menu.magic_window.menu]
+        if game_self.game_state == MENU:
+            level = game_self.menu.magic_window.magic_all_view.menu
+            character = game_self.party.member[game_self.menu.magic_window.menu]
+        elif game_self.game_state == DUNGEON:
+            level = game_self.dungeon.battle.magic_window.menu
+            character = game_self.party.member[game_self.dungeon.battle.selected]
+            
 
         if level < 7:
             top_font = self.menu_font.render( u"呪文LV" + str(level+1), True, COLOR_WHITE)
@@ -1851,21 +1867,33 @@ class Magic_level(window.Window):
         #moves the cursor left
         elif event.type == KEYDOWN and event.key == K_LEFT:
             game_self.cursor_se.play()
-            game_self.menu.magic_window.magic_all_view.menu -= 1
-            if game_self.menu.magic_window.magic_all_view.menu < 0:
-                game_self.menu.magic_window.magic_all_view.menu = 6
-            if game_self.menu.magic_window.magic_all_view.menu == 6:
-                game_self.menu.magic_window.magic_all_view.menu = 13
-            
+            if game_self.game_state == MENU:
+                game_self.menu.magic_window.magic_all_view.menu -= 1
+                if game_self.menu.magic_window.magic_all_view.menu == 6:
+                    game_self.menu.magic_window.magic_all_view.menu = 13
+                if game_self.menu.magic_window.magic_all_view.menu < 0:
+                    game_self.menu.magic_window.magic_all_view.menu = 6
+            elif game_self.game_state == DUNGEON:
+                game_self.dungeon.battle.magic_window.menu -= 1
+                if game_self.dungeon.battle.magic_window.menu == 6:
+                    game_self.dungeon.battle.magic_window.menu = 13
+                if game_self.dungeon.battle.magic_window.menu < 0:
+                    game_self.dungeon.battle.magic_window.menu = 6                
         #moves the cursor right
         elif event.type == KEYDOWN and event.key == K_RIGHT:
             game_self.cursor_se.play()
-            game_self.menu.magic_window.magic_all_view.menu += 1
-            if game_self.menu.magic_window.magic_all_view.menu == 7:
-                game_self.menu.magic_window.magic_all_view.menu = 0
-            if game_self.menu.magic_window.magic_all_view.menu > 13:
-                game_self.menu.magic_window.magic_all_view.menu = 7
-
+            if game_self.game_state == MENU:
+                game_self.menu.magic_window.magic_all_view.menu += 1
+                if game_self.menu.magic_window.magic_all_view.menu == 7:
+                    game_self.menu.magic_window.magic_all_view.menu = 0
+                if game_self.menu.magic_window.magic_all_view.menu > 13:
+                    game_self.menu.magic_window.magic_all_view.menu = 7
+            elif game_self.game_state == DUNGEON:
+                game_self.dungeon.battle.magic_window.menu += 1
+                if game_self.dungeon.battle.magic_window.menu == 7:
+                    game_self.dungeon.battle.magic_window.menu = 0
+                if game_self.dungeon.battle.magic_window.menu > 13:
+                    game_self.dungeon.battle.magic_window.menu = 7                
 
 
       
@@ -2095,6 +2123,10 @@ class Item_menu_select(window.Window):
                 #if category is 101, no target selection is needed
                 #たいまつとか
                 elif use_item.category == 101:
+                    game_self.party.torch += 30
+                    if game_self.party.torch > 128:
+                        game_self.party.torch = 128
+                    del character.items[game_self.menu.item_window.item_view.menu]
                     pass
                 else:
                     #not able to use in menu

@@ -11,6 +11,7 @@ import battle_command
 import character
 import item
 import city
+import system_notify
 
 import battle_window
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
@@ -161,6 +162,10 @@ class Battle:
         #shows drop item gained from battle
         self.drop_item_key = int(math.ceil(len(self.enemy_drop_items)/4.0))
 
+        #extra window to show magic and items
+        self.magic_window = None
+        self.item_view = None
+
      
     def update(self):
         if self.state == self.COMMAND:
@@ -184,6 +189,12 @@ class Battle:
             self.draw_battle_command(game_self, screen)
 
             self.draw_enemy_names(game_self, screen)
+
+            if self.magic_window != None:
+                self.magic_window.draw(screen, game_self)
+
+            if self.item_view != None:
+                self.item_view.draw(screen, game_self)
         
 
         if self.state == self.BATTLE:
@@ -533,6 +544,13 @@ class Battle:
 
             #print self.selected
 
+            if self.item_view != None and self.item_view.is_visible:
+                self.item_view.item_view_handler(event, game_self)
+                return
+            elif self.magic_window != None and self.magic_window.is_visible == True:
+                self.magic_window.magic_all_view_handler(event, game_self)
+                return
+            
             if event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
 
                 game_self.select_se.play()
@@ -556,6 +574,8 @@ class Battle:
                     self.party_movement.append( battle_command.Battle_command( character, self.DEFEND, 0))
                     self.selected += 1
                 if self.menu == self.ITEM:
+                    self.item_view = system_notify.Item_view(Rect(70, 50, 450, 360))
+                    self.item_view.is_visible = True
                     return
                 if self.menu == self.CURSE:
                     #only priests could select
@@ -564,6 +584,9 @@ class Battle:
 
                     return
                 if self.menu == self.MAGIC:
+                    self.magic_window = system_notify.Magic_all_view(Rect(80, 50, 280 ,120))
+                    self.magic_window.is_visible = True
+
                     return
                 if self.menu == self.ESCAPE:
                     self.party_movement.append( battle_command.Battle_command( character, self.ESCAPE, 0))
