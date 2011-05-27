@@ -134,6 +134,9 @@ class Dungeon:
         self.ceilingedgeList3_2 = load_side_images("Images/ceilingedge_3-2.png", 192, 64, 20, 0, 0, 0)
         self.ceilingedgeList4_2 = load_side_images("Images/ceilingedge_4-2.png", 224, 32, 0, 10, 0, 0)
 
+
+        self.dungeon_visited = pygame.image.load("Images/dungeon_map.png").convert()
+
         
         #load the map of the dungeon
         file = "tower_of_dragon.txt"
@@ -151,6 +154,8 @@ class Dungeon:
         self.temp = []
 
         self.floor = floor-1
+
+        self.show_map = False
 
         #reads as left top is 0,0 and right down is 19,19
         for i in range(0, 20):
@@ -202,6 +207,10 @@ class Dungeon:
         pass
     def draw(self, game_self, screen):
 
+        if self.show_map == True:
+            self.draw_dungeon_map(game_self, screen)
+            return
+
         if ( game_self.party.torch >= 1 ):
             self.draw_dungeon_with_light(game_self, screen)
         else:
@@ -230,10 +239,30 @@ class Dungeon:
             self.battle.battle_handler(game_self, event)
             return
 
+        if event.type == KEYDOWN and (event.key ==K_m):
+            self.show_map = not self.show_map
+            return
+
+        if self.show_map and event.type == KEYDOWN and (event.key == K_x or event.key == K_z or event.key ==K_m or event.key == K_SPACE or event.key == K_RETURN):
+            self.show_map = not self.show_map
+            return
+
+        if self.show_map == True:
+            return
+
         #party member all has same coordinate so take one of it
         coordinate = game_self.party.member[0].coordinate
         x = coordinate[0]
         y = coordinate[1]
+
+        #need to calculate theif level
+        #theif_level = 2
+        theif_level = calculate_thief_level(game_self)
+        print theif_level
+        
+        #add this coordinate to visited coordinate
+        game_self.party.dungeon_visited[coordinate[2]][x][y] = theif_level
+
 
         encount = random.randint(1, 100)
 
@@ -331,7 +360,7 @@ class Dungeon:
                 
                     
                     
-                pass
+
 
             
 
@@ -343,6 +372,82 @@ class Dungeon:
         if encount < probability:
             self.battle = battle.Battle(self.enemy_data, character.coordinate[2])
             self.battle_flag = 1
+
+    def draw_dungeon_map(self, game_self, screen):
+
+        #party member all has same coordinate so take one of it
+        coordinate = game_self.party.member[0].coordinate
+        x = coordinate[0]
+        y = coordinate[1]
+
+        screen.blit(self.dungeon_visited, (50,75))
+
+        floor_window = window.Window(Rect(415,80,210,60))
+        floor_window.draw(screen)
+
+        menu_font = pygame.font.Font("ipag.ttf", 20)
+
+        floor_font = menu_font.render(u"天龍の塔 " + str(coordinate[2]) + u"階", True, COLOR_WHITE)
+        screen.blit(floor_font, (520-floor_font.get_width()/2, 100))
+
+
+        floor_data = game_self.party.dungeon_visited[coordinate[2]]
+
+        #screen coordinate of (0,0)
+        #Rect(68,97,16,16)
+
+        x = 0
+        for i in floor_data:
+            y = 0
+            for j in i:
+
+                #calculate where to place rectangle
+                rect_x = 68 + x*16+x
+                rect_y = 97 + y*16+y
+                
+                if j > 0 and j >= 1:
+                    #only show floor
+                    pygame.draw.rect(screen, Color(126,197,119), Rect(rect_x,rect_y,16,16), 0)
+                if j > 0 and j >= 2:
+                    #additionaly show wall and door
+
+                    #show wall
+                    if self.horizontal_wall[y][x] == 1 or self.horizontal_wall[y][x] == 2:
+                        pygame.draw.rect(screen, Color(0,0,0), Rect(rect_x,rect_y,16,2), 0)
+                    if self.horizontal_wall[increment(y,1)][x] == 1 or self.horizontal_wall[increment(y,1)][x] == 2:
+                        pygame.draw.rect(screen, Color(0,0,0), Rect(rect_x,rect_y+14,16,2), 0)
+                    if self.vertical_wall[y][x] == 1 or self.vertical_wall[y][x] == 2:
+                        pygame.draw.rect(screen, Color(0,0,0), Rect(rect_x,rect_y,2,16), 0)
+                    if self.vertical_wall[y][increment(x,1)] == 1 or self.vertical_wall[y][increment(x,1)] == 2:
+                        pygame.draw.rect(screen, Color(0,0,0), Rect(rect_x+14,rect_y,2,16), 0)
+
+                    #show door                                 
+                    if self.horizontal_wall[y][x] == 2:
+                        pygame.draw.rect(screen, Color(190,128,14), Rect(rect_x+4,rect_y,8,2), 0)
+                    if self.horizontal_wall[increment(y,1)][x] == 2:
+                        pygame.draw.rect(screen, Color(190,128,14), Rect(rect_x+4,rect_y+14,8,2), 0)
+                    if self.vertical_wall[y][x] == 2:
+                        pygame.draw.rect(screen, Color(190,128,14), Rect(rect_x,rect_y+4,2,8), 0)
+                    if self.vertical_wall[y][increment(x,1)] == 2:
+                        pygame.draw.rect(screen, Color(190,128,14), Rect(rect_x+14,rect_y+4,2,8), 0)
+                                               
+                    pass
+                if j > 0 and j >= 3:
+                    #additionaly show locked door
+                    pass
+                if j > 0 and j >= 4:
+                    #additionaly show trap
+                    pass
+                if j > 0 and j >= 5:
+                    #additionaly show each trap
+                    pass
+                    
+                y+=1
+            x+=1
+                
+
+        pass
+        
 
     def draw_dungeon_with_light(self, game_self, screen):
         
@@ -1794,3 +1899,20 @@ def load_side_images( file_name , size_x, size_y, invisible1_x, invisible1_y, in
     return image_list
 
 
+def calculate_thief_level(game_self):
+
+    max_theif_level = 0
+
+    for character in game_self.party.member:
+        theif_level = 0
+        if character.job == 4 or character.job == 22 or character.job == 23 or character.job == 24:
+            theif_level = int(character.level/3)+1
+        else:
+            theif_level = int(character.level/15)
+
+        if theif_level > max_theif_level:
+            max_theif_level = theif_level
+
+    return max_theif_level
+        
+    

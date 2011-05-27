@@ -53,6 +53,19 @@ class Party:
         self.inn_item = []
         self.house_item = []
 
+        #show what thief level when party moved to that coordinate
+        self.dungeon_visited = []
+
+        for floor in range(30):
+            floor_visited = []
+            for x in range(20):
+                row_visited = []
+                for y in range(20):
+                    row_visited.append(0)
+                floor_visited.append(row_visited)
+            self.dungeon_visited.append(floor_visited)
+
+
         self.party_name = u"パーティ"
 
         self.menu_font = pygame.font.Font("ipag.ttf", 20)

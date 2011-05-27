@@ -31,6 +31,8 @@
 	矢印↑＝前に移動
 	矢印←↓→＝方向転換
 
+	m=オートマッピング表示（盗賊レベル依存
+
 
 【使用音楽】
 
@@ -96,3 +98,6 @@
 
 	【サイト名】Wizardry レベルアップ必要経験値List
 	【アドレス】http://yosiho.lain.aisnet.jp/ETC/wiz_exp.html
+
+	【サイト名】We Love Wizardry for WonderSwan
+	【アドレス】http://multix.jp/wizardry/
