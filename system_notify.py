@@ -360,8 +360,8 @@ class System_notify_window(window.Window):
                     rest.calc_exp_needed(self, game_self.party.member[self.menu])
 
                     change = [0,0,0,0,0,0,0,0]
-                    #level up if next is negative
-                    if game_self.party.member[self.menu].next < 0:
+                    #level up if next is negative or 0
+                    if game_self.party.member[self.menu].next <= 0:
                         if game_self.game_state == INN:
                             rest.level_up(self, game_self.party.member[self.menu], game_self.inn.inn_window.menu, change)
                         elif game_self.game_state == HOUSE:

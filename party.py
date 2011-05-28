@@ -3,6 +3,7 @@
 import pygame
 from pygame.locals import *
 import window
+import item
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -153,7 +154,9 @@ class Party:
                 elif character.job == self.NINJA:
                     job_font = self.menu_font.render( "NIN", True, COLOR_WHITE)
 
-                character_ac_font = self.menu_font.render( "".join(str(character.ac)), True, COLOR_WHITE)
+                character_ac = calculate_ac(character)
+
+                character_ac_font = self.menu_font.render( "".join(str(character_ac)), True, COLOR_WHITE)
                 character_hits_font = self.menu_font.render( "".join(str(character.hp)), True, COLOR_WHITE)
 
                 if character.status == "OK":
@@ -164,10 +167,37 @@ class Party:
 
                 screen.blit(alignment_font, (SCREEN_RECTANGLE.width/2-130,SCREEN_RECTANGLE.height/2+100+i*20))
                 screen.blit(self.bar_font, (SCREEN_RECTANGLE.width/2-130+alignment_font.get_width(),SCREEN_RECTANGLE.height/2+100+i*20))
-                screen.blit(job_font, (SCREEN_RECTANGLE.width/2-130+alignment_font.get_width()+self.bar_font.get_width(),SCREEN_RECTANGLE.height/2+100+i*20))
-                screen.blit(character_ac_font, (SCREEN_RECTANGLE.width/2,SCREEN_RECTANGLE.height/2+100+i*20))
+                screen.blit(job_font, (SCREEN_RECTANGLE.width/2-130+alignment_font.get_width()+self.bar_font.get_width(),SCREEN_RECTANGLE.height/2+100+i*20))                
+                screen.blit(character_ac_font, (SCREEN_RECTANGLE.width/2+20-character_ac_font.get_width()/2,SCREEN_RECTANGLE.height/2+100+i*20))
                 screen.blit(character_hits_font, (SCREEN_RECTANGLE.width/2+110 - character_hits_font.get_width()/2,SCREEN_RECTANGLE.height/2+100+i*20)) 
                 screen.blit(character_status_font, (SCREEN_RECTANGLE.width/2+240 - character_status_font.get_width()/2,SCREEN_RECTANGLE.height/2+100+i*20))
     
                     
                 i += 1
+
+def calculate_ac(character):
+
+    ac = character.ac
+
+    #calculate ac from equipment
+    for equip in character.equip:
+        if isinstance(equip, item.Item):
+            ac += equip.evade
+
+
+    #calculate ac from magic
+    ac += character.permanant_ac
+    ac += character.battle_ac
+
+    return ac
+
+
+
+
+
+
+
+
+
+
+    

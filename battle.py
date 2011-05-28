@@ -12,6 +12,7 @@ import character
 import item
 import city
 import system_notify
+import party
 
 import battle_window
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
@@ -262,7 +263,7 @@ class Battle:
                                 
                     else:
 
-                        accuracy1 = 19 - self.target_group[target].ac - battle_command.character.level
+                        accuracy1 = 19 - party.calculate_ac(self.target_group[target]) - battle_command.character.level
                         accuracy2 = accuracy1 - battle_command.character.ac
 
                         if accuracy1 < 0:

@@ -74,5 +74,10 @@ class Item:
 
         self.id = int(item[23])
 
+        self.break_percent = int(item[24])
+
+        self.attack_extra = int(item[25])
+        self.attack_extra_percent = int(item[26])
+
         
 
