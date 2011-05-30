@@ -1905,8 +1905,12 @@ def calculate_thief_level(game_self):
 
     for character in game_self.party.member:
         theif_level = 0
+        #thiefs
         if character.job == 4 or character.job == 22 or character.job == 23 or character.job == 24:
             theif_level = int(character.level/3)+1
+        #merchants
+        elif character.job == 5 or character.job == 25 or character.job == 26 or character.job == 27:
+            theif_level = int(character.level/4)
         else:
             theif_level = int(character.level/15)
 

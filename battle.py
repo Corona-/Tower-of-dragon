@@ -89,7 +89,7 @@ class Battle:
             probability = 0
             for item in enemy_group[0].drop_item:
                 if i%2==0:
-                    probability = item*len(enemy_group)
+                    probability = item*len(enemy_group)*50
                     i+= 1
                     continue
 
@@ -223,8 +223,8 @@ class Battle:
                         self.target_font = self.enemyList[target][0].name
                         self.target_group = self.enemyList[target]
                     else:
-                        self.target_font = self.enemyListBack[target][0].name
-                        self.target_group = self.enemyListBack[target]
+                        self.target_font = self.enemyListBack[target-4][0].name
+                        self.target_group = self.enemyListBack[target-4]
                 else:
                     self.target_font = game_self.party.member[target].name
                     self.target_group = game_self.party.member
@@ -349,7 +349,7 @@ class Battle:
      
                                 del self.target_group[self.offset]
 
-                                #delete command of party targeted at thoses enemy
+                                #delete command of party targeted at those enemy
                                 if self.target_group == []:                                
                                     i = 0
 
@@ -365,7 +365,7 @@ class Battle:
                                     for i in to_delete:
                                         del self.total_movement[i]
                                     
-                                    del self.enemyList[target]
+                                    #del self.enemyList[target]
 
                                 self.dead_set = 1
                                 self.dead_font = self.target_font
@@ -498,7 +498,7 @@ class Battle:
                     if len(self.enemy_drop_items) > 4 and self.drop_item_key == 1:
                         for items in range(0,4):
                                                        
-                            item_font = game_self.item_data[self.enemy_drop_items[0]][0]
+                            item_font = game_self.item_data[self.enemy_drop_items[items]][0]
                             item_font = item_font.strip("\"")
                             item_font = unicode(item_font, encoding="sjis")
                             
@@ -506,13 +506,25 @@ class Battle:
                             screen.blit(item_font, (320 - item_font.get_width()/2, 20+items*30))
 
                     else:
-                        for items in range(0, len(self.enemy_drop_items)):                
-                            item_font = game_self.item_data[self.enemy_drop_items[0]][0]
-                            item_font = item_font.strip("\"")
-                            item_font = unicode(item_font, encoding="sjis")
+
+                        if len(self.enemy_drop_items) > 4:
+                            for items in range(4, len(self.enemy_drop_items)):                
+                                item_font = game_self.item_data[self.enemy_drop_items[items]][0]
+                                item_font = item_font.strip("\"")
+                                item_font = unicode(item_font, encoding="sjis")
+                                
+                                item_font = self.menu_font.render( item_font + u"を拾った", True, COLOR_WHITE)
+                                screen.blit(item_font, (320 - item_font.get_width()/2, 20+(items-4)*30))
                             
-                            item_font = self.menu_font.render( item_font + u"を拾った", True, COLOR_WHITE)
-                            screen.blit(item_font, (320 - item_font.get_width()/2, 20+items*30))
+
+                        else:
+                            for items in range(0, len(self.enemy_drop_items)):                
+                                item_font = game_self.item_data[self.enemy_drop_items[items]][0]
+                                item_font = item_font.strip("\"")
+                                item_font = unicode(item_font, encoding="sjis")
+                                
+                                item_font = self.menu_font.render( item_font + u"を拾った", True, COLOR_WHITE)
+                                screen.blit(item_font, (320 - item_font.get_width()/2, 20+items*30))
 
                   
     def battle_handler(self, game_self, event):
@@ -698,19 +710,7 @@ class Battle:
                     self.probability_set = 0
                     self.dead_set = 0
                     self.hit_set = 0
-
-
-                if self.enemyList == [] and self.enemyListBack == []:
-                    print self.enemyList
-                    self.state = self.END
-                    return
-                    #this is for battle end
-
-                if player_count_movable( game_self.party.member)== 0:
-                    self.state = self.END
-                    return
-                    #game_over
-            
+                    return         
 
 
 
@@ -723,14 +723,53 @@ class Battle:
                     self.dead_set = 0
                     self.hit_set = 0
 
-
-
+                    #turn ended
                     if self.total_movement == []:
                         self.party_movement = []
                         self.enemy_movement = []
                         self.menu = self.FIGHT
                         self.selected = 0
                         self.state = self.COMMAND
+
+                        #remove empty lists
+                        #all of the command for empty lists are removed
+                        #so it could wait for end of turn to remove empty lists?
+                        i = 0
+                        to_delete = []
+                        for group in self.enemyList:
+                            if group == []:
+                                to_delete.insert(0,i)
+                            i+=1
+                        for i in to_delete:
+                            del self.enemyList[i]
+
+                        i = 0
+                        to_delete = []
+                        for group in self.enemyListBack:
+                            if group == []:
+                                to_delete.insert(0,i)
+                            i+=1
+                        for i in to_delete:
+                            del self.enemyListBack[i]
+
+                        print self.enemyList
+                        print self.enemyListBack
+
+
+                        if self.enemyList == [] and self.enemyListBack != []:
+                            self.enemyList = self.enemyListBack
+                            self.enemyListBack = []
+
+                        if self.enemyList == [] and self.enemyListBack == []:
+                            print self.enemyList
+                            self.state = self.END
+                            return
+                            #this is for battle end
+
+                        if player_count_movable( game_self.party.member)== 0:
+                            self.state = self.END
+                            return
+                            #game_over
 
         elif self.state == self.END:
             
@@ -781,6 +820,7 @@ class Battle:
                     else:
                         #there are drop items
                         self.drop_item_key -= 1
+                        
 
     #used in battle INIT
     def battle_initiation(self, game_self, screen):
@@ -862,18 +902,19 @@ class Battle:
 
         count = 0
         for group in self.enemyList:
-                
-            movable_count = count_movable( group)
-            group_font = self.enemy_font.render( str(len(group))+group[0].name + " ("+str(movable_count)+")", True, COLOR_WHITE)
-            screen.blit(group_font, (20, 20+count*20))
-            count+=1
+            if group != []:
+                movable_count = count_movable( group)
+                group_font = self.enemy_font.render( str(len(group))+group[0].name + " ("+str(movable_count)+")", True, COLOR_WHITE)
+                screen.blit(group_font, (20, 20+count*20))
+                count+=1
             
         count = 0
         for group in self.enemyListBack:
-            movable_count = count_movable( group)
-            group_font = self.enemy_font.render( str(len(group))+group[0].name + " ("+str(movable_count)+")", True, COLOR_WHITE)
-            screen.blit(group_font, (340, 20+count*20))
-            count+=1
+            if group != []:
+                movable_count = count_movable( group)
+                group_font = self.enemy_font.render( str(len(group))+group[0].name + " ("+str(movable_count)+")", True, COLOR_WHITE)
+                screen.blit(group_font, (340, 20+count*20))
+                count+=1
 
 
 
@@ -911,15 +952,45 @@ def select_enemy( enemy_data, floor ):
 
         for i in range(enemy_count):
             enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ] ) )
-
         enemy_front.append(enemy_group)
 
         #debug
-        #ちゃんと別の作れば問題なし？
+        enemy_count = 1
         enemy_group = []
-        for i in range(enemy_count):
-            enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ] ) )            
+
+        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
         enemy_front.append(enemy_group)
+        enemy_count = 1
+        enemy_group = []
+
+        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+        enemy_front.append(enemy_group)
+        enemy_count = 1
+        enemy_group = []
+
+        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+        enemy_front.append(enemy_group)
+        enemy_count = 1
+        enemy_group = []
+
+        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+        enemy_back.append(enemy_group)
+        enemy_count = 1
+        enemy_group = []
+
+        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+        enemy_back.append(enemy_group)
+        enemy_count = 1
+        enemy_group = []
+
+        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+        enemy_back.append(enemy_group)
+        enemy_count = 1
+        enemy_group = []
+
+        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+        enemy_back.append(enemy_group)
+              
 
 
         enemy_total.append(enemy_front)
