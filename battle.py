@@ -104,6 +104,8 @@ class Battle:
             for item in enemy_group[0].drop_item:
                 if i%2==0:
                     probability = item*len(enemy_group)
+                    i+=1
+                    continue
 
                 random_value = random.randint(1,100)
                 if random_value < probability:
@@ -699,6 +701,7 @@ class Battle:
 
 
                 if self.enemyList == [] and self.enemyListBack == []:
+                    print self.enemyList
                     self.state = self.END
                     return
                     #this is for battle end
@@ -799,7 +802,7 @@ class Battle:
         #draw default battle window
 
         #draw party information
-        game_self.party.draw(screen)
+        game_self.party.draw(screen, game_self)
         #draw command window
         self.command_window.draw(screen)
         #draw enemy information window
@@ -855,8 +858,11 @@ class Battle:
         
     def draw_enemy_names(self, game_self, screen):
         #display the enemies names
+                
+
         count = 0
         for group in self.enemyList:
+                
             movable_count = count_movable( group)
             group_font = self.enemy_font.render( str(len(group))+group[0].name + " ("+str(movable_count)+")", True, COLOR_WHITE)
             screen.blit(group_font, (20, 20+count*20))
@@ -907,6 +913,14 @@ def select_enemy( enemy_data, floor ):
             enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ] ) )
 
         enemy_front.append(enemy_group)
+
+        #debug
+        #ちゃんと別の作れば問題なし？
+        enemy_group = []
+        for i in range(enemy_count):
+            enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ] ) )            
+        enemy_front.append(enemy_group)
+
 
         enemy_total.append(enemy_front)
         enemy_total.append(enemy_back)

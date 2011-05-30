@@ -13,6 +13,7 @@ import random
 import temple_window
 import tower
 import dungeon
+import string
 
 COLOR_WHITE = (255,255,255)
 COLOR_GLAY = (128,128,128)
@@ -1631,12 +1632,16 @@ class Item_view(window.Window):
                 self.select = 1
                 
         elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
-            if self.select == 0 and len(character.items) > 0:
-                self.item_todo_window.is_visible = True
-            if self.select == 1:
-                if isinstance( character.equip[self.equip], item.Item) and len(character.items) < character.item_max:
-                    character.items.append( character.equip[self.equip] )
-                    character.equip[self.equip] = 0
+
+            if game_self.game_state == MENU:
+                if self.select == 0 and len(character.items) > 0:
+                    self.item_todo_window.is_visible = True
+                if self.select == 1:
+                    if isinstance( character.equip[self.equip], item.Item) and len(character.items) < character.item_max:
+                        character.items.append( character.equip[self.equip] )
+                        character.equip[self.equip] = 0
+                        
+            elif game_self.game_state == DUNGEON:
                 pass
 
 
@@ -1775,7 +1780,9 @@ class Magic_level(window.Window):
 
         self.top_font = self.menu_font.render( u"呪文LV", True, COLOR_WHITE)
 
-        #self.target_window = Target_select(Rect(120, 50, 400, 240)) 
+        #if this is true, draw selection window and have selection
+        self.target_select = None
+
 
     def update(self):
         pass
@@ -1812,10 +1819,14 @@ class Magic_level(window.Window):
                     magic_font = game_self.magic_data[level*6+1+i][0].strip("\"")
                     magic_font = unicode( magic_font, encoding="sjis")
                     #the magic is only used in battle
-                    if game_self.magic_data[level*6+1+i][4] == 1:
-                        magic_font = self.menu_font.render( magic_font, True, COLOR_GLAY)    
-                    else:
+                    if game_self.game_state == MENU:
+                        if game_self.magic_data[level*6+1+i][4] == "\"BATTLE\"":
+                            magic_font = self.menu_font.render( magic_font, True, COLOR_GLAY)    
+                        else:
+                            magic_font = self.menu_font.render( magic_font, True, COLOR_WHITE)
+                    elif game_self.game_state == DUNGEON:
                         magic_font = self.menu_font.render( magic_font, True, COLOR_WHITE)
+
                     screen.blit( magic_font, (self.centerx - magic_font.get_width()/2, self.top+60+i*30))
                 else:
                     magic_font = self.menu_font.render( "????????", True, COLOR_GLAY)
@@ -1829,19 +1840,36 @@ class Magic_level(window.Window):
                 if magic == 1:
                     magic_font = game_self.magic_data[(level-7)*6+50+i][0].strip("\"")
                     magic_font = unicode( magic_font, encoding="sjis")
-                    #the magic is only used in battle
-                    if game_self.magic_data[(level-7)*6+50+i][4] == 1:
-                        magic_font = self.menu_font.render( magic_font, True, COLOR_GLAY)    
-                    else:
+
+                    if game_self.game_state == MENU:
+                        #the magic is only used in battle
+                        if game_self.magic_data[(level-7)*6+50+i][4] == "\"BATTLE\"":
+                            magic_font = self.menu_font.render( magic_font, True, COLOR_GLAY)    
+                        else:
+                            magic_font = self.menu_font.render( magic_font, True, COLOR_WHITE)
+                    elif game_self.game_state == DUNGEON:
                         magic_font = self.menu_font.render( magic_font, True, COLOR_WHITE)
+
                     screen.blit( magic_font, (self.centerx - magic_font.get_width()/2, self.top+60+i*30))
                 else:
                     magic_font = self.menu_font.render( "????????", True, COLOR_GLAY)
                     screen.blit( magic_font, (self.centerx - magic_font.get_width()/2, self.top+60+i*30))
                 i+=1
-                    
+
+        if self.target_select != None:
+            if self.target_select.remove == True:
+                self.target_select = None
+                return
+            #draw enemy window or party window
+            self.target_select.draw(screen, game_self)
+
         
     def magic_level_view_handler( self, event, game_self):
+
+        if self.target_select != None:
+            self.target_select.magic_use_target_select_handler(event, game_self)
+            return
+                                                               
 
         #moves back to shop
         if event.type == KEYDOWN and event.key == K_x:
@@ -1894,6 +1922,179 @@ class Magic_level(window.Window):
                     game_self.dungeon.battle.magic_window.menu = 0
                 if game_self.dungeon.battle.magic_window.menu > 13:
                     game_self.dungeon.battle.magic_window.menu = 7                
+
+        elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+
+            if game_self.game_state == MENU:
+                level = game_self.menu.magic_window.magic_all_view.menu
+                character = game_self.party.member[game_self.menu.magic_window.menu]
+
+                #TO-DO need to set magic function
+
+                #is usable in camp and character is usable
+                if level < 7 and game_self.magic_data[level*6+1+self.menu][4] == "\"CAMP\"" and character.magic[level][self.menu] == 1:
+                    self.target_select = Magic_use_target_select(character, level, self.menu, "MAGICIAN", game_self.magic_data[level*6+1+self.menu][3].strip("\""))
+                    print "used"
+                elif level >= 7 and game_self.magic_data[(level-7)*6+50+self.menu][4] == "\"CAMP\"" and character.priest_magic[level-7][self.menu] == 1:
+                    self.target_select = Magic_use_target_select(character, level, self.menu, "PRIEST", game_self.magic_data[(level-7)*6+50+self.menu][3].strip("\""))
+                    
+                    print "priest used"
+
+            elif game_self.game_state == DUNGEON:
+                level = game_self.dungeon.battle.magic_window.menu
+                character = game_self.party.member[game_self.dungeon.battle.selected]
+
+                #TO-DO need to set command for these magic selection
+
+                #is usable in camp and character is usable
+                if level < 7 and character.magic[level][self.menu] == 1:
+                    self.target_select = Magic_use_target_select(character, level, self.menu, "MAGICIAN", game_self.magic_data[level*6+1+self.menu][3].strip("\""))
+                    print "used"
+                elif level >= 7 and character.priest_magic[level-7][self.menu] == 1:
+                    self.target_select = Magic_use_target_select(character, level, self.menu, "PRIEST", game_self.magic_data[(level-7)*6+50+self.menu][3].strip("\""))
+                    print "priest used"
+
+
+
+class Magic_use_target_select:
+
+    def __init__(self, character, level, magic_number, magic_type, target):
+
+        #party window rect
+        #Rect(10, 300, 620, 170)
+
+        #enemy window rect
+        #Rect(10, 10, 620, 100)
+
+        self.menu = 0
+
+        #character who is using magic
+        self.character = character
+        #level and number of the magic
+        self.level = level
+        self.magic_number = magic_number
+
+        #magician or priest
+        self.magic_type = magic_type
+        #target group or person
+        self.target = target
+
+        self.menu_font = pygame.font.Font("ipag.ttf", 20)
+
+        self.remove = False
+
+        self.enemy_select = string.count(self.target, "ENEMY")
+        self.party_select = string.count(self.target, "PARTY")
+        self.dungeon_select = string.count(self.target, "DUNGEON")
+        self.random_select = string.count(self.target, "RANDOM")
+
+
+
+    def update(self):
+        pass
+    def draw(self, screen, game_self):
+
+        #if target is enemy
+        if self.enemy_select > 0:
+            #occurs only on battle so it is safe
+            game_self.dungeon.battle.enemy_window.draw(screen)
+
+            #add box to show selected enemy
+            if self.target == "ENEMY_ONE" or self.target == "ENEMY_GROUP":
+
+                if self.menu < 4:
+                    pygame.draw.rect(screen, COLOR_GLAY, Rect(15, 18+self.menu*20, 320, 20), 0)
+                else:
+                    pygame.draw.rect(screen, COLOR_GLAY, Rect(495, 18+self.menu*20, 320, 20), 0)
+
+            elif self.target == "ENEMY_LINE":
+
+                if self.menu == 0:
+                    pygame.draw.rect(screen, COLOR_GLAY, Rect(15, 18, 320, len(game_self.dungeon.battle.enemyList)*20), 0)
+                elif self.menu == 1:
+                    pygame.draw.rect(screen, COLOR_GLAY, Rect(495, 18, 320, len(game_self.dungeon.battle.enemyListBack)*20), 0)
+                
+            elif self.target == "ENEMY_BOX":
+
+                if self.menu == 0:
+                    pygame.draw.rect(screen, COLOR_GLAY, Rect(15, 18, 600, 40), 0)
+                elif self.menu == 1:
+                    pygame.draw.rect(screen, COLOR_GLAY, Rect(495, 18, 600, 40), 0)
+                elif self.menu == 1:
+                    pygame.draw.rect(screen, COLOR_GLAY, Rect(495, 18, 600, 40), 0)
+  
+            elif self.target == "ENEMY_ALL":
+                length = 0
+
+                if len(game_self.dungeon.battle.enemyList) > len(game_self.dungeon.battle.enemyListBack):
+                    length = len(game_self.dungeon.battle.enemyList)
+                else:
+                    length = len(game_self.dungeon.battle.enemyListBack)
+                pygame.draw.rect(screen, COLOR_GLAY, Rect(15, 18, 600, length*20), 0)
+            
+            game_self.dungeon.battle.draw_enemy_names(game_self, screen)
+        elif self.party_select > 0:
+            game_self.party.draw(screen, game_self)
+
+
+
+    def magic_use_target_select_handler( self, event, game_self):
+
+
+
+        #moves back
+        if event.type == KEYDOWN and event.key == K_x:
+            self.remove = True
+            return
+            pass
+
+        #moves the cursor up
+        elif event.type == KEYDOWN and event.key == K_UP:
+            if self.enemy_select:
+                pass
+            elif self.party_select:
+                if self.target == "PARTY_ONE":
+                    self.menu-=1
+                    if self.menu < 0:
+                        self.menu = len(game_self.party.member)-1
+                    
+            pass
+                
+        #moves the cursor down
+        elif event.type == KEYDOWN and event.key == K_DOWN:
+            if self.enemy_select:
+                pass
+            elif self.party_select:
+                if self.target == "PARTY_ONE":
+                    self.menu+=1
+                    if self.menu > len(game_self.party.member)-1:
+                        self.menu = 0
+                #party self and all cannot move so do nothing
+            pass
+
+                
+        #moves the cursor left
+        elif event.type == KEYDOWN and event.key == K_LEFT:
+            if self.enemy_select:
+                pass
+            elif self.party_select:
+                pass
+            pass
+        
+        #moves the cursor right
+        elif event.type == KEYDOWN and event.key == K_RIGHT:
+            if self.enemy_select:
+                pass
+            elif self.party_select:
+                pass
+            pass
+
+        elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+            if self.enemy_select:
+                pass
+            elif self.party_select:
+                pass
+            pass
 
 
       

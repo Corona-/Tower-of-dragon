@@ -10,11 +10,14 @@ TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0,
 CHARACTER_MAKE = 10
 NO_EXTRA, CHARACTER_VIEW, PARTY_REMOVE, CHARACTER_CHECK = 100, 101, 102, 103
 
+MENU = 12
+
+DUNGEON = 100
 
 SCREEN_RECTANGLE = Rect(0,0,640,480)
 
 COLOR_WHITE = (255,255,255)
-
+COLOR_GLAY = (128,128,128)
 
 
 class Party:
@@ -81,10 +84,33 @@ class Party:
         
     def update(self):
         pass
-    def draw(self, screen):
+    def draw(self, screen, game_self):
 
         party_window = window.Window(Rect(10, 300, 620, 170))
         party_window.draw(screen)
+
+        #draw selection for magic use for party members
+        if game_self.game_state == MENU and game_self.menu.magic_window != None and game_self.menu.magic_window.magic_all_view != None and game_self.menu.magic_window.magic_all_view.magic_level_view != None and game_self.menu.magic_window.magic_all_view.magic_level_view.target_select != None:
+
+            target_select = game_self.menu.magic_window.magic_all_view.magic_level_view.target_select
+
+            if target_select.target == "PARTY_ONE":
+                pygame.draw.rect(screen, COLOR_GLAY, Rect(14, 341+target_select.menu*20, 612, 20 ), 0)
+
+            elif target_select.target == "PARTY_ALL":
+                pygame.draw.rect(screen, COLOR_GLAY, Rect(14, 341, 612, len(game_self.party.member)*20 ), 0)
+
+        elif game_self.game_state == DUNGEON and game_self.dungeon.battle != None and game_self.dungeon.battle.magic_window != None and game_self.dungeon.battle.magic_window.magic_level_view != None and game_self.dungeon.battle.magic_window.magic_level_view.target_select != None:
+
+            target_select = game_self.dungeon.battle.magic_window.magic_level_view.target_select
+
+            if target_select.target == "PARTY_ONE":
+                pygame.draw.rect(screen, COLOR_GLAY, Rect(14, 341+target_select.menu*20, 612, 20 ), 0)
+            elif target_select.target == "PARTY_ALL":
+                pygame.draw.rect(screen, COLOR_GLAY, Rect(14, 341, 612, len(game_self.party.member)*20 ), 0)
+            elif target_select.target == "PARTY_SELF":
+                #self only occur on battle
+                pygame.draw.rect(screen, COLOR_GLAY, Rect(14, 341+game_self.dungeon.battle.selected*20, 612, 20 ), 0)
 
         screen.blit(self.name_font, ((SCREEN_RECTANGLE.width-self.name_font.get_width())/4-100,SCREEN_RECTANGLE.height/2+80))   
         screen.blit(self.class_font, ((SCREEN_RECTANGLE.width-self.class_font.get_width())/2-80,SCREEN_RECTANGLE.height/2+80))   

@@ -141,7 +141,7 @@ class tower_of_dragon:
         self.screen.fill(COLOR_BLACK)
 
         if self.game_state != TITLE and self.game_state != DUNGEON:
-            self.party.draw(self.screen)
+            self.party.draw(self.screen, self)
 
         if self.game_state == TITLE:
             self.title.draw(self.screen)
