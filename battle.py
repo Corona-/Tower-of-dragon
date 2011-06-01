@@ -435,6 +435,112 @@ class Battle:
 
                     pass
                 elif battle_command.magic_level == 1:
+                    if battle_command.magic_number == 0:
+                        battle_font1 = battle_command.character.name + u"はミストを唱えた"
+                        battle_font2 = u"辺りに深い霧が現れた"
+
+                        if self.damage_set == 0:
+
+                            self.damage_set = 1
+
+                            for enemy_group in self.enemyList:
+                                for enemy in enemy_group:
+                                    enemy.ac += 2
+                            for enemy_group in self.enemyListBack:
+                                for enemy in enemy_group:
+                                    enemy.ac += 2
+
+                            battle_command.character.magician_mp[1] -= 1
+
+                            
+
+                                    
+                        
+                    elif battle_command.magic_number == 1:
+                        battle_font1 = battle_command.character.name + u"はアンシールを唱えた"
+                        battle_font2 = u"なにも起こらなかった"
+
+                        battle_command.character.magician_mp[1] -= 1
+
+                        
+                    elif battle_command.magic_number == 2:
+                        battle_font1 = battle_command.character.name + u"はエネルギーボルトを唱えた"
+                        
+                        if self.damage_set == 0:
+                            
+                            self.damage = random.randint(3, 18)
+                            self.damage = int(self.damage*math.floor(self.target_group[0].none_resistance/100.0))
+
+                            probability = random.randint(1,100)
+                            if probability < self.target_group[0].magic_resistance:
+                                self.damage = -1
+
+                            self.damage_set = 1
+
+                            battle_command.character.magician_mp[1] -= 1
+
+
+                            #subtract damage and if hp < 0, remove that character
+                            if isinstance( self.target_group[0], character.Character):
+                                self.target_group[target].hp -= self.damage
+
+                                self.character_dead()
+                                    
+                            else:
+                                self.target_group[self.offset].hp -= self.damage
+
+                                self.enemy_dead(self.offset)
+
+
+                        if self.damage != -1:
+                            battle_font2 = self.target_font + u"に" + str(self.damage) + u"のダメージ"
+                        else:
+                            battle_font2 = self.target_font + u"は呪文を妨害した！"
+
+                        if self.dead_set == 1:                    
+                            battle_font3 = self.dead_font + u"は死んだ！"
+
+                        
+                    elif battle_command.magic_number == 3:
+                        battle_font1 = battle_command.character.name + u"はウォータースフィアを唱えた"
+
+
+                        if self.check == 0:
+                            self.group_access = len(self.target_group)
+                            battle_command.character.magician_mp[1] -= 1
+                            self.check= 1
+
+                        if self.damage_set == 0:
+
+                            self.damage_set = 1
+
+                            self.damage = random.randint(2, 14)
+                            self.damage = int(self.damage*math.floor(self.target_group[0].water_resistance/100.0))
+
+                            probability = random.randint(1,100)
+                            if probability < self.target_group[len(self.target_group)-self.group_access].magic_resistance:
+                                self.damage = -1
+
+                            #subtract damage and if hp < 0, remove that character
+                            if isinstance( self.target_group[0], character.Character):
+                                self.target_group[len(self.target_group)-self.group_access].hp -= self.damage
+
+                                self.character_dead()
+                                    
+                            else:
+                                self.target_group[len(self.target_group)-self.group_access].hp -= self.damage
+
+                                self.enemy_dead(len(self.target_group)-self.group_access)
+
+                        if self.damage != -1:
+                            battle_font2 = self.target_font + u"に" + str(self.damage) + u"のダメージ"
+                        else:
+                            battle_font2 = self.target_font + u"は呪文を妨害した！"
+
+                        if self.dead_set == 1:                    
+                            battle_font3 = self.dead_font + u"は死んだ！"
+                            
+
                     pass
                 elif battle_command.magic_level == 2:
                     pass
@@ -489,7 +595,7 @@ class Battle:
                         pass
                     elif battle_command.magic_number == 1:
                         battle_font1 = battle_command.character.name + u"はアウェイクを唱えた"
-                        battle_font2 = battle_command.character.name + u"全員が目を覚ました！"
+                        battle_font2 = battle_command.character.name + u"冒険者たちは目を覚ました！"
 
                         if self.damage_set == 0:
 
@@ -554,7 +660,82 @@ class Battle:
 
 
                 elif battle_command.magic_level == 9:
-                    pass
+                    if battle_command.magic_number == 0:
+                        battle_font1 = battle_command.character.name + u"はサイレントを唱えた"
+
+
+                        if self.check == 0:
+                            self.group_access = len(self.target_group)
+                            battle_command.character.priest_mp[1] -= 1
+                            self.check = 1
+
+
+                        
+                        if self.probability_set == 0:
+                            self.probability = random.randint(1,100)
+                            self.probability_set = 1
+
+                        if self.probability < self.target_group[0].silent_resistance:
+                            battle_font2 = self.target_font + u"の魔法は封じられた"                            
+                        else:
+                            battle_font2 = self.target_font+ u"は影響無い"                            
+                     
+      
+                        pass
+                    
+                    elif battle_command.magic_number == 1:
+                        battle_font1 = battle_command.character.name + u"はフェイスシールドを唱えた"
+                        battle_font2 = u"冒険者たちの前に壁が現れた"
+
+                        if self.damage_set == 0:
+                            for chara in game_self.party.member:
+                                if chara.face_shield == 0:
+                                    chara.permanant_ac -= 2
+                                    chara.face_shield = 1
+
+                            battle_command.character.priest_mp[1] -= 1
+                            self.damage_set = 1
+                                
+                    elif battle_command.magic_number == 2:
+                        battle_font1 = battle_command.character.name + u"はライトを唱えた"
+                        battle_font2 = u"冒険者たちは光で照らされた"
+
+                        if self.damage_set == 0:
+                            game_self.party.torch += 30
+                            battle_command.character.priest_mp[1] -= 1
+                            self.damage_set = 1
+
+                            
+                        pass
+                    elif battle_command.magic_number == 3:
+                        battle_font1 = battle_command.character.name + u"はキュアポイズンを唱えた"
+
+                        if self.damage_set == 0:
+
+                            self.damage_set = 1
+
+                            battle_command.character.priest_mp[1] -= 1
+
+                            #add damage and if hp > 0, make hp = max_hp
+                            if isinstance( self.target_group[0], character.Character):
+
+                                if self.target_group[target].status == "POISON":
+                                    self.target_group[target].status = "OK"
+                                    self.check = 1
+                                    
+                            else:
+                                if self.target_group[self.offset].status == "POISON":
+                                    self.target_group[target].status = "OK"
+                                    self.check = 1
+
+
+                        if self.check == 1:
+                            battle_font2 = self.target_font + u"の毒が消えた"
+                        else:
+                            battle_font2 = self.target_font + u"は影響無い"
+                            
+
+
                 elif battle_command.magic_level == 10:
                     pass
                 elif battle_command.magic_level == 11:
@@ -866,6 +1047,8 @@ class Battle:
                     self.probability_set = 0
                     self.dead_set = 0
                     self.hit_set = 0
+                    self.damage_set = 0
+                    self.probability_set = 0
 
 
 
@@ -1191,41 +1374,41 @@ def select_enemy( enemy_data, floor ):
         enemy_front.append(enemy_group)
 
         #debug
-        enemy_count = 1
-        enemy_group = []
-
-        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-        enemy_front.append(enemy_group)
-        enemy_count = 1
-        enemy_group = []
-
-        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-        enemy_front.append(enemy_group)
-        enemy_count = 1
-        enemy_group = []
-
-        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-        enemy_front.append(enemy_group)
-        enemy_count = 1
-        enemy_group = []
-
-        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-        enemy_back.append(enemy_group)
-        enemy_count = 1
-        enemy_group = []
-
-        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-        enemy_back.append(enemy_group)
-        enemy_count = 1
-        enemy_group = []
-
-        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-        enemy_back.append(enemy_group)
-        enemy_count = 1
-        enemy_group = []
-
-        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-        enemy_back.append(enemy_group)
+##        enemy_count = 1
+##        enemy_group = []
+##
+##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+##        enemy_front.append(enemy_group)
+##        enemy_count = 1
+##        enemy_group = []
+##
+##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+##        enemy_front.append(enemy_group)
+##        enemy_count = 1
+##        enemy_group = []
+##
+##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+##        enemy_front.append(enemy_group)
+##        enemy_count = 1
+##        enemy_group = []
+##
+##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+##        enemy_back.append(enemy_group)
+##        enemy_count = 1
+##        enemy_group = []
+##
+##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+##        enemy_back.append(enemy_group)
+##        enemy_count = 1
+##        enemy_group = []
+##
+##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+##        enemy_back.append(enemy_group)
+##        enemy_count = 1
+##        enemy_group = []
+##
+##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
+##        enemy_back.append(enemy_group)
               
 
 
@@ -1256,12 +1439,36 @@ def select_enemy( enemy_data, floor ):
     return enemy_total
             
 
-def calculate_hit_time( chara ):
+def calculate_hit_time( character ):
+    
+    if character.job == 0 or character.job == 3:
+        return int(character.level/3) + 1
 
-    #need fix?
-    return calculate_level_bonus(chara)
+    elif character.job == 1:
+        return int(character.level/3) + 1
 
+    elif character.job == 2 or character.job == 4 or character.job == 5:
+        return int(character.level/5) + 1
 
+    elif character.job == 10 or character.job == 11 or character.job == 12:
+        return int(character.level/3) + 2
+        
+    elif character.job == 13 or character.job == 14 or character.job == 15:
+        return int(character.level/2) + 1
+    
+    elif character.job == 17 or character.job == 18:
+        return int(character.level/5) + 1
+        
+    elif character.job == 16 or character.job == 19 or character.job == 20 or character.job == 21:
+        return int(character.level/3) + 1
+    
+    elif character.job == 22 or character.job == 23 or character.job == 24:
+        return int(character.level/3) + 2
+    
+    elif character.job == 25 or character.job == 26 or character.job == 27:
+        return int(character.level/3) + 1
+
+    
 def calculate_damage( chara, hit_times):
 
     damage = 0

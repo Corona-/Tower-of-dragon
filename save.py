@@ -20,6 +20,8 @@ def save( self, game_self ):
 
     save_stored_item(game_self)
 
+    save_dungeon_data(game_self)
+
     try:
         file = "Save/shop_item_temp.dat"
         fp = open( file, "rb")
@@ -52,6 +54,7 @@ def load(self, game_self):
 
     load_stored_item(game_self)
 
+    load_dungeon_data(game_self)
 
 
 def save_character(game_self):
@@ -584,3 +587,52 @@ def load_shop_item(self, path):
 
       
     fp.close()
+
+
+def save_dungeon_data(game_self):
+    
+    file = "Save/dungeon_data.dat"
+    fp = open(file, "wb")
+    fp.seek(0)
+
+    #number of item is 20x20x30
+
+    for floor in game_self.party.dungeon_visited:
+        for x in floor:
+            for y in x:
+                fp.write(struct.pack("i", y))
+
+
+
+
+    #cut remaining space
+    fp.truncate()
+    fp.close()
+
+def load_dungeon_data(game_self):
+
+    try:
+        file = "Save/dungeon_data.dat"
+        fp = open(file, "rb")
+    except IOError, (errno, msg):
+        pass
+    else:
+        
+        fp.seek(0)
+
+        game_self.party.dungeon_visited = []
+
+        for floor in range(30):
+            floor_visited = []
+            for x in range(20):
+                row_visited = []
+                for y in range(20):
+                    row_visited.append( struct.unpack("i", fp.read(struct.calcsize("i")))[0])
+                floor_visited.append(row_visited)
+            game_self.party.dungeon_visited.append(floor_visited)
+
+                                        
+        fp.close()
+
+
+

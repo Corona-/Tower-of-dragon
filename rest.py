@@ -45,9 +45,19 @@ def rest(self, game_self, rest_level, inn):
         self.inn_not_enough.is_visible = True
     else:
         if inn:
-            game_self.party.member[self.menu].money -= payment        
-        game_self.party.member[self.menu].magician_mp = game_self.party.member[self.menu].max_magician_mp
-        game_self.party.member[self.menu].priest_mp = game_self.party.member[self.menu].max_priest_mp
+            game_self.party.member[self.menu].money -= payment
+
+        i = 0
+        for magic_times in game_self.party.member[self.menu].max_magician_mp:
+            game_self.party.member[self.menu].magician_mp[i] = magic_times
+            i+= 1
+        i = 0
+        for magic_times in game_self.party.member[self.menu].max_priest_mp:
+            game_self.party.member[self.menu].priest_mp[i] = magic_times
+            i+= 1
+        print "cure mp"
+        print game_self.party.member[self.menu].max_priest_mp
+
 
         if rest_level > 0 and cure == 0:
             cure = 1
@@ -165,7 +175,10 @@ def level_up(self, character, rest_level, lv_change):
                             magic_lv_up = 1
                 i += 1
 
-            character.max_magician_mp = character.magician_mp
+            i = 0
+            for mp in character.magician_mp:
+                character.max_magician_mp[i] = mp
+                i += 1
 
             #learn new magic
             i = 0
@@ -204,7 +217,13 @@ def level_up(self, character, rest_level, lv_change):
                             magic_lv_up = 1
                 i += 1
 
-            character.max_priest_mp = character.priest_mp
+            i = 0
+            for mp in character.priest_mp:
+                character.max_priest_mp[i] = mp
+                i+=1
+            print "increase mp"
+            print character.priest_mp
+            print character.max_priest_mp
 
             #learn new magic
 

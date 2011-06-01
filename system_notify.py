@@ -1785,6 +1785,9 @@ class Magic_level(window.Window):
         #if this is true, draw selection window and have selection
         self.target_select = None
 
+        self.draw_map = False
+        self.created_dungeon = False
+
 
     def update(self):
         pass
@@ -1865,11 +1868,44 @@ class Magic_level(window.Window):
             #draw enemy window or party window
             self.target_select.draw(screen, game_self)
 
+        if self.draw_map == True:
+            if self.created_dungeon == False:
+                if game_self.party.member[0].coordinate[2] == -1:
+                    game_self.dungeon = dungeon.Dungeon(1)
+                else:
+                    game_self.dungeon = dungeon.Dungeon(game_self.party.member[0].coordinate[2])
+                self.created_dungeon = True
+            screen.fill((0,0,0))
+            game_self.dungeon.draw_dungeon_map(game_self, screen)
+
+            #additionaly draw current coordinate and place
+
+            #calculate point of triangle
+            x = int(68+game_self.party.member[0].coordinate[0]*17)
+            y = int(97+game_self.party.member[0].coordinate[1]*17)
+
+            if game_self.party.direction == 0:
+                pygame.draw.polygon(screen, (255,0,0), [(x+7,y+3), (x+11, y+11), (x+3, y+11)], 0)
+            elif game_self.party.direction == 1:
+                pygame.draw.polygon(screen, (255,0,0), [(x+13,y+7), (x+5, y+11), (x+5, y+3)], 0)
+            elif game_self.party.direction == 2:
+                pygame.draw.polygon(screen, (255,0,0), [(x+7,y+11), (x+11, y+3), (x+3, y+3)], 0)
+            elif game_self.party.direction == 3:
+                pygame.draw.polygon(screen, (255,0,0), [(x+3,y+7), (x+11, y+11), (x+11, y+3)], 0)
+
         
     def magic_level_view_handler( self, event, game_self):
 
         if self.target_select != None:
             self.target_select.magic_use_target_select_handler(event, game_self)
+            return
+
+        if self.draw_map == True:
+            if event.type == KEYDOWN and ( event.key == K_x or event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+                game_self.dungeon = None
+                self.draw_map = False
+                self.created_dungeon = False
+            
             return
                                                                
 
@@ -1935,12 +1971,43 @@ class Magic_level(window.Window):
 
                 #is usable in camp and character is usable
                 if level < 7 and game_self.magic_data[level*6+1+self.menu][4] == "\"CAMP\"" and character.magic[level][self.menu] == 1:
-                    self.target_select = Magic_use_target_select(character, level, self.menu, "MAGICIAN", game_self.magic_data[level*6+1+self.menu][3].strip("\""))
-                    print "used"
+
+                    #if use is DUNGEON, it doesn't need target selection
+                    if string.count(game_self.magic_data[level*6+1+self.menu][3], "DUNGEON") and ((level < 7 and character.magician_mp[level] > 0) or (level >= 7 and character.priest_mp[level-7] > 0)):
+
+                        if level == 0 and self.menu == 3:
+                            #draw map
+                            self.draw_map = True
+                            character.magician_mp[level] -= 1
+
+                        if level == 1 and self.menu == 1:
+                            #unseal the door
+                            pass
+
+
+
+                    elif ((level < 7 and character.magician_mp[level] > 0) or (level >= 7 and character.priest_mp[level-7] > 0)):
+                        self.target_select = Magic_use_target_select(character, level, self.menu, "MAGICIAN", game_self.magic_data[level*6+1+self.menu][3].strip("\""))
+
                 elif level >= 7 and game_self.magic_data[(level-7)*6+50+self.menu][4] == "\"CAMP\"" and character.priest_magic[level-7][self.menu] == 1:
-                    self.target_select = Magic_use_target_select(character, level, self.menu, "PRIEST", game_self.magic_data[(level-7)*6+50+self.menu][3].strip("\""))
+
+                    if string.count(game_self.magic_data[(level-7)*6+50+self.menu][3], "DUNGEON"):
+
+                        #priest
+                        level +=1
+                        print "torch"
+                        
+                        if level == 9 and self.menu == 2:
+                            print "in"
+                            #light the dungeon
+                            game_self.party.torch += 30
+                            character.priest_mp[level-8] -= 1
+                            
+                        level -= 1
+                        
+                    else:
+                        self.target_select = Magic_use_target_select(character, level, self.menu, "PRIEST", game_self.magic_data[(level-7)*6+50+self.menu][3].strip("\""))
                     
-                    print "priest used"
 
             elif game_self.game_state == DUNGEON:
                 level = game_self.dungeon.battle.magic_window.menu
@@ -1951,10 +2018,10 @@ class Magic_level(window.Window):
                 #is usable in camp and dungeon and character is usable
                 if level < 7 and character.magic[level][self.menu] == 1:
                     self.target_select = Magic_use_target_select(character, level, self.menu, "MAGICIAN", game_self.magic_data[level*6+1+self.menu][3].strip("\""))
-                    print "used"
+
                 elif level >= 7 and character.priest_magic[level-7][self.menu] == 1:
                     self.target_select = Magic_use_target_select(character, level, self.menu, "PRIEST", game_self.magic_data[(level-7)*6+50+self.menu][3].strip("\""))
-                    print "priest used"
+
 
 
 
@@ -2243,11 +2310,12 @@ class Magic_use_target_select:
                     #need to close magic window
                     game_self.dungeon.battle.magic_window = None
 
+                #menu won't have any enemy
                 if game_self.menu != None:
                     pass
                 
             elif self.party_select:
-                print self.level
+                
                 if game_self.dungeon != None and ((self.level < 7 and self.character.magician_mp[self.level] > 0) or (self.level >= 7 and self.character.priest_mp[self.level-7] > 0)):
                     if self.level >= 7:
                         self.level+=1
@@ -2257,9 +2325,31 @@ class Magic_use_target_select:
                     #need to close magic window
                     game_self.dungeon.battle.magic_window = None
 
-                if game_self.menu != None:
+                if game_self.menu != None and ((self.level < 7 and self.character.magician_mp[self.level] > 0) or (self.level >= 7 and self.character.priest_mp[self.level-7] > 0)):
+
+                    if self.level >= 7:
+                        self.level += 1
+
+                    if self.level == 8 and self.magic_number == 0:
+                        heal = random.randint(1,8)
+                        game_self.party.member[self.menu].hp += heal
+                        if game_self.party.member[self.menu].hp > game_self.party.member[self.menu].max_hp:
+                            game_self.party.member[self.menu].hp = game_self.party.member[self.menu].max_hp
+                        self.character.priest_mp[self.level-8] -= 1
+                        pass
+                    elif self.level == 8 and self.magic_number == 1:
+
+                        for chara in game_self.party.member:
+                            if chara.status == "SLEEP":
+                                chara.status = "OK"
+
+                        self.character.priest_mp[self.level-8] -= 1
+
+                    if self.level >= 7:
+                        self.level -=1
                     pass
 
+            #not needed anymore?
             elif self.dungeon_select:
                 if game_self.dungeon != None and ((self.level < 8 and self.character.magician_mp[self.level] > 0) or (self.level >= 8 and self.character.priest_mp[self.level-7] > 0)):
                     if self.level >= 7:
@@ -2270,8 +2360,12 @@ class Magic_use_target_select:
                     #need to close magic window
                     game_self.dungeon.battle.magic_window = None
 
-                if game_self.menu != None:
-                    pass                
+                if game_self.menu != None and (self.level < 8 and self.character.magician_mp[self.level] > 0): #and game_self.magic_data[self.level*6+1+self.magic_number][4] == "\"CAMP\"":
+                    #magician magic functionality here
+                    pass
+                elif game_self.menu != None and (self.level >= 8 and self.character.priest_mp[self.level-7] > 0): #and game_self.magic_data[(self.level-7)*6+50+self.magic_number][4] == "\"CAMP\"":
+                    #priest magic functionality here
+                    pass
 
             #if all command is set for party move to battle 
             if game_self.dungeon != None and game_self.dungeon.battle.selected == battle.player_count_movable(game_self.party.member):
@@ -2286,6 +2380,23 @@ class Magic_use_target_select:
 
                 #sort the elements by speed, highest first
                 game_self.dungeon.battle.total_movement.sort(cmp=lambda x, y: cmp(x.speed,y.speed), reverse=True)                
+
+
+                #set next character's initial command
+                next_character = None
+                if game_self.dungeon.battle.selected >= len(game_self.party.member):
+                    next_character = game_self.party.member[0]
+                else:
+                    next_character = game_self.party.member[ game_self.dungeon.battle.selected ]
+
+                #if next character can attack the enemy set command to FIGHT, otherwise set it to DEFEND
+                check = battle.character_attackable ( game_self, next_character )
+
+                if check == True:
+                    game_self.dungeon.battle.menu = game_self.dungeon.battle.FIGHT
+                else:
+                    game_self.dungeon.battle.menu = game_self.dungeon.battle.DEFEND
+           
       
 
       
