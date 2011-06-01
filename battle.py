@@ -13,6 +13,7 @@ import item
 import city
 import system_notify
 import party
+import string
 
 import battle_window
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
@@ -169,6 +170,9 @@ class Battle:
         self.magic_window = None
         self.item_view = None
 
+        #group selection of many groups
+        self.group_selection = 0
+
      
     def update(self):
         if self.state == self.COMMAND:
@@ -213,21 +217,37 @@ class Battle:
             battle_font3 = None
             battle_font4 = None
 
-            #print battle_command.character.name + "　" + str(battle_command.target) + " " + str(battle_command.movement) + " " + str(battle_command.speed)
-
             target = battle_command.target
 
             if self.target_font_set == 0:
-                if isinstance( battle_command.character, character.Character):
+                if isinstance( battle_command.character, character.Character) and battle_command.magic_target == None:
+
                     if target < 4:
                         self.target_font = self.enemyList[target][0].name
                         self.target_group = self.enemyList[target]
                     else:
                         self.target_font = self.enemyListBack[target-4][0].name
                         self.target_group = self.enemyListBack[target-4]
-                else:
+
+                elif isinstance(battle_command.character, character.Character) and battle_command.magic_target != None and string.count(battle_command.magic_target, "ENEMY"):
+
+                    if target < 4:
+                        self.target_font = self.enemyList[target][0].name
+                        self.target_group = self.enemyList[target]
+                    else:
+                        self.target_font = self.enemyListBack[target-4][0].name
+                        self.target_group = self.enemyListBack[target-4]
+  
+                elif isinstance( battle_command.character, character.Character) and (battle_command.magic_target != None and string.count(battle_command.magic_target, "PARTY")):
                     self.target_font = game_self.party.member[target].name
                     self.target_group = game_self.party.member
+                #still need to find out what to do for enemy's extra attack   
+                else: #if isinstance( battle_command.character, enemy.Enemy) and (battle_command.magic_target != None and string.count(battle_command.magic_target, "ENEMY")):
+                    self.target_font = game_self.party.member[target].name
+                    self.target_group = game_self.party.member
+
+                #if target need to be self party, it needs its own group
+                
                 self.target_font_set = 1
 
             #0 is normal attack
@@ -246,7 +266,7 @@ class Battle:
                         accuracy = str_bonus + level_bonus + equip_bonus
                         
                         #offset is enemy group's attacking enemy
-                        self.offset = random.randint(0, len(self.target_group)-1)
+                        self.offset = 0 #random.randint(0, len(self.target_group)-1)
                     
 
                         accuracy_decision = 19 + battle_command.target - self.target_group[self.offset].ac - accuracy
@@ -291,85 +311,17 @@ class Battle:
                     if (self.damage_set == 0):
                         self.damage = calculate_damage(battle_command.character, self.hit)
                         self.damage_set = 1
-                        #need to select target on enemy in random
+
+                        #subtract damage and if hp < 0, remove that character
                         if isinstance( self.target_group[0], character.Character):
                             self.target_group[target].hp -= self.damage
-                            if self.target_group[target].hp <= 0:
-                                self.target_group[target].hp = 0
-                                self.target_group[target].status = "DEAD"
-                                self.target_group[target].rip += 1
-                                temp = self.target_group[target]
-                                self.dead_set = 1
-                                self.dead_font = self.target_group[target].name
-                                #delete command of dead person
-                                i = 0
-                                for command in self.total_movement:
-                                    if isinstance(command.character, character.Character):
-                                        if self.target_group[target] == command.character:
-                                            print command.character.name
-                                            del self.total_movement[i]
-                                    i+=1
 
-
-                                i = 0
-                                to_delete = []
-                                for command in self.total_movement:
-                                    if isinstance(command.character, enemy.Enemy):
-                                        if target == command.target:
-                                            if i!= 0:
-                                                to_delete.insert(0,i)                                        
-                                        i+=1
-                                    
-                                for i in to_delete:
-                                    del self.total_movement[i]
-                                for i in self.total_movement:
-                                    print i.character.name
-                                
-                                        
-                                #move the person to end of party
-                                del self.target_group[target]
-                                self.target_group.append(temp)
-
-
+                            self.character_dead()
                                 
                         else:
                             self.target_group[self.offset].hp -= self.damage
-                            if self.target_group[self.offset].hp <= 0:
-                                self.exp += self.target_group[self.offset].exp
-                                self.gold += self.target_group[self.offset].drop_gold
-                                battle_command.character.marks += 1
 
-                                #delete command of the dead enemy
-                                i=0
-                                for command in self.total_movement:
-                                    if isinstance(command.character, enemy.Enemy):
-                                        if self.target_group[self.offset] == command.character:
-                                            del self.total_movement[i]
-                                    i+=1
-     
-                                del self.target_group[self.offset]
-
-                                #delete command of party targeted at those enemy
-                                if self.target_group == []:                                
-                                    i = 0
-
-                                    to_delete = []
-                                    for command in self.total_movement:
-                                        if isinstance(command.character, character.Character):
-                                            if target == command.target:
-                                                #first one would be deleted at end of command so ignore
-                                                if i != 0:
-                                                    to_delete.insert(0,i)                                            
-                                        i+=1
-                                    
-                                    for i in to_delete:
-                                        del self.total_movement[i]
-                                    
-                                    #del self.enemyList[target]
-
-                                self.dead_set = 1
-                                self.dead_font = self.target_font
-
+                            self.enemy_dead(self.offset)
                         
                     battle_font2 += str(self.damage) + u"のダメージ"
 
@@ -411,7 +363,211 @@ class Battle:
                     #enemy dissapears
                     
             if battle_command.movement == self.MAGIC:
-                pass
+
+                #magician magic
+                if battle_command.magic_level == 0:
+                    if battle_command.magic_number == 0:
+                        battle_font1 = battle_command.character.name + u"はエナジーアローを唱えた"
+
+                        if self.damage_set == 0:
+                            
+                            self.damage = random.randint(1, 8)
+                            self.damage = int(self.damage*math.floor(self.target_group[0].none_resistance/100.0))
+
+                            probability = random.randint(1,100)
+                            if probability < self.target_group[0].magic_resistance:
+                                self.damage = -1
+
+                            self.damage_set = 1
+
+                            battle_command.character.magician_mp[0] -= 1
+
+
+                            #subtract damage and if hp < 0, remove that character
+                            if isinstance( self.target_group[0], character.Character):
+                                self.target_group[target].hp -= self.damage
+
+                                self.character_dead()
+                                    
+                            else:
+                                self.target_group[self.offset].hp -= self.damage
+
+                                self.enemy_dead(self.offset)
+
+
+                        if self.damage != -1:
+                            battle_font2 = self.target_font + u"に" + str(self.damage) + u"のダメージ"
+                        else:
+                            battle_font2 = self.target_font + u"は呪文を妨害した！"
+
+                        if self.dead_set == 1:                    
+                            battle_font3 = self.dead_font + u"は死んだ！"
+
+                    elif battle_command.magic_number == 1:
+                        battle_font1 = battle_command.character.name + u"はスリープを唱えた"
+
+
+                        pass
+                    elif battle_command.magic_number == 2:
+                        battle_font1 = battle_command.character.name + u"はシールドを唱えた"
+                        battle_font2 = battle_command.character.name + u"の前に盾が現れた"
+                        
+
+                        if self.damage_set == 0:
+
+                            battle_command.character.battle_ac -= 2
+                            self.damage_set = 1
+                            battle_command.character.magician_mp[0] -= 1   
+
+                        pass
+                    elif battle_command.magic_number == 3:
+                        battle_font1 = battle_command.character.name + u"はポジションを唱えた"
+
+                        battle_font2 = u"天龍の塔 " + str(battle_command.character.coordinate[2]) + u"階"
+                        battle_font3 = "X:" + str(battle_command.character.coordinate[0]) + " Y:" + str(battle_command.character.coordinate[1])
+
+
+                        if self.damage_set == 0:
+
+                            self.damage_set = 1
+                            battle_command.character.magician_mp[0] -= 1                        
+
+
+                    pass
+                elif battle_command.magic_level == 1:
+                    pass
+                elif battle_command.magic_level == 2:
+                    pass
+                elif battle_command.magic_level == 3:
+                    pass
+                elif battle_command.magic_level == 4:
+                    pass
+                elif battle_command.magic_level == 5:
+                    pass
+                elif battle_command.magic_level == 6:
+                    pass
+                elif battle_command.magic_level == 7:
+                    pass
+                #priest magic
+                elif battle_command.magic_level == 8:
+                    if battle_command.magic_number == 0:
+
+                        battle_font1 = battle_command.character.name + u"はヒールを唱えた"
+
+                        if self.damage_set == 0:
+                            
+                            self.damage = random.randint(1, 8)
+
+                            self.damage_set = 1
+
+                            battle_command.character.priest_mp[0] -= 1
+
+                            #add damage and if hp > 0, make hp = max_hp
+                            if isinstance( self.target_group[0], character.Character):
+                                self.target_group[target].hp += self.damage
+
+                                if self.target_group[target].hp > self.target_group[target].max_hp:
+                                    self.target_group[target].hp = self.target_group[target].max_hp
+                                    self.damage = -1
+                                    
+                            else:
+                                self.target_group[self.offset].hp += self.damage
+
+                                if self.target_group[self.offset].hp > self.target_group[self.offset].max_hp:
+                                    self.target_group[target].hp = self.target_group[target].max_hp
+                                    self.damage = -1
+
+                            
+
+                        if self.damage != -1:
+                            battle_font2 = self.target_font + u"は" + str(self.damage) + u"回復した"
+                        else:
+                            battle_font2 = self.target_font + u"は完治した！"
+
+
+
+                        pass
+                    elif battle_command.magic_number == 1:
+                        battle_font1 = battle_command.character.name + u"はアウェイクを唱えた"
+                        battle_font2 = battle_command.character.name + u"全員が目を覚ました！"
+
+                        if self.damage_set == 0:
+
+                            for chara in game_self.party.member:
+                                if chara.status == "SLEEP":
+                                    chara.status = "OK"
+
+                            self.damage_set = 1
+                            battle_command.character.priest_mp[0] -= 1
+
+                        pass
+                    elif battle_command.magic_number == 2:
+
+                        battle_font1 = battle_command.character.name + u"はライトアローを唱えた"
+
+                        if self.damage_set == 0:
+                            
+                            self.damage = random.randint(1, 6)
+                            self.damage = int(self.damage*math.floor(self.target_group[0].light_resistance/100.0))
+
+                            probability = random.randint(1,100)
+                            if probability < self.target_group[0].magic_resistance:
+                                self.damage = -1
+
+                            self.damage_set = 1
+
+                            battle_command.character.priest_mp[0] -= 1
+
+
+                            #subtract damage and if hp < 0, remove that character
+                            if isinstance( self.target_group[0], character.Character):
+                                self.target_group[target].hp -= self.damage
+
+                                self.character_dead()
+                                    
+                            else:
+                                self.target_group[self.offset].hp -= self.damage
+
+                                self.enemy_dead(self.offset)
+
+
+                        if self.damage != -1:
+                            battle_font2 = self.target_font + u"に" + str(self.damage) + u"のダメージ"
+                        else:
+                            battle_font2 = self.target_font + u"は呪文を妨害した！"
+
+                        if self.dead_set == 1:                    
+                            battle_font3 = self.dead_font + u"は死んだ！"
+
+                        pass
+                    elif battle_command.magic_number == 3:
+                        battle_font1 = battle_command.character.name + u"はウォールを唱えた"
+                        battle_font2 = battle_command.character.name + u"の前に壁が現れた"
+                        
+
+                        if self.damage_set == 0:
+
+                            battle_command.character.battle_ac -= 3
+                            self.damage_set = 1
+                            battle_command.character.priest_mp[0] -= 1   
+
+
+
+                elif battle_command.magic_level == 9:
+                    pass
+                elif battle_command.magic_level == 10:
+                    pass
+                elif battle_command.magic_level == 11:
+                    pass
+                elif battle_command.magic_level == 12:
+                    pass
+                elif battle_command.magic_level == 13:
+                    pass
+                elif battle_command.magic_level == 14:
+                    pass
+                elif battle_command.magic_level == 15:
+                    pass
+
             if battle_command.movement == self.ESCAPE:
                 battle_font1 = battle_command.character.name + u"は" + u"逃げ出した"
                 if self.probability_set == 0:
@@ -586,7 +742,7 @@ class Battle:
 
                     
                 if self.menu == self.DEFEND:
-                    self.party_movement.append( battle_command.Battle_command( character, self.DEFEND, 0))
+                    self.party_movement.append( battle_command.Battle_command( character, self.DEFEND, 0, None, None, None, None))
                     self.selected += 1
                 if self.menu == self.ITEM:
                     self.item_view = system_notify.Item_view(Rect(70, 50, 450, 360))
@@ -604,7 +760,7 @@ class Battle:
 
                     return
                 if self.menu == self.ESCAPE:
-                    self.party_movement.append( battle_command.Battle_command( character, self.ESCAPE, 0))
+                    self.party_movement.append( battle_command.Battle_command( character, self.ESCAPE, 0, None, None, None, None))
                     self.selected+=1               
 
                 #need to do something for sleep
@@ -710,7 +866,6 @@ class Battle:
                     self.probability_set = 0
                     self.dead_set = 0
                     self.hit_set = 0
-                    return         
 
 
 
@@ -817,6 +972,9 @@ class Battle:
                                 chara.items.append( item.Item( game_self.item_data[self.enemy_drop_items[i]]))
                                 i += 1
 
+                        for chara in game_self.party.member:
+                            chara.battle_ac = 0
+
                     else:
                         #there are drop items
                         self.drop_item_key -= 1
@@ -915,6 +1073,84 @@ class Battle:
                 group_font = self.enemy_font.render( str(len(group))+group[0].name + " ("+str(movable_count)+")", True, COLOR_WHITE)
                 screen.blit(group_font, (340, 20+count*20))
                 count+=1
+    def character_dead(self):
+        target = self.total_movement[0].target
+        if self.target_group[target].hp <= 0:
+            self.target_group[target].hp = 0
+            self.target_group[target].status = "DEAD"
+            self.target_group[target].rip += 1
+            temp = self.target_group[target]
+            self.dead_set = 1
+            self.dead_font = self.target_group[target].name
+            #delete command of dead person
+            i = 0
+            for command in self.total_movement:
+                if isinstance(command.character, character.Character):
+                    if self.target_group[target] == command.character:
+                        print command.character.name
+                        del self.total_movement[i]
+                i+=1
+
+
+            i = 0
+            to_delete = []
+            for command in self.total_movement:
+                if isinstance(command.character, enemy.Enemy):
+                    if target == command.target:
+                        if i!= 0:
+                            to_delete.insert(0,i)                                        
+                    i+=1
+                
+            for i in to_delete:
+                del self.total_movement[i]
+            for i in self.total_movement:
+                print i.character.name
+            
+                    
+            #move the person to end of party
+            del self.target_group[target]
+            self.target_group.append(temp)
+
+    def enemy_dead(self, offset):
+        battle_command = self.total_movement[0]
+        target = battle_command.target
+        if self.target_group[offset].hp <= 0:
+            self.exp += self.target_group[offset].exp
+            self.gold += self.target_group[offset].drop_gold
+            battle_command.character.marks += 1
+            
+            #delete command of the dead enemy
+            i=0
+            for command in self.total_movement:
+                if isinstance(command.character, enemy.Enemy):
+                    if self.target_group[offset] == command.character:
+                        del self.total_movement[i]
+                i+=1
+
+            del self.target_group[offset]
+
+            #delete command of party targeted at those enemy
+            if self.target_group == []:                                
+                i = 0
+
+                to_delete = []
+                for command in self.total_movement:
+                    if isinstance(command.character, character.Character):
+                        if target == command.target:
+                            #first one would be deleted at end of command so ignore
+                            if i != 0:
+                                to_delete.insert(0,i)                                            
+                    i+=1
+                
+                for i in to_delete:
+                    del self.total_movement[i]
+                
+                #del self.enemyList[target]
+
+            self.dead_set = 1
+            self.dead_font = self.target_font
+
+
 
 
 
@@ -1079,7 +1315,7 @@ def enemy_movement( enemyList, enemyListBack, game_self):
                         if enemy.extra_attack[2] == 3:
                             target = random.randint(0, player_movable-1)
                         
-                        enemy_command.append( battle_command.Battle_command( enemy, 0, target))
+                        enemy_command.append( battle_command.Battle_command( enemy, 0, target, None, None, None, None))
                     elif movement < enemy.extra_attack[4]:
                         if enemy.extra_attack[6] == 1:
                             if player_movable > 3:
@@ -1090,7 +1326,7 @@ def enemy_movement( enemyList, enemyListBack, game_self):
                             target = random.randint(0, player_movable-1)                  
                         if enemy.extra_attack[6] == 3:
                             target = random.randint(0, player_movable-1)
-                        enemy_command.append( battle_command.Battle_command( enemy, 3, target))
+                        enemy_command.append( battle_command.Battle_command( enemy, 3, target, None, None, None, None))
                     elif movement < enemy.extra_attack[8]:
                         if enemy.extra_attack[10] == 1:
                             if player_movable > 3:
@@ -1101,7 +1337,7 @@ def enemy_movement( enemyList, enemyListBack, game_self):
                             target = random.randint(0, player_movable-1)                  
                         if enemy.extra_attack[10] == 3:
                             target = random.randint(0, player_movable-1)
-                        enemy_command.append( battle_command.Battle_command( enemy, 6, target))
+                        enemy_command.append( battle_command.Battle_command( enemy, 6, target, None, None, None, None))
                     elif movement < enemy.extra_attack[12]:
                         if enemy.extra_attack[14] == 1:
                             if player_movable > 3:
@@ -1112,14 +1348,14 @@ def enemy_movement( enemyList, enemyListBack, game_self):
                             target = random.randint(0, player_movable-1)                  
                         if enemy.extra_attack[14] == 3:
                             target = random.randint(0, player_movable-1)
-                        enemy_command.append( battle_command.Battle_command( enemy, 9, target))
+                        enemy_command.append( battle_command.Battle_command( enemy, 9, target, None, None, None, None))
                 else:
                     if enemy.attack_range == 0:
                         if player_movable > 3:
                             target = random.randint(0,2)
                         else:
                             target = random.randint(0, player_movable-1)
-                    enemy_command.append( battle_command.Battle_command( enemy, 0, target))
+                    enemy_command.append( battle_command.Battle_command( enemy, 0, target, None, None, None, None))
 
     for group in enemyListBack:
         for enemy in group:
@@ -1139,7 +1375,7 @@ def enemy_movement( enemyList, enemyListBack, game_self):
                         if enemy.extra_attack[2] == 3:
                             target = random.randint(0, player_movable-1)
                         
-                        enemy_command.append( battle_command.Battle_command( enemy, 0, target))
+                        enemy_command.append( battle_command.Battle_command( enemy, 0, target, None, None, None, None))
                     elif movement < enemy.extra_attack[4]:
                         if enemy.extra_attack[6] == 1:
                             if player_movable > 3:
@@ -1150,7 +1386,7 @@ def enemy_movement( enemyList, enemyListBack, game_self):
                             target = random.randint(0, player_movable-1)                  
                         if enemy.extra_attack[6] == 3:
                             target = random.randint(0, player_movable-1)
-                        enemy_command.append( battle_command.Battle_command( enemy, 3, target))
+                        enemy_command.append( battle_command.Battle_command( enemy, 3, target, None, None, None, None))
                     elif movement < enemy.extra_attack[8]:
                         if enemy.extra_attack[10] == 1:
                             if player_movable > 3:
@@ -1161,7 +1397,7 @@ def enemy_movement( enemyList, enemyListBack, game_self):
                             target = random.randint(0, player_movable-1)                  
                         if enemy.extra_attack[10] == 3:
                             target = random.randint(0, player_movable-1)
-                        enemy_command.append( battle_command.Battle_command( enemy, 6, target))
+                        enemy_command.append( battle_command.Battle_command( enemy, 6, target, None, None, None, None))
                     elif movement < enemy.extra_attack[12]:
                         if enemy.extra_attack[14] == 1:
                             if player_movable > 3:
@@ -1172,7 +1408,7 @@ def enemy_movement( enemyList, enemyListBack, game_self):
                             target = random.randint(0, player_movable-1)                  
                         if enemy.extra_attack[14] == 3:
                             target = random.randint(0, player_movable-1)
-                        enemy_command.append( battle_command.Battle_command( enemy, 9, target))
+                        enemy_command.append( battle_command.Battle_command( enemy, 9, target, None, None, None, None))
                 else:
                     pass
                     #if range is 0, it cannot reach character so do not yet.

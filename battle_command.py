@@ -20,11 +20,19 @@ MENU_MAX = 5
 
 class Battle_command:
 
-    def __init__(self, character, movement, target):
+    def __init__(self, character, movement, target, magic_target, magic_level, magic_number, item_number):
 
         self.character = character
         self.movement = movement
         self.target = target
+
+        #string of target ex. "ENEMY_ONE"
+        self.magic_target = magic_target
+        #if level < 8 it is magician, and else priest?
+        self.magic_level = magic_level
+        self.magic_number = magic_number
+
+        self.item_number = item_number
 
         self.speed = random.randint(1,character.agility)
 

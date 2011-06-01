@@ -106,7 +106,7 @@ class Party:
 
             if target_select.target == "PARTY_ONE":
                 pygame.draw.rect(screen, COLOR_GLAY, Rect(14, 341+target_select.menu*20, 612, 20 ), 0)
-            elif target_select.target == "PARTY_ALL":
+            elif target_select.target == "PARTY_ALL" or target_select.target == "DUNGEON":
                 pygame.draw.rect(screen, COLOR_GLAY, Rect(14, 341, 612, len(game_self.party.member)*20 ), 0)
             elif target_select.target == "PARTY_SELF":
                 #self only occur on battle

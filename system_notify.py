@@ -14,6 +14,8 @@ import temple_window
 import tower
 import dungeon
 import string
+import battle
+import battle_command
 
 COLOR_WHITE = (255,255,255)
 COLOR_GLAY = (128,128,128)
@@ -1946,7 +1948,7 @@ class Magic_level(window.Window):
 
                 #TO-DO need to set command for these magic selection
 
-                #is usable in camp and character is usable
+                #is usable in camp and dungeon and character is usable
                 if level < 7 and character.magic[level][self.menu] == 1:
                     self.target_select = Magic_use_target_select(character, level, self.menu, "MAGICIAN", game_self.magic_data[level*6+1+self.menu][3].strip("\""))
                     print "used"
@@ -2005,23 +2007,26 @@ class Magic_use_target_select:
                 if self.menu < 4:
                     pygame.draw.rect(screen, COLOR_GLAY, Rect(15, 18+self.menu*20, 320, 20), 0)
                 else:
-                    pygame.draw.rect(screen, COLOR_GLAY, Rect(495, 18+self.menu*20, 320, 20), 0)
+                    pygame.draw.rect(screen, COLOR_GLAY, Rect(335, 18+(self.menu-4)*20, 290, 20), 0)
+
+            elif self.target == "ENEMY_ROW":
+                pygame.draw.rect(screen, COLOR_GLAY, Rect(15, 18+self.menu*20, 610, 20), 0)
 
             elif self.target == "ENEMY_LINE":
 
                 if self.menu == 0:
                     pygame.draw.rect(screen, COLOR_GLAY, Rect(15, 18, 320, len(game_self.dungeon.battle.enemyList)*20), 0)
                 elif self.menu == 1:
-                    pygame.draw.rect(screen, COLOR_GLAY, Rect(495, 18, 320, len(game_self.dungeon.battle.enemyListBack)*20), 0)
+                    pygame.draw.rect(screen, COLOR_GLAY, Rect(335, 18, 290, len(game_self.dungeon.battle.enemyListBack)*20), 0)
                 
             elif self.target == "ENEMY_BOX":
 
                 if self.menu == 0:
                     pygame.draw.rect(screen, COLOR_GLAY, Rect(15, 18, 600, 40), 0)
                 elif self.menu == 1:
-                    pygame.draw.rect(screen, COLOR_GLAY, Rect(495, 18, 600, 40), 0)
-                elif self.menu == 1:
-                    pygame.draw.rect(screen, COLOR_GLAY, Rect(495, 18, 600, 40), 0)
+                    pygame.draw.rect(screen, COLOR_GLAY, Rect(15, 38, 600, 40), 0)
+                elif self.menu == 2:
+                    pygame.draw.rect(screen, COLOR_GLAY, Rect(15, 58, 600, 40), 0)
   
             elif self.target == "ENEMY_ALL":
                 length = 0
@@ -2036,11 +2041,25 @@ class Magic_use_target_select:
         elif self.party_select > 0:
             game_self.party.draw(screen, game_self)
 
+        elif self.dungeon_select > 0:
+            game_self.party.draw(screen, game_self)
+
+
 
 
     def magic_use_target_select_handler( self, event, game_self):
 
+        enemyList = None
+        enemyListBack = None
+        front_length = 0
+        back_length = 0
 
+        if game_self.dungeon != None:
+            enemyList = game_self.dungeon.battle.enemyList
+            enemyListBack = game_self.dungeon.battle.enemyListBack
+
+            front_length = len(enemyList)
+            back_length = len(enemyListBack)
 
         #moves back
         if event.type == KEYDOWN and event.key == K_x:
@@ -2051,51 +2070,223 @@ class Magic_use_target_select:
         #moves the cursor up
         elif event.type == KEYDOWN and event.key == K_UP:
             if self.enemy_select:
-                pass
+                if self.target == "ENEMY_ONE" or self.target == "ENEMY_GROUP":
+                    self.menu-=1
+                    if self.menu == 3:
+                        self.menu = 4+back_length-1
+                    if self.menu < 0:
+                        self.menu = front_length-1
+                    pass
+                elif self.target == "ENEMY_ROW":
+                    max_length = 0
+                    if front_length > back_length:
+                        max_length = front_length
+                    else:
+                        max_length = back_length
+
+                    self.menu -= 1
+
+                    if self.menu < 0:
+                        self.menu = max_length-1
+                    
+                    pass
+                elif self.target == "ENEMY_LINE":
+                    #not necessary
+                    pass
+                elif self.target == "ENEMY_BOX":
+
+                    self.menu -= 1
+
+                    if self.menu < 0:
+                        if front_length > 3:
+                            self.menu = 2
+                        elif front_length == 2:
+                            self.menu = 1
+                        elif front_length == 1:
+                            self.menu = 0
+                    pass
+                elif self.target == "ENEMY_ALL":
+                    #not necessary
+                    pass
             elif self.party_select:
                 if self.target == "PARTY_ONE":
                     self.menu-=1
                     if self.menu < 0:
                         self.menu = len(game_self.party.member)-1
-                    
-            pass
-                
+        
         #moves the cursor down
         elif event.type == KEYDOWN and event.key == K_DOWN:
             if self.enemy_select:
-                pass
+                if self.target == "ENEMY_ONE" or self.target == "ENEMY_GROUP":
+                    self.menu+=1
+                    if self.menu == 4 or self.menu == front_length:
+                        self.menu = 0
+                    if self.menu == 8 or self.menu == 4+back_length:
+                        self.menu = 4
+                        
+                elif self.target == "ENEMY_ROW":
+                    max_length = 0
+                    if front_length > back_length:
+                        max_length = front_length
+                    else:
+                        max_length = back_length
+
+                    self.menu += 1
+
+                    if self.menu > max_length-1:
+                        self.menu = 0
+                    
+                    pass
+                elif self.target == "ENEMY_LINE":
+                    #not necessary
+                    pass
+                elif self.target == "ENEMY_BOX":
+
+                    self.menu += 1
+
+                    if self.menu > front_length-2:
+                        self.menu = 0
+                        
+                elif self.target == "ENEMY_ALL":
+                    #not necessary
+                    pass
             elif self.party_select:
                 if self.target == "PARTY_ONE":
                     self.menu+=1
                     if self.menu > len(game_self.party.member)-1:
                         self.menu = 0
                 #party self and all cannot move so do nothing
-            pass
+
 
                 
         #moves the cursor left
         elif event.type == KEYDOWN and event.key == K_LEFT:
             if self.enemy_select:
-                pass
+                if self.target == "ENEMY_ONE" or self.target == "ENEMY_GROUP":
+
+                    if self.menu > 3:
+                        self.menu-=4
+
+                        if self.menu > front_length-1:
+                            self.menu = front_length-1
+                    else:
+                        self.menu+=4
+
+                        if self.menu > back_length+4:
+                            self.menu = back_length+4
+                    pass
+                elif self.target == "ENEMY_ROW":
+                    #not necessary
+                    pass
+                elif self.target == "ENEMY_LINE":
+                    self.menu -= 1
+
+                    if self.menu < 0:
+                        self.menu = 1
+                    pass
+                elif self.target == "ENEMY_BOX":
+                    #not necessary
+                    pass
+                elif self.target == "ENEMY_ALL":
+                    #not necessary
+                    pass 
             elif self.party_select:
+                #not necessary
                 pass
-            pass
+
         
         #moves the cursor right
         elif event.type == KEYDOWN and event.key == K_RIGHT:
             if self.enemy_select:
-                pass
+                if self.target == "ENEMY_ONE" or self.target == "ENEMY_GROUP":
+
+                    if self.menu > 3:
+                        self.menu -= 4
+
+                        if self.menu > front_length-1:
+                            self.menu = front_length-1
+
+                    else:
+                        self.menu += 4
+                        
+                        if self.menu > back_length+4:
+                            self.menu = back_length+4
+
+                elif self.target == "ENEMY_ROW":
+                    #not necessary
+                    pass
+                elif self.target == "ENEMY_LINE":
+
+                    self.menu += 1
+                    if self.menu > 1:
+                        self.menu = 0
+                    pass
+                elif self.target == "ENEMY_BOX":
+                    #not necessary
+                    pass
+                elif self.target == "ENEMY_ALL":
+                    #not necessary
+                    pass
             elif self.party_select:
+                #not necessary
                 pass
-            pass
 
         elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
+            #need to determine menu or battle and if battle, add it to command
             if self.enemy_select:
-                pass
-            elif self.party_select:
-                pass
-            pass
+                if game_self.dungeon != None and ((self.level < 7 and self.character.magician_mp[self.level] > 0) or (self.level >= 7 and self.character.priest_mp[self.level-7] > 0)):
+                    if self.level >=7:
+                        self.level+=1
+                    game_self.dungeon.battle.party_movement.append( battle_command.Battle_command( self.character, game_self.dungeon.battle.MAGIC, self.menu, self.target, self.level, self.magic_number, None))
+                    game_self.dungeon.battle.selected += 1
 
+                    #need to close magic window
+                    game_self.dungeon.battle.magic_window = None
+
+                if game_self.menu != None:
+                    pass
+                
+            elif self.party_select:
+                print self.level
+                if game_self.dungeon != None and ((self.level < 7 and self.character.magician_mp[self.level] > 0) or (self.level >= 7 and self.character.priest_mp[self.level-7] > 0)):
+                    if self.level >= 7:
+                        self.level+=1
+                    game_self.dungeon.battle.party_movement.append( battle_command.Battle_command( self.character, game_self.dungeon.battle.MAGIC, self.menu, self.target, self.level, self.magic_number, None))
+                    game_self.dungeon.battle.selected += 1
+
+                    #need to close magic window
+                    game_self.dungeon.battle.magic_window = None
+
+                if game_self.menu != None:
+                    pass
+
+            elif self.dungeon_select:
+                if game_self.dungeon != None and ((self.level < 8 and self.character.magician_mp[self.level] > 0) or (self.level >= 8 and self.character.priest_mp[self.level-7] > 0)):
+                    if self.level >= 7:
+                        self.level += 1
+                    game_self.dungeon.battle.party_movement.append( battle_command.Battle_command( self.character, game_self.dungeon.battle.MAGIC, self.menu, self.target, self.level, self.magic_number, None))
+                    game_self.dungeon.battle.selected += 1
+
+                    #need to close magic window
+                    game_self.dungeon.battle.magic_window = None
+
+                if game_self.menu != None:
+                    pass                
+
+            #if all command is set for party move to battle 
+            if game_self.dungeon != None and game_self.dungeon.battle.selected == battle.player_count_movable(game_self.party.member):
+                game_self.dungeon.battle.state = battle.Battle.BATTLE
+
+                game_self.dungeon.battle.enemy_movement = battle.enemy_movement( game_self.dungeon.battle.enemyList, game_self.dungeon.battle.enemyListBack, game_self)
+
+                for element in game_self.dungeon.battle.party_movement:
+                    game_self.dungeon.battle.total_movement.append(element)
+                for element in game_self.dungeon.battle.enemy_movement:
+                    game_self.dungeon.battle.total_movement.append(element)
+
+                #sort the elements by speed, highest first
+                game_self.dungeon.battle.total_movement.sort(cmp=lambda x, y: cmp(x.speed,y.speed), reverse=True)                
+      
 
       
 class Target_select(window.Window):

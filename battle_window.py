@@ -118,9 +118,9 @@ class Enemy_select_window(window.Window):
 
         if event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
             if battle_in.menu == battle_in.FIGHT:
-                game_self.dungeon.battle.party_movement.append( battle_command.Battle_command( character, battle_in.FIGHT, self.menu))
+                game_self.dungeon.battle.party_movement.append( battle_command.Battle_command( character, battle_in.FIGHT, self.menu, None, None, None, None))
             if battle_in.menu == battle_in.CURSE:
-                game_self.dungeon.battle.party_movement.append( battle_command.Battle_command( character, battle_in.CURSE, self.menu))                
+                game_self.dungeon.battle.party_movement.append( battle_command.Battle_command( character, battle_in.CURSE, self.menu, None, None, None, None))                
             self.is_visible = False
             game_self.dungeon.battle.selected += 1
             
