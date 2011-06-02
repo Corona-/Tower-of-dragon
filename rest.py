@@ -55,9 +55,6 @@ def rest(self, game_self, rest_level, inn):
         for magic_times in game_self.party.member[self.menu].max_priest_mp:
             game_self.party.member[self.menu].priest_mp[i] = magic_times
             i+= 1
-        print "cure mp"
-        print game_self.party.member[self.menu].max_priest_mp
-
 
         if rest_level > 0 and cure == 0:
             cure = 1
@@ -221,9 +218,6 @@ def level_up(self, character, rest_level, lv_change):
             for mp in character.priest_mp:
                 character.max_priest_mp[i] = mp
                 i+=1
-            print "increase mp"
-            print character.priest_mp
-            print character.max_priest_mp
 
             #learn new magic
 

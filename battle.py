@@ -112,7 +112,6 @@ class Battle:
                 if random_value < probability:
                     self.enemy_drop_items.append(item)
                 i += 1
-        print self.enemy_drop_items
 
         self.enemy_font = pygame.font.Font("ipag.ttf", 15)
 
@@ -302,8 +301,6 @@ class Battle:
 
 
                 if self.hit >= 1:    
-                
-                    #print battle_font1
 
                     battle_font2 = str(self.hit) + u"回当たり "
 
@@ -894,8 +891,6 @@ class Battle:
 
         elif self.state == self.COMMAND:
 
-            #print self.selected
-
             if self.item_view != None and self.item_view.is_visible:
                 self.item_view.item_view_handler(event, game_self)
                 return
@@ -1008,7 +1003,6 @@ class Battle:
                 if self.selected > 0:
                     self.selected -= 1
                     count = len(self.party_movement)
-                    print count
                     del (self.party_movement[count-1])
                 else:
                     #to end battle
@@ -1090,8 +1084,6 @@ class Battle:
                         for i in to_delete:
                             del self.enemyListBack[i]
 
-                        print self.enemyList
-                        print self.enemyListBack
 
 
                         if self.enemyList == [] and self.enemyListBack != []:
@@ -1099,7 +1091,6 @@ class Battle:
                             self.enemyListBack = []
 
                         if self.enemyList == [] and self.enemyListBack == []:
-                            print self.enemyList
                             self.state = self.END
                             return
                             #this is for battle end
@@ -1270,7 +1261,6 @@ class Battle:
             for command in self.total_movement:
                 if isinstance(command.character, character.Character):
                     if self.target_group[target] == command.character:
-                        print command.character.name
                         del self.total_movement[i]
                 i+=1
 
@@ -1286,8 +1276,6 @@ class Battle:
                 
             for i in to_delete:
                 del self.total_movement[i]
-            for i in self.total_movement:
-                print i.character.name
             
                     
             #move the person to end of party

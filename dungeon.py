@@ -258,7 +258,6 @@ class Dungeon:
         #need to calculate theif level
         #theif_level = 2
         theif_level = calculate_thief_level(game_self)
-        print theif_level
         
         #add this coordinate to visited coordinate
         game_self.party.dungeon_visited[coordinate[2]][x][y] = theif_level
@@ -305,9 +304,6 @@ class Dungeon:
             if game_self.party.direction > 3:
                 game_self.party.direction = 0
             self.battle_encount( 5, game_self.party.member[0] )
-
-
-      #print game_self.party.member[0].coordinate
 
 
         if event.type == KEYDOWN and (event.key ==K_x):
@@ -389,6 +385,16 @@ class Dungeon:
 
         floor_font = menu_font.render(u"天龍の塔 " + str(coordinate[2]) + u"階", True, COLOR_WHITE)
         screen.blit(floor_font, (520-floor_font.get_width()/2, 100))
+
+        theif_font = menu_font.render( u"盗賊LV" + str(calculate_thief_level(game_self)), True, COLOR_WHITE)
+        merchant_font = menu_font.render( u"商人LV" + str(calculate_merchant_level(game_self)), True, COLOR_WHITE)
+
+        level_window = window.Window(Rect(415,160,210,90))
+        level_window.draw(screen)
+
+        screen.blit(theif_font, (520 - theif_font.get_width()/2, 180))
+        screen.blit(merchant_font, (520 - merchant_font.get_width()/2, 210))
+        
 
 
         floor_data = game_self.party.dungeon_visited[coordinate[2]]
@@ -1918,5 +1924,24 @@ def calculate_thief_level(game_self):
             max_theif_level = theif_level
 
     return max_theif_level
-        
+
+def calculate_merchant_level(game_self):
+
+    max_merchant_level = 0
+
+    for character in game_self.party.member:
+        merchant_level = 0
+
+        #merchants
+        if character.job == 5 or character.job == 25 or character.job == 26 or character.job == 27:
+            merchant_level = int(character.level/3)+1
+        elif character.job == 4 or character.job == 22 or character.job == 23 or character.job == 24:
+            merchant_level = int(character.level/4)
+        else:
+            merchant_level = int(character.level/15)
+
+        if merchant_level > max_merchant_level:
+            max_merchant_level = merchant_level
+    return max_merchant_level
+
     

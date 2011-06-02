@@ -1107,6 +1107,11 @@ class Confirm_window(window.Window):
                         game_self.tower = tower.Tower()
                         game_self.dungeon = None
 
+                        for character in game_self.party.member:
+                            character.face_shield = 0
+                            character.battle_ac = 0
+                            character.permanant_ac = 0
+
                         self.is_visible = False
                         self = None
                     
@@ -1893,7 +1898,26 @@ class Magic_level(window.Window):
             elif game_self.party.direction == 3:
                 pygame.draw.polygon(screen, (255,0,0), [(x+3,y+7), (x+11, y+11), (x+11, y+3)], 0)
 
-        
+            coordinate_window = window.Window(Rect(415,270,210,60))
+            coordinate_window.draw(screen)
+
+            if len(str(game_self.party.member[0].coordinate[0])) == 1:
+                x_font = "X:0" + str( game_self.party.member[0].coordinate[0])
+            else:
+                x_font = "X:" + str( game_self.party.member[0].coordinate[0])
+                
+            if len(str(game_self.party.member[0].coordinate[1])) == 1:
+                y_font = " Y:0" + str( game_self.party.member[0].coordinate[1])
+                self.menu_font.render( "Y: 0" + str( game_self.party.member[0].coordinate[1]), True, COLOR_WHITE)
+            else:
+                y_font = " Y:" + str( game_self.party.member[0].coordinate[1])
+                self.menu_font.render( "Y: " + str( game_self.party.member[0].coordinate[1]), True, COLOR_WHITE)
+
+            coordinate_font = x_font+ y_font
+            coordinate_font = self.menu_font.render( coordinate_font, True, COLOR_WHITE)
+            
+            screen.blit( coordinate_font, (520-coordinate_font.get_width()/2, 290))
+
     def magic_level_view_handler( self, event, game_self):
 
         if self.target_select != None:
@@ -1991,21 +2015,19 @@ class Magic_level(window.Window):
 
                 elif level >= 7 and game_self.magic_data[(level-7)*6+50+self.menu][4] == "\"CAMP\"" and character.priest_magic[level-7][self.menu] == 1:
 
-                    if string.count(game_self.magic_data[(level-7)*6+50+self.menu][3], "DUNGEON"):
+                    if string.count(game_self.magic_data[(level-7)*6+50+self.menu][3], "DUNGEON") and (level < 7 and character.magician_mp[level] > 0 or (level >=7 and character.priest_mp[level-7] > 0)):
 
                         #priest
                         level +=1
-                        print "torch"
                         
                         if level == 9 and self.menu == 2:
-                            print "in"
                             #light the dungeon
                             game_self.party.torch += 30
                             character.priest_mp[level-8] -= 1
                             
                         level -= 1
                         
-                    else:
+                    elif ((level < 7 and character.magician_mp[level] > 0 ) or (level >= 7 and character.priest_mp[level-7] > 0)):
                         self.target_select = Magic_use_target_select(character, level, self.menu, "PRIEST", game_self.magic_data[(level-7)*6+50+self.menu][3].strip("\""))
                     
 
@@ -2344,6 +2366,15 @@ class Magic_use_target_select:
                                 chara.status = "OK"
 
                         self.character.priest_mp[self.level-8] -= 1
+
+                    elif self.level == 9 and self.magic_number == 1:
+
+                        for chara in game_self.party.member:
+                            if chara.face_shield == 0:
+                                chara.permanant_ac -= 2
+                                chara.face_shield = 1
+
+                        self.character.priest_mp[1] -= 1
 
                     if self.level >= 7:
                         self.level -=1
