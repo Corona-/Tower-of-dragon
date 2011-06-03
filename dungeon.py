@@ -11,6 +11,7 @@ import codecs
 import system_notify
 import city
 import menu
+import dungeon_message
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 MENU=12
 
@@ -166,7 +167,7 @@ class Dungeon:
 
         for i in range(0, 21):
             for j in range(0,20):
-                self.temp.append(int(map_data[635+i+self.floor*20][j*2:j*2+2], 16))
+                self.temp.append(int(map_data[635+i+self.floor*21][j*2:j*2+2], 16))
             self.horizontal_wall.append(self.temp)
             self.temp = []
 
@@ -192,6 +193,8 @@ class Dungeon:
         #draw extra window
         self.downstairs_window = None #system_notify.Confirm_window( Rect(160, 150, 380, 110) , system_notify.Confirm_window.DOWNSTAIRS)
         self.upstairs_window = None
+
+        self.dungeon_message_window = dungeon_message.Dungeon_message( Rect(10, 10, 620, 200))
 
     def update(self):
 
@@ -225,6 +228,8 @@ class Dungeon:
         if self.upstairs_window != None:
             self.upstairs_window.draw( screen, game_self, None)
 
+        self.dungeon_message_window.draw( game_self, screen)
+
     def dungeon_handler(self, game_self, event):
         """event handler for dungeon"""
 
@@ -233,6 +238,9 @@ class Dungeon:
             return
         elif self.upstairs_window != None and self.upstairs_window.is_visible == True:
             self.upstairs_window.confirm_window_handler( game_self, event, None)
+            return
+        elif self.dungeon_message_window.is_visible == True:
+            self.dungeon_message_window.dungeon_message_handler( game_self, event)
             return
 
         if self.battle_flag == 1:
@@ -285,7 +293,11 @@ class Dungeon:
                 elif (game_self.party.direction == 3):
                     if( self.vertical_wall[y][x] == 0):
                         character.coordinate[0] = decrement(character.coordinate[0],1)
-            self.battle_encount( 10, game_self.party.member[0] )
+            self.battle_encount( 5, game_self.party.member[0] )
+
+            self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
+
+            
             
         if event.type == KEYDOWN and (event.key ==K_DOWN):
             game_self.party.direction -= 2
@@ -309,6 +321,14 @@ class Dungeon:
         if event.type == KEYDOWN and (event.key ==K_x):
             game_self.game_state = MENU
             game_self.menu = menu.Menu()
+                
+            game_self.vertical_wall_temp = self.vertical_wall
+            game_self.horizontal_wall_temp =  self.horizontal_wall
+            game_self.ground_temp = self.ground
+            game_self.space_temp = self.space
+            game_self.object_temp = self.object
+
+
             game_self.dungeon = None
             #for character in game_self.party.member:
             #    character.coordinate = [-1,-1,-1]
@@ -320,21 +340,29 @@ class Dungeon:
                     self.door_se.play()
                     for character in game_self.party.member:
                         character.coordinate[1] = decrement(character.coordinate[1],1)
+                    self.battle_encount( 10, game_self.party.member[0] )
+
             if game_self.party.direction == 1:
                 if self.vertical_wall[y][increment(x,1)] == 2:
                     self.door_se.play()
                     for character in game_self.party.member:
                         character.coordinate[0] = increment(character.coordinate[0],1)
+                    self.battle_encount( 10, game_self.party.member[0] )
             if game_self.party.direction == 2:
                 if self.horizontal_wall[increment(y,1)][x] == 2:
                     self.door_se.play()
                     for character in game_self.party.member:
                         character.coordinate[1] = increment(character.coordinate[1],1)
+                    self.battle_encount( 10, game_self.party.member[0] )
             if game_self.party.direction == 3:
                 if self.vertical_wall[y][x] == 2:
                     self.door_se.play()
                     for character in game_self.party.member:
                         character.coordinate[0] = decrement(character.coordinate[0],1)
+                    self.battle_encount( 10, game_self.party.member[0] )
+                    
+            self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
+
 
             #find event on the new place?
 
@@ -355,7 +383,9 @@ class Dungeon:
                 self.upstairs_window.is_visible = True
                 
                     
-                    
+            if self.object[y][x] == 15:
+                self.battle_encount( 80, game_self.party.member[0] )
+                self.object[y][x] = 0
 
 
             
@@ -552,11 +582,15 @@ class Dungeon:
                 screen.blit(self.center4, (160, 160))
             elif (self.horizontal_wall[decrement(y,3)][decrement(x,2)] == 2):
                 screen.blit(self.door4, (160,160))                                               
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,2)] == 3):
+                screen.blit(self.door4, (160,160))                                               
 
             #draw straight three block wall left one
             if (self.horizontal_wall[decrement(y,3)][decrement(x,1)] == 1):
                 screen.blit(self.center4, (224, 160))
             elif (self.horizontal_wall[decrement(y,3)][decrement(x,1)] == 2):
+                screen.blit(self.door4, (224,160))                                               
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,1)] == 3):
                 screen.blit(self.door4, (224,160))                                               
 
             #draw straight three block wall
@@ -564,11 +598,15 @@ class Dungeon:
                 screen.blit(self.center4, (288, 160))
             elif (self.horizontal_wall[decrement(y,3)][x] == 2):
                 screen.blit(self.door4, (288,160))
+            elif (self.horizontal_wall[decrement(y,3)][x] == 3):
+                screen.blit(self.door4, (288,160))
 
             #draw straight three block wall right one
             if (self.horizontal_wall[decrement(y,3)][increment(x,1)] == 1):
                 screen.blit(self.center4, (352, 160))
             elif (self.horizontal_wall[decrement(y,3)][increment(x,1)] == 2):
+                screen.blit(self.door4, (352,160))                                               
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,1)] == 3):
                 screen.blit(self.door4, (352,160))                                               
 
             #draw straight three block wall right two
@@ -576,17 +614,23 @@ class Dungeon:
                 screen.blit(self.center4, (416, 160))
             elif (self.horizontal_wall[decrement(y,3)][increment(x,2)] == 2):
                 screen.blit(self.door4, (416,160))
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,2)] == 3):
+                screen.blit(self.door4, (416,160))
                 
             #draw up three wall on left three
             if (self.vertical_wall[decrement(y,3)][decrement(x,2)] == 1):
                 screen.blit(self.edgeList4_3[0], (0, 128))
             elif (self.vertical_wall[decrement(y,3)][decrement(x,2)] == 2):
                 screen.blit(self.doorList4_3[0], (0, 128))
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,2)] == 3):
+                screen.blit(self.doorList4_3[0], (0, 128))
 
             #draw up three wall on left two
             if (self.vertical_wall[decrement(y,3)][decrement(x,1)] == 1):
                 screen.blit(self.edgeList4_2[0], (128, 128))
             elif (self.vertical_wall[decrement(y,3)][decrement(x,1)] == 2):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,1)] == 3):
                 screen.blit(self.doorList4_2[0], (128, 128))
 
 
@@ -595,6 +639,8 @@ class Dungeon:
                 screen.blit(self.edgeList4[0], (256, 128))
             elif (self.vertical_wall[decrement(y,3)][x] == 2):
                 screen.blit(self.doorList4[0], (256, 128))
+            elif (self.vertical_wall[decrement(y,3)][x] == 3):
+                screen.blit(self.doorList4[0], (256, 128))
 
 
             #draw up three wall on right three
@@ -602,17 +648,23 @@ class Dungeon:
                 screen.blit(self.edgeList4_3[1], (480, 128))                
             elif (self.vertical_wall[decrement(y,3)][increment(x,3)] == 2):
                 screen.blit(self.doorList4_3[1], (480, 128))  
+            elif (self.vertical_wall[decrement(y,3)][increment(x,3)] == 3):
+                screen.blit(self.doorList4_3[1], (480, 128))  
 
             #draw up three wall on right two
             if (self.vertical_wall[decrement(y,3)][increment(x,2)] == 1):
                 screen.blit(self.edgeList4_2[1], (416, 128))                
             elif (self.vertical_wall[decrement(y,3)][increment(x,2)] == 2):
                 screen.blit(self.doorList4_2[1], (416, 128))                               
+            elif (self.vertical_wall[decrement(y,3)][increment(x,2)] == 3):
+                screen.blit(self.doorList4_2[1], (416, 128))                               
 
             #draw up three wall on right
             if (self.vertical_wall[decrement(y,3)][increment(x,1)] == 1):
                 screen.blit(self.edgeList4[1], (352, 128))                
             elif (self.vertical_wall[decrement(y,3)][increment(x,1)] == 2):
+                screen.blit(self.doorList4[1], (352, 128))                
+            elif (self.vertical_wall[decrement(y,3)][increment(x,1)] == 3):
                 screen.blit(self.doorList4[1], (352, 128))                
 
 
@@ -621,6 +673,8 @@ class Dungeon:
                 screen.blit(self.center3, (0, 128))
             elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 2):
                 screen.blit(self.door3, (0,128))
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 3):
+                screen.blit(self.door3, (0,128))
 
 
             #draw straight two block wall left one
@@ -628,11 +682,15 @@ class Dungeon:
                 screen.blit(self.center3, (128, 128))
             elif (self.horizontal_wall[decrement(y,2)][decrement(x,1)] == 2):
                 screen.blit(self.door3, (128,128))
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,1)] == 3):
+                screen.blit(self.door3, (128,128))
 
             #draw straight two block wall
             if (self.horizontal_wall[decrement(y,2)][x] == 1):
                 screen.blit(self.center3, (256, 128))
             elif (self.horizontal_wall[decrement(y,2)][x] == 2):
+                screen.blit(self.door3, (256,128))
+            elif (self.horizontal_wall[decrement(y,2)][x] == 3):
                 screen.blit(self.door3, (256,128))
 
             #draw straight two block wall right one
@@ -640,11 +698,15 @@ class Dungeon:
                 screen.blit(self.center3, (384, 128))
             elif (self.horizontal_wall[decrement(y,2)][increment(x,1)] == 2):
                 screen.blit(self.door3, (384,128))
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,1)] == 3):
+                screen.blit(self.door3, (384,128))
 
             #draw straight two block wall right two
             if (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 1):
                 screen.blit(self.center3, (512, 128))
             elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 2):
+                screen.blit(self.door3, (512,128))
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 3):
                 screen.blit(self.door3, (512,128))
 
             #draw up two wall on left three
@@ -652,11 +714,15 @@ class Dungeon:
                 screen.blit(self.edgeList3_3[0], (-320, 64))
             elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 2):
                 screen.blit(self.doorList3_3[0], (-320, 64))
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 3):
+                screen.blit(self.doorList3_3[0], (-320, 64))
 
             #draw up two wall on left two
             if (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 1):
                 screen.blit(self.edgeList3_2[0], (-64, 64))
             elif (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 2):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 3):
                 screen.blit(self.doorList3_2[0], (-64, 64))
 
             #draw up two wall on left
@@ -664,11 +730,15 @@ class Dungeon:
                 screen.blit(self.edgeList3[0], (192, 64))
             elif (self.vertical_wall[decrement(y,2)][x] == 2):
                 screen.blit(self.doorList3[0], (192, 64))
+            elif (self.vertical_wall[decrement(y,2)][x] == 3):
+                screen.blit(self.doorList3[0], (192, 64))
                 
             #draw up two wall on right three
             if (self.vertical_wall[decrement(y,2)][increment(x,3)] == 1):
                 screen.blit(self.edgeList3_3[1], (640, 64))                
             elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 2):
+                screen.blit(self.doorList3_3[1], (640, 64))    
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 3):
                 screen.blit(self.doorList3_3[1], (640, 64))    
 
 
@@ -677,11 +747,15 @@ class Dungeon:
                 screen.blit(self.edgeList3_2[1], (512, 64))                
             elif (self.vertical_wall[decrement(y,2)][increment(x,2)] == 2):
                 screen.blit(self.doorList3_2[1], (512, 64))    
+            elif (self.vertical_wall[decrement(y,2)][increment(x,2)] == 3):
+                screen.blit(self.doorList3_2[1], (512, 64))    
 
             #draw up two wall on right
             if (self.vertical_wall[decrement(y,2)][increment(x,1)] == 1):
                 screen.blit(self.edgeList3[1], (384, 64))                
             elif (self.vertical_wall[decrement(y,2)][increment(x,1)] == 2):
+                screen.blit(self.doorList3[1], (384, 64))                
+            elif (self.vertical_wall[decrement(y,2)][increment(x,1)] == 3):
                 screen.blit(self.doorList3[1], (384, 64))                
 
 
@@ -690,11 +764,15 @@ class Dungeon:
                 screen.blit(self.center2, (-64, 64))
             elif (self.horizontal_wall[decrement(y,1)][decrement(x,1)] == 2):
                 screen.blit(self.door2, (-64,64))
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,1)] == 3):
+                screen.blit(self.door2, (-64,64))
         
             #draw straight one block wall
             if (self.horizontal_wall[decrement(y,1)][x] == 1):
                 screen.blit(self.center2, (192, 64))
             elif (self.horizontal_wall[decrement(y,1)][x] == 2):
+                screen.blit(self.door2, (192,64))
+            elif (self.horizontal_wall[decrement(y,1)][x] == 3):
                 screen.blit(self.door2, (192,64))
 
             #draw straight one block wall right one
@@ -702,11 +780,15 @@ class Dungeon:
                 screen.blit(self.center2, (448, 64))
             elif (self.horizontal_wall[decrement(y,1)][increment(x,1)] == 2):
                 screen.blit(self.door2, (448,64))
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,1)] == 3):
+                screen.blit(self.door2, (448,64))
 
             #draw up two wall on left
             if (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 1):
                 screen.blit(self.edgeList2[0], (-192, -64))
             elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 2):
+                screen.blit(self.doorList2[0], (-192, -64))
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 3):
                 screen.blit(self.doorList2[0], (-192, -64))
                                   
 
@@ -715,11 +797,15 @@ class Dungeon:
                 screen.blit(self.edgeList2[0], (64, -64))
             elif (self.vertical_wall[decrement(y,1)][x] == 2):
                 screen.blit(self.doorList2[0], (64, -64))
+            elif (self.vertical_wall[decrement(y,1)][x] == 3):
+                screen.blit(self.doorList2[0], (64, -64))
                                    
             #draw up one wall on right
             if (self.vertical_wall[decrement(y,1)][increment(x,1)] == 1):
                 screen.blit(self.edgeList2[1], (448, -64))                
             elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 2):
+                screen.blit(self.doorList2[1], (448, -64))                
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 3):
                 screen.blit(self.doorList2[1], (448, -64))                
 
             #draw left one up wall
@@ -727,11 +813,15 @@ class Dungeon:
                 screen.blit(self.center1, (-448,-64))
             elif (self.horizontal_wall[y][decrement(x,1)] == 2):
                 screen.blit(self.door1, (-448,-64))
+            elif (self.horizontal_wall[y][decrement(x,1)] == 3):
+                screen.blit(self.door1, (-448,-64))
 
             #draw right one up wall
             if (self.horizontal_wall[y][increment(x,1)] == 1):
                 screen.blit(self.center1, (576,-64))
             elif (self.horizontal_wall[y][increment(x,1)] == 2):
+                screen.blit(self.door1, (576,-64))
+            elif (self.horizontal_wall[y][increment(x,1)] == 3):
                 screen.blit(self.door1, (576,-64))
 
             #draw just up wall
@@ -739,17 +829,23 @@ class Dungeon:
                 screen.blit(self.center1, (64,-64))
             elif (self.horizontal_wall[y][x] == 2):
                 screen.blit(self.door1, (64,-64))
+            elif (self.horizontal_wall[y][x] == 3):
+                screen.blit(self.door1, (64,-64))
 
             #draw wall on left
             if (self.vertical_wall[y][x] == 1):
                 screen.blit(self.edgeList1[0], (-192, -320))
             elif (self.vertical_wall[y][x] == 2):
                 screen.blit(self.doorList1[0], (-192, -320))
+            elif (self.vertical_wall[y][x] == 3):
+                screen.blit(self.doorList1[0], (-192, -320))
 
             #draw wall on right
             if (self.vertical_wall[y][increment(x,1)] == 1):
                 screen.blit(self.edgeList1[1], (576, -320))
             elif (self.vertical_wall[y][increment(x,1)] == 2):
+                screen.blit(self.doorList1[1], (576, -320))
+            elif (self.vertical_wall[y][increment(x,1)] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
 
 
@@ -828,11 +924,15 @@ class Dungeon:
                 screen.blit(self.center4, (160, 160))
             elif (self.vertical_wall[decrement(y,2)][increment(x,4)] == 2):
                 screen.blit(self.door4, (160,160))                                               
+            elif (self.vertical_wall[decrement(y,2)][increment(x,4)] == 3):
+                screen.blit(self.door4, (160,160))                                               
 
             #draw straight three block wall left one
             if (self.vertical_wall[decrement(y,1)][increment(x,4)] == 1):
                 screen.blit(self.center4, (224, 160))
             elif (self.vertical_wall[decrement(y,1)][increment(x,4)] == 2):
+                screen.blit(self.door4, (224,160))                                               
+            elif (self.vertical_wall[decrement(y,1)][increment(x,4)] == 3):
                 screen.blit(self.door4, (224,160))                                               
 
             #draw straight three block wall
@@ -840,17 +940,23 @@ class Dungeon:
                 screen.blit(self.center4, (288, 160))
             elif (self.vertical_wall[y][increment(x,4)] == 2):
                 screen.blit(self.door4, (288,160))
+            elif (self.vertical_wall[y][increment(x,4)] == 3):
+                screen.blit(self.door4, (288,160))
 
             #draw straight three block wall right one
             if (self.vertical_wall[increment(y,1)][increment(x,4)] == 1):
                 screen.blit(self.center4, (352, 160))
             elif (self.vertical_wall[increment(y,1)][increment(x,4)] == 2):
                 screen.blit(self.door4, (352,160))                                               
+            elif (self.vertical_wall[increment(y,1)][increment(x,4)] == 3):
+                screen.blit(self.door4, (352,160))                                               
 
             #draw straight three block wall right two
             if (self.vertical_wall[increment(y,2)][increment(x,4)] == 1):
                 screen.blit(self.center4, (416, 160))
             elif (self.vertical_wall[increment(y,2)][increment(x,4)] == 2):
+                screen.blit(self.door4, (416,160))
+            elif (self.vertical_wall[increment(y,2)][increment(x,4)] == 3):
                 screen.blit(self.door4, (416,160))
 
 
@@ -859,11 +965,15 @@ class Dungeon:
                 screen.blit(self.edgeList4_3[0], (0, 128))
             elif (self.horizontal_wall[decrement(y,2)][increment(x,3)] == 2):
                 screen.blit(self.doorList4_3[0], (0, 128))
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,3)] == 3):
+                screen.blit(self.doorList4_3[0], (0, 128))
 
             #draw up three wall on left two
             if (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 1):
                 screen.blit(self.edgeList4_2[0], (128, 128))
             elif (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 2):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 3):
                 screen.blit(self.doorList4_2[0], (128, 128))
 
 
@@ -872,11 +982,15 @@ class Dungeon:
                 screen.blit(self.edgeList4[0], (256, 128))
             elif (self.horizontal_wall[y][increment(x,3)] == 2):
                 screen.blit(self.doorList4[0], (256, 128))
+            elif (self.horizontal_wall[y][increment(x,3)] == 3):
+                screen.blit(self.doorList4[0], (256, 128))
 
             #draw up three wall on right three
             if (self.horizontal_wall[increment(y,3)][increment(x,3)] == 1):
                 screen.blit(self.edgeList4_3[1], (480, 128))                
             elif (self.horizontal_wall[increment(y,3)][increment(x,3)] == 2):
+                screen.blit(self.doorList4_3[1], (480, 128))  
+            elif (self.horizontal_wall[increment(y,3)][increment(x,3)] == 3):
                 screen.blit(self.doorList4_3[1], (480, 128))  
 
             #draw up three wall on right two
@@ -884,11 +998,15 @@ class Dungeon:
                 screen.blit(self.edgeList4_2[1], (416, 128))                
             elif (self.horizontal_wall[increment(y,2)][increment(x,3)] == 2):
                 screen.blit(self.doorList4_2[1], (416, 128))                               
+            elif (self.horizontal_wall[increment(y,2)][increment(x,3)] == 3):
+                screen.blit(self.doorList4_2[1], (416, 128))                               
 
             #draw up three wall on right
             if (self.horizontal_wall[increment(y,1)][increment(x,3)] == 1):
                 screen.blit(self.edgeList4[1], (352, 128))                
             elif (self.horizontal_wall[increment(y,1)][increment(x,3)] == 2):
+                screen.blit(self.doorList4[1], (352, 128))                
+            elif (self.horizontal_wall[increment(y,1)][increment(x,3)] == 3):
                 screen.blit(self.doorList4[1], (352, 128))                
 
             #draw straight two block wall left two
@@ -896,11 +1014,15 @@ class Dungeon:
                 screen.blit(self.center3, (0, 128))
             elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 2):
                 screen.blit(self.door3, (0,128))
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 3):
+                screen.blit(self.door3, (0,128))
 
             #draw straight two block wall left one
             if (self.vertical_wall[decrement(y,1)][increment(x,3)] == 1):
                 screen.blit(self.center3, (128, 128))
             elif (self.vertical_wall[decrement(y,1)][increment(x,3)] == 2):
+                screen.blit(self.door3, (128,128))
+            elif (self.vertical_wall[decrement(y,1)][increment(x,3)] == 3):
                 screen.blit(self.door3, (128,128))
 
             #draw straight two block wall
@@ -908,17 +1030,23 @@ class Dungeon:
                 screen.blit(self.center3, (256, 128))
             elif (self.vertical_wall[y][increment(x,3)] == 2):
                 screen.blit(self.door3, (256,128))
+            elif (self.vertical_wall[y][increment(x,3)] == 3):
+                screen.blit(self.door3, (256,128))
 
             #draw straight two block wall right one
             if (self.vertical_wall[increment(y,1)][increment(x,3)] == 1):
                 screen.blit(self.center3, (384, 128))
             elif (self.vertical_wall[increment(y,1)][increment(x,3)] == 2):
                 screen.blit(self.door3, (384,128))
+            elif (self.vertical_wall[increment(y,1)][increment(x,3)] == 3):
+                screen.blit(self.door3, (384,128))
 
             #draw straight two block wall right two
             if (self.vertical_wall[increment(y,2)][increment(x,3)] == 1):
                 screen.blit(self.center3, (512, 128))
             elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 2):
+                screen.blit(self.door3, (512,128))
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 3):
                 screen.blit(self.door3, (512,128))
 
 
@@ -928,11 +1056,15 @@ class Dungeon:
                 screen.blit(self.edgeList3_3[0], (-320, 64))
             elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 2):
                 screen.blit(self.doorList3_3[0], (-320, 64))
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 3):
+                screen.blit(self.doorList3_3[0], (-320, 64))
 
             #draw up two wall on left two
             if (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 1):
                 screen.blit(self.edgeList3_2[0], (-64, 64))
             elif (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 2):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 3):
                 screen.blit(self.doorList3_2[0], (-64, 64))
 
             #draw up two wall on left
@@ -940,11 +1072,15 @@ class Dungeon:
                 screen.blit(self.edgeList3[0], (192, 64))
             elif (self.horizontal_wall[y][increment(x,2)] == 2):
                 screen.blit(self.doorList3[0], (192, 64))
+            elif (self.horizontal_wall[y][increment(x,2)] == 3):
+                screen.blit(self.doorList3[0], (192, 64))
                 
             #draw up two wall on right three
             if (self.horizontal_wall[increment(y,3)][increment(x,2)] == 1):
                 screen.blit(self.edgeList3_3[1], (640, 64))                
             elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 2):
+                screen.blit(self.doorList3_3[1], (640, 64))    
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 3):
                 screen.blit(self.doorList3_3[1], (640, 64))    
 
 
@@ -953,11 +1089,15 @@ class Dungeon:
                 screen.blit(self.edgeList3_2[1], (512, 64))                
             elif (self.horizontal_wall[increment(y,2)][increment(x,2)] == 2):
                 screen.blit(self.doorList3_2[1], (512, 64))    
+            elif (self.horizontal_wall[increment(y,2)][increment(x,2)] == 3):
+                screen.blit(self.doorList3_2[1], (512, 64))    
 
             #draw up two wall on right
             if (self.horizontal_wall[increment(y,1)][increment(x,2)] == 1):
                 screen.blit(self.edgeList3[1], (384, 64))                
             elif (self.horizontal_wall[increment(y,1)][increment(x,2)] == 2):
+                screen.blit(self.doorList3[1], (384, 64))  
+            elif (self.horizontal_wall[increment(y,1)][increment(x,2)] == 3):
                 screen.blit(self.doorList3[1], (384, 64))  
 
 
@@ -966,17 +1106,23 @@ class Dungeon:
                 screen.blit(self.center2, (-64, 64))
             elif (self.vertical_wall[decrement(y,1)][increment(x,2)] == 2):
                 screen.blit(self.door2, (-64,64))
+            elif (self.vertical_wall[decrement(y,1)][increment(x,2)] == 3):
+                screen.blit(self.door2, (-64,64))
         
             #draw straight one block wall
             if (self.vertical_wall[y][increment(x,2)] == 1):
                 screen.blit(self.center2, (192, 64))
             elif (self.vertical_wall[y][increment(x,2)] == 2):
                 screen.blit(self.door2, (192, 64))
+            elif (self.vertical_wall[y][increment(x,2)] == 3):
+                screen.blit(self.door2, (192, 64))
 
             #draw straight one block wall right one
             if (self.vertical_wall[increment(y,1)][increment(x,2)] == 1):
                 screen.blit(self.center2, (448, 64))
             elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 2):
+                screen.blit(self.door2, (448,64))
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 3):
                 screen.blit(self.door2, (448,64))
 
                 
@@ -986,11 +1132,15 @@ class Dungeon:
                 screen.blit(self.edgeList2[0], (64, -64))
             elif (self.horizontal_wall[y][increment(x,1)] == 2):
                 screen.blit(self.doorList2[0], (64, -64))
+            elif (self.horizontal_wall[y][increment(x,1)] == 3):
+                screen.blit(self.doorList2[0], (64, -64))
                 
             #draw up one wall on right
             if (self.horizontal_wall[increment(y,1)][increment(x,1)] == 1):
                 screen.blit(self.edgeList2[1], (448, -64))                
             elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 2):
+                screen.blit(self.doorList2[1], (448, -64))                
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.doorList2[1], (448, -64))                
 
             #draw left one up wall
@@ -998,11 +1148,15 @@ class Dungeon:
                 screen.blit(self.center1, (-448,-64))
             elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 2):
                 screen.blit(self.door1, (-448,-64))
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 3):
+                screen.blit(self.door1, (-448,-64))
 
             #draw right one up wall
             if (self.vertical_wall[increment(y,1)][increment(x,1)] == 1):
                 screen.blit(self.center1, (576,-64))
             elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 2):
+                screen.blit(self.door1, (576,-64))
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.door1, (576,-64))
 
             #draw just up wall
@@ -1010,17 +1164,23 @@ class Dungeon:
                 screen.blit(self.center1, (64,-64))
             elif (self.vertical_wall[y][increment(x,1)] == 2):
                 screen.blit(self.door1, (64,-64))
+            elif (self.vertical_wall[y][increment(x,1)] == 3):
+                screen.blit(self.door1, (64,-64))
 
             #draw wall on left
             if (self.horizontal_wall[y][x] == 1):
                 screen.blit(self.edgeList1[0], (-192, -320))
             elif (self.horizontal_wall[y][x] == 2):
                 screen.blit(self.doorList1[0], (-192, -320))
+            elif (self.horizontal_wall[y][x] == 3):
+                screen.blit(self.doorList1[0], (-192, -320))
 
             #draw wall on right
             if (self.horizontal_wall[increment(y,1)][x] == 1):
                 screen.blit(self.edgeList1[1], (576, -320))
             elif (self.horizontal_wall[increment(y,1)][x] == 2):
+                screen.blit(self.doorList1[1], (576, -320))
+            elif (self.horizontal_wall[increment(y,1)][x] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
 
         #if party is looking down
@@ -1096,11 +1256,15 @@ class Dungeon:
                 screen.blit(self.center4, (160, 160))
             elif (self.horizontal_wall[increment(y,4)][increment(x,2)] == 2):
                 screen.blit(self.door4, (160,160))                                               
+            elif (self.horizontal_wall[increment(y,4)][increment(x,2)] == 3):
+                screen.blit(self.door4, (160,160))                                               
 
             #draw straight three block wall left one
             if (self.horizontal_wall[increment(y,4)][increment(x,1)] == 1):
                 screen.blit(self.center4, (224, 160))
             elif (self.horizontal_wall[increment(y,4)][increment(x,1)] == 2):
+                screen.blit(self.door4, (224,160))                                               
+            elif (self.horizontal_wall[increment(y,4)][increment(x,1)] == 3):
                 screen.blit(self.door4, (224,160))                                               
 
             #draw straight three block wall
@@ -1108,11 +1272,15 @@ class Dungeon:
                 screen.blit(self.center4, (288, 160))
             elif (self.horizontal_wall[increment(y,4)][x] == 2):
                 screen.blit(self.door4, (288,160))
+            elif (self.horizontal_wall[increment(y,4)][x] == 3):
+                screen.blit(self.door4, (288,160))
 
             #draw straight three block wall right one
             if (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 1):
                 screen.blit(self.center4, (352, 160))
             elif (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 2):
+                screen.blit(self.door4, (352,160))                                               
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 3):
                 screen.blit(self.door4, (352,160))                                               
 
             #draw straight three block wall right two
@@ -1120,17 +1288,23 @@ class Dungeon:
                 screen.blit(self.center4, (416, 160))
             elif (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 2):
                 screen.blit(self.door4, (416,160))
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 3):
+                screen.blit(self.door4, (416,160))
 
             #draw up three wall on left three
             if (self.vertical_wall[increment(y,3)][increment(x,3)] == 1):
                 screen.blit(self.edgeList4_3[0], (0, 128))
             elif (self.vertical_wall[increment(y,3)][increment(x,3)] == 2):
                 screen.blit(self.doorList4_3[0], (0, 128))
+            elif (self.vertical_wall[increment(y,3)][increment(x,3)] == 3):
+                screen.blit(self.doorList4_3[0], (0, 128))
 
             #draw up three wall on left two
             if (self.vertical_wall[increment(y,3)][increment(x,2)] == 1):
                 screen.blit(self.edgeList4_2[0], (128, 128))
             elif (self.vertical_wall[increment(y,3)][increment(x,2)] == 2):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            elif (self.vertical_wall[increment(y,3)][increment(x,2)] == 3):
                 screen.blit(self.doorList4_2[0], (128, 128))
 
 
@@ -1139,6 +1313,8 @@ class Dungeon:
                 screen.blit(self.edgeList4[0], (256, 128))
             elif (self.vertical_wall[increment(y,3)][increment(x,1)] == 2):
                 screen.blit(self.doorList4[0], (256, 128))
+            elif (self.vertical_wall[increment(y,3)][increment(x,1)] == 3):
+                screen.blit(self.doorList4[0], (256, 128))
 
 
             #draw up three wall on right three
@@ -1146,17 +1322,23 @@ class Dungeon:
                 screen.blit(self.edgeList4_3[1], (480, 128))                
             elif (self.vertical_wall[increment(y,3)][decrement(x,2)] == 2):
                 screen.blit(self.doorList4_3[1], (480, 128))  
+            elif (self.vertical_wall[increment(y,3)][decrement(x,2)] == 3):
+                screen.blit(self.doorList4_3[1], (480, 128))  
 
             #draw up three wall on right two
             if (self.vertical_wall[increment(y,3)][decrement(x,1)] == 1):
                 screen.blit(self.edgeList4_2[1], (416, 128))                
             elif (self.vertical_wall[increment(y,3)][decrement(x,1)] == 2):
                 screen.blit(self.doorList4_2[1], (416, 128))                               
+            elif (self.vertical_wall[increment(y,3)][decrement(x,1)] == 3):
+                screen.blit(self.doorList4_2[1], (416, 128))                               
 
             #draw up three wall on right
             if (self.vertical_wall[increment(y,3)][x] == 1):
                 screen.blit(self.edgeList4[1], (352, 128))                
             elif (self.vertical_wall[increment(y,3)][x] == 2):
+                screen.blit(self.doorList4[1], (352, 128))                
+            elif (self.vertical_wall[increment(y,3)][x] == 3):
                 screen.blit(self.doorList4[1], (352, 128))                
 
 
@@ -1166,6 +1348,8 @@ class Dungeon:
                 screen.blit(self.center3, (0, 128))
             elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 2):
                 screen.blit(self.door3, (0,128))
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 3):
+                screen.blit(self.door3, (0,128))
 
 
             #draw straight two block wall left one
@@ -1173,11 +1357,15 @@ class Dungeon:
                 screen.blit(self.center3, (128, 128))
             elif (self.horizontal_wall[increment(y,3)][increment(x,1)] == 2):
                 screen.blit(self.door3, (128,128))
+            elif (self.horizontal_wall[increment(y,3)][increment(x,1)] == 3):
+                screen.blit(self.door3, (128,128))
 
             #draw straight two block wall
             if (self.horizontal_wall[increment(y,3)][x] == 1):
                 screen.blit(self.center3, (256, 128))
             elif (self.horizontal_wall[increment(y,3)][x] == 2):
+                screen.blit(self.door3, (256,128))
+            elif (self.horizontal_wall[increment(y,3)][x] == 3):
                 screen.blit(self.door3, (256,128))
 
             #draw straight two block wall right one
@@ -1185,11 +1373,15 @@ class Dungeon:
                 screen.blit(self.center3, (384, 128))
             elif (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 2):
                 screen.blit(self.door3, (384,128))
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 3):
+                screen.blit(self.door3, (384,128))
 
             #draw straight two block wall right two
             if (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 1):
                 screen.blit(self.center3, (512, 128))
             elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 2):
+                screen.blit(self.door3, (512,128))
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 3):
                 screen.blit(self.door3, (512,128))
 
 
@@ -1198,11 +1390,15 @@ class Dungeon:
                 screen.blit(self.edgeList3_3[0], (-320, 64))
             elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 2):
                 screen.blit(self.doorList3_3[0], (-320, 64))
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 3):
+                screen.blit(self.doorList3_3[0], (-320, 64))
 
             #draw up two wall on left two
             if (self.vertical_wall[increment(y,2)][increment(x,2)] == 1):
                 screen.blit(self.edgeList3_2[0], (-64, 64))
             elif (self.vertical_wall[increment(y,2)][increment(x,2)] == 2):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            elif (self.vertical_wall[increment(y,2)][increment(x,2)] == 3):
                 screen.blit(self.doorList3_2[0], (-64, 64))
 
             #draw up two wall on left
@@ -1210,11 +1406,15 @@ class Dungeon:
                 screen.blit(self.edgeList3[0], (192, 64))
             elif (self.vertical_wall[increment(y,2)][increment(x,1)] == 2):
                 screen.blit(self.doorList3[0], (192, 64))
+            elif (self.vertical_wall[increment(y,2)][increment(x,1)] == 3):
+                screen.blit(self.doorList3[0], (192, 64))
                 
             #draw up two wall on right three
             if (self.vertical_wall[increment(y,2)][decrement(x,2)] == 1):
                 screen.blit(self.edgeList3_3[1], (640, 64))                
             elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 2):
+                screen.blit(self.doorList3_3[1], (640, 64))    
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 3):
                 screen.blit(self.doorList3_3[1], (640, 64))    
 
 
@@ -1223,11 +1423,15 @@ class Dungeon:
                 screen.blit(self.edgeList3_2[1], (512, 64))                
             elif (self.vertical_wall[increment(y,2)][decrement(x,1)] == 2):
                 screen.blit(self.doorList3_2[1], (512, 64))    
+            elif (self.vertical_wall[increment(y,2)][decrement(x,1)] == 3):
+                screen.blit(self.doorList3_2[1], (512, 64))    
 
             #draw up two wall on right
             if (self.vertical_wall[increment(y,2)][x] == 1):
                 screen.blit(self.edgeList3[1], (384, 64))                
             elif (self.vertical_wall[increment(y,2)][x] == 2):
+                screen.blit(self.doorList3[1], (384, 64))  
+            elif (self.vertical_wall[increment(y,2)][x] == 3):
                 screen.blit(self.doorList3[1], (384, 64))  
 
             #draw straight one block wall left one
@@ -1235,11 +1439,15 @@ class Dungeon:
                 screen.blit(self.center2, (-64, 64))
             elif (self.horizontal_wall[increment(y,2)][increment(x,1)] == 2):
                 screen.blit(self.door2, (-64,64))
+            elif (self.horizontal_wall[increment(y,2)][increment(x,1)] == 3):
+                screen.blit(self.door2, (-64,64))
         
             #draw straight one block wall
             if (self.horizontal_wall[increment(y,2)][x] == 1):
                 screen.blit(self.center2, (192, 64))
             elif (self.horizontal_wall[increment(y,2)][x] == 2):
+                screen.blit(self.door2, (192, 64))
+            elif (self.horizontal_wall[increment(y,2)][x] == 3):
                 screen.blit(self.door2, (192, 64))
 
             #draw straight one block wall right one
@@ -1247,11 +1455,15 @@ class Dungeon:
                 screen.blit(self.center2, (448, 64))
             elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 2):
                 screen.blit(self.door2, (448,64))
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 3):
+                screen.blit(self.door2, (448,64))
 
             #draw up one wall on left
             if (self.vertical_wall[increment(y,1)][increment(x,1)] == 1):
                 screen.blit(self.edgeList2[0], (64, -64))
             elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 2):
+                screen.blit(self.doorList2[0], (64, -64))
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
                 
             #draw up one wall on right
@@ -1259,11 +1471,15 @@ class Dungeon:
                 screen.blit(self.edgeList2[1], (448, -64))                
             elif (self.vertical_wall[increment(y,1)][x] == 2):
                 screen.blit(self.doorList2[1], (448, -64))                
+            elif (self.vertical_wall[increment(y,1)][x] == 3):
+                screen.blit(self.doorList2[1], (448, -64))                
 
             #draw left one up wall
             if (self.horizontal_wall[increment(y,1)][increment(x,1)] == 1):
                 screen.blit(self.center1, (-448,-64))
             elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 2):
+                screen.blit(self.door1, (-448,-64))
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.door1, (-448,-64))
 
             #draw right one up wall
@@ -1271,11 +1487,15 @@ class Dungeon:
                 screen.blit(self.center1, (576,-64))
             elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 2):
                 screen.blit(self.door1, (576,-64))
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 3):
+                screen.blit(self.door1, (576,-64))
 
             #draw just up wall
             if (self.horizontal_wall[increment(y,1)][x] == 1):
                 screen.blit(self.center1, (64,-64))
             if (self.horizontal_wall[increment(y,1)][x] == 2):
+                screen.blit(self.door1, (64,-64))
+            if (self.horizontal_wall[increment(y,1)][x] == 3):
                 screen.blit(self.door1, (64,-64))
 
             #draw wall on left
@@ -1283,11 +1503,15 @@ class Dungeon:
                 screen.blit(self.edgeList1[0], (-192, -320))
             elif (self.vertical_wall[y][increment(x,1)] == 2):
                 screen.blit(self.doorList1[0], (-192, -320))
+            elif (self.vertical_wall[y][increment(x,1)] == 3):
+                screen.blit(self.doorList1[0], (-192, -320))
 
             #draw wall on right
             if (self.vertical_wall[y][x] == 1):
                 screen.blit(self.edgeList1[1], (576, -320))
             elif (self.vertical_wall[y][x] == 2):
+                screen.blit(self.doorList1[1], (576, -320))
+            elif (self.vertical_wall[y][x] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
 
         #if the player is looking left
@@ -1361,11 +1585,15 @@ class Dungeon:
                 screen.blit(self.center4, (160, 160))
             elif (self.vertical_wall[increment(y,2)][decrement(x,3)] == 2):
                 screen.blit(self.door4, (160,160))                                               
+            elif (self.vertical_wall[increment(y,2)][decrement(x,3)] == 3):
+                screen.blit(self.door4, (160,160))                                               
 
             #draw straight three block wall left one
             if (self.vertical_wall[increment(y,1)][decrement(x,3)] == 1):
                 screen.blit(self.center4, (224, 160))
             elif (self.vertical_wall[increment(y,1)][decrement(x,3)] == 2):
+                screen.blit(self.door4, (224,160))                                               
+            elif (self.vertical_wall[increment(y,1)][decrement(x,3)] == 3):
                 screen.blit(self.door4, (224,160))                                               
 
             #draw straight three block wall
@@ -1373,11 +1601,15 @@ class Dungeon:
                 screen.blit(self.center4, (288, 160))
             elif (self.vertical_wall[y][decrement(x,3)] == 2):
                 screen.blit(self.door4, (288,160))
+            elif (self.vertical_wall[y][decrement(x,3)] == 3):
+                screen.blit(self.door4, (288,160))
 
             #draw straight three block wall right one
             if (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 1):
                 screen.blit(self.center4, (352, 160))
             elif (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 2):
+                screen.blit(self.door4, (352,160))                                               
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 3):
                 screen.blit(self.door4, (352,160))                                               
 
             #draw straight three block wall right two
@@ -1385,11 +1617,15 @@ class Dungeon:
                 screen.blit(self.center4, (416, 160))
             elif (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 2):
                 screen.blit(self.door4, (416,160))
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 3):
+                screen.blit(self.door4, (416,160))
 
             #draw up three wall on left three
             if (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 1):
                 screen.blit(self.edgeList4_3[0], (0, 128))
             elif (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 2):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 3):
                 screen.blit(self.doorList4_3[0], (0, 128))
 
             #draw up three wall on left two
@@ -1397,11 +1633,15 @@ class Dungeon:
                 screen.blit(self.edgeList4_2[0], (128, 128))
             elif (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 2):
                 screen.blit(self.doorList4_2[0], (128, 128))
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 3):
+                screen.blit(self.doorList4_2[0], (128, 128))
 
             #draw up three wall on left
             if (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 1):
                 screen.blit(self.edgeList4[0], (256, 128))
             elif (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 2):
+                screen.blit(self.doorList4[0], (256, 128))
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 3):
                 screen.blit(self.doorList4[0], (256, 128))
 
             #draw up three wall on right three
@@ -1409,11 +1649,15 @@ class Dungeon:
                 screen.blit(self.edgeList4_3[1], (480, 128))                
             elif (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 2):
                 screen.blit(self.doorList4_3[1], (480, 128))  
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 3):
+                screen.blit(self.doorList4_3[1], (480, 128))  
 
             #draw up three wall on right two
             if (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 1):
                 screen.blit(self.edgeList4_2[1], (416, 128))                
             elif (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 2):
+                screen.blit(self.doorList4_2[1], (416, 128))                               
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 3):
                 screen.blit(self.doorList4_2[1], (416, 128))                               
 
             #draw up three wall on right
@@ -1421,17 +1665,23 @@ class Dungeon:
                 screen.blit(self.edgeList4[1], (352, 128))                
             elif (self.horizontal_wall[y][decrement(x,3)] == 2):
                 screen.blit(self.doorList4[1], (352, 128))  
+            elif (self.horizontal_wall[y][decrement(x,3)] == 3):
+                screen.blit(self.doorList4[1], (352, 128))  
 
             #draw straight two block wall left two
             if (self.vertical_wall[increment(y,2)][decrement(x,2)] == 1):
                 screen.blit(self.center3, (0, 128))
             elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 2):
                 screen.blit(self.door3, (0,128))
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 3):
+                screen.blit(self.door3, (0,128))
 
             #draw straight two block wall left one
             if (self.vertical_wall[increment(y,1)][decrement(x,2)] == 1):
                 screen.blit(self.center3, (128, 128))
-            elif (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 2):
+            elif (self.vertical_wall[increment(y,1)][decrement(x,2)] == 2):
+                screen.blit(self.door3, (128,128))
+            elif (self.vertical_wall[increment(y,1)][decrement(x,2)] == 3):
                 screen.blit(self.door3, (128,128))
 
             #draw straight two block wall
@@ -1439,11 +1689,15 @@ class Dungeon:
                 screen.blit(self.center3, (256, 128))
             elif (self.vertical_wall[y][decrement(x,2)] == 2):
                 screen.blit(self.door3, (256,128))
+            elif (self.vertical_wall[y][decrement(x,2)] == 3):
+                screen.blit(self.door3, (256,128))
 
             #draw straight two block wall right one
             if (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 1):
                 screen.blit(self.center3, (384, 128))
-            elif (self.vertical_wall[increment(y,1)][decrement(x,2)] == 2):
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 2):
+                screen.blit(self.door3, (384,128))
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 3):
                 screen.blit(self.door3, (384,128))
 
             #draw straight two block wall right two
@@ -1451,11 +1705,15 @@ class Dungeon:
                 screen.blit(self.center3, (512, 128))
             elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 2):
                 screen.blit(self.door3, (512,128))
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 3):
+                screen.blit(self.door3, (512,128))
 
             #draw up two wall on left three
             if (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 1):
                 screen.blit(self.edgeList3_3[0], (-320, 64))
             elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 2):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 3):
                 screen.blit(self.doorList3_3[0], (-320, 64))
 
             #draw up two wall on left two
@@ -1463,17 +1721,23 @@ class Dungeon:
                 screen.blit(self.edgeList3_2[0], (-64, 64))
             elif (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 2):
                 screen.blit(self.doorList3_2[0], (-64, 64))
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 3):
+                screen.blit(self.doorList3_2[0], (-64, 64))
 
             #draw up two wall on left
             if (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 1):
                 screen.blit(self.edgeList3[0], (192, 64))
             elif (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 2):
                 screen.blit(self.doorList3[0], (192, 64))
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 3):
+                screen.blit(self.doorList3[0], (192, 64))
                 
             #draw up two wall on right three
             if (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 1):
                 screen.blit(self.edgeList3_3[1], (640, 64))                
             elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 2):
+                screen.blit(self.doorList3_3[1], (640, 64))    
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 3):
                 screen.blit(self.doorList3_3[1], (640, 64))    
 
 
@@ -1482,11 +1746,15 @@ class Dungeon:
                 screen.blit(self.edgeList3_2[1], (512, 64))                
             elif (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 2):
                 screen.blit(self.doorList3_2[1], (512, 64))    
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 3):
+                screen.blit(self.doorList3_2[1], (512, 64))    
 
             #draw up two wall on right
             if (self.horizontal_wall[y][decrement(x,2)] == 1):
                 screen.blit(self.edgeList3[1], (384, 64))                
             elif (self.horizontal_wall[y][decrement(x,2)] == 2):
+                screen.blit(self.doorList3[1], (384, 64))  
+            elif (self.horizontal_wall[y][decrement(x,2)] == 3):
                 screen.blit(self.doorList3[1], (384, 64))  
                 
             #draw straight one block wall left one
@@ -1494,17 +1762,24 @@ class Dungeon:
                 screen.blit(self.center2, (-64, 64))
             elif (self.vertical_wall[increment(y,1)][decrement(x,1)] == 2):
                 screen.blit(self.door2, (-64,64))
+            elif (self.vertical_wall[increment(y,1)][decrement(x,1)] == 3):
+                screen.blit(self.door2, (-64,64))
         
             #draw straight one block wall
             if (self.vertical_wall[y][decrement(x,1)] == 1):
                 screen.blit(self.center2, (192, 64))
             elif (self.vertical_wall[y][decrement(x,1)] == 2):
                 screen.blit(self.door2, (192, 64))
+            elif (self.vertical_wall[y][decrement(x,1)] == 3):
+                screen.blit(self.door2, (192, 64))
+
 
             #draw straight one block wall right one
             if (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 1):
                 screen.blit(self.center2, (448, 64))
             elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 2):
+                screen.blit(self.door2, (448,64))
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 3):
                 screen.blit(self.door2, (448,64))
 
 
@@ -1513,11 +1788,15 @@ class Dungeon:
                 screen.blit(self.edgeList2[0], (64, -64))
             elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 2):
                 screen.blit(self.doorList2[0], (64, -64))
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 3):
+                screen.blit(self.doorList2[0], (64, -64))
                 
             #draw up one wall on right
             if (self.horizontal_wall[y][decrement(x,1)] == 1):
                 screen.blit(self.edgeList2[1], (448, -64))                
             elif (self.horizontal_wall[y][decrement(x,1)] == 2):
+                screen.blit(self.doorList2[1], (448, -64))                
+            elif (self.horizontal_wall[y][decrement(x,1)] == 3):
                 screen.blit(self.doorList2[1], (448, -64))                
 
             #draw left one up wall
@@ -1525,11 +1804,15 @@ class Dungeon:
                 screen.blit(self.center1, (-448,-64))
             elif (self.vertical_wall[increment(y,1)][x] == 2):
                 screen.blit(self.door1, (-448,-64))
+            elif (self.vertical_wall[increment(y,1)][x] == 3):
+                screen.blit(self.door1, (-448,-64))
 
             #draw right one up wall
             if (self.vertical_wall[decrement(y,1)][x] == 1):
                 screen.blit(self.center1, (576,-64))
             if (self.vertical_wall[decrement(y,1)][x] == 2):
+                screen.blit(self.door1, (576,-64))
+            if (self.vertical_wall[decrement(y,1)][x] == 3):
                 screen.blit(self.door1, (576,-64))
 
             #draw just up wall
@@ -1537,17 +1820,23 @@ class Dungeon:
                 screen.blit(self.center1, (64,-64))
             elif (self.vertical_wall[y][x] == 2):
                 screen.blit(self.door1, (64,-64))
+            elif (self.vertical_wall[y][x] == 3):
+                screen.blit(self.door1, (64,-64))
 
             #draw wall on left
             if (self.horizontal_wall[increment(y,1)][x] == 1):
                 screen.blit(self.edgeList1[0], (-192, -320))
             elif (self.horizontal_wall[increment(y,1)][x] == 2):
                 screen.blit(self.doorList1[0], (-192, -320))
+            elif (self.horizontal_wall[increment(y,1)][x] == 3):
+                screen.blit(self.doorList1[0], (-192, -320))
 
             #draw wall on right
             if (self.horizontal_wall[y][x] == 1):
                 screen.blit(self.edgeList1[1], (576, -320))
             elif (self.horizontal_wall[y][x] == 2):
+                screen.blit(self.doorList1[1], (576, -320))
+            elif (self.horizontal_wall[y][x] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
 
 
@@ -1598,11 +1887,15 @@ class Dungeon:
                 screen.blit(self.center2, (192, 64))
             elif (self.horizontal_wall[decrement(y,1)][x] == 2):
                 screen.blit(self.door2, (192,64))
+            elif (self.horizontal_wall[decrement(y,1)][x] == 3):
+                screen.blit(self.door2, (192,64))
 
             #draw up one wall on left
             if (self.vertical_wall[decrement(y,1)][x] == 1):
                 screen.blit(self.edgeList2[0], (64, -64))
             elif (self.vertical_wall[decrement(y,1)][x] == 2):
+                screen.blit(self.doorList2[0], (64, -64))
+            elif (self.vertical_wall[decrement(y,1)][x] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
                                    
             #draw up one wall on right
@@ -1610,11 +1903,15 @@ class Dungeon:
                 screen.blit(self.edgeList2[1], (448, -64))                
             elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 2):
                 screen.blit(self.doorList2[1], (448, -64))                
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 3):
+                screen.blit(self.doorList2[1], (448, -64))                
 
             #draw left one up wall
             if (self.horizontal_wall[y][decrement(x,1)] == 1):
                 screen.blit(self.center1, (-448,-64))
             elif (self.horizontal_wall[y][decrement(x,1)] == 2):
+                screen.blit(self.door1, (-448,-64))
+            elif (self.horizontal_wall[y][decrement(x,1)] == 3):
                 screen.blit(self.door1, (-448,-64))
 
             #draw right one up wall
@@ -1622,11 +1919,15 @@ class Dungeon:
                 screen.blit(self.center1, (576,-64))
             elif (self.horizontal_wall[y][increment(x,1)] == 2):
                 screen.blit(self.door1, (576,-64))
+            elif (self.horizontal_wall[y][increment(x,1)] == 3):
+                screen.blit(self.door1, (576,-64))
 
             #draw just up wall
             if (self.horizontal_wall[y][x] == 1):
                 screen.blit(self.center1, (64,-64))
             elif (self.horizontal_wall[y][x] == 2):
+                screen.blit(self.door1, (64,-64))
+            elif (self.horizontal_wall[y][x] == 3):
                 screen.blit(self.door1, (64,-64))
 
             #draw wall on left
@@ -1634,11 +1935,15 @@ class Dungeon:
                 screen.blit(self.edgeList1[0], (-192, -320))
             elif (self.vertical_wall[y][x] == 2):
                 screen.blit(self.doorList1[0], (-192, -320))
+            elif (self.vertical_wall[y][x] == 3):
+                screen.blit(self.doorList1[0], (-192, -320))
 
             #draw wall on right
             if (self.vertical_wall[y][increment(x,1)] == 1):
                 screen.blit(self.edgeList1[1], (576, -320))
             elif (self.vertical_wall[y][increment(x,1)] == 2):
+                screen.blit(self.doorList1[1], (576, -320))
+            elif (self.vertical_wall[y][increment(x,1)] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
 
         #if player is looking right
@@ -1673,11 +1978,15 @@ class Dungeon:
                 screen.blit(self.center2, (192, 64))
             elif (self.vertical_wall[y][increment(x,2)] == 2):
                 screen.blit(self.door2, (192, 64))
+            elif (self.vertical_wall[y][increment(x,2)] == 3):
+                screen.blit(self.door2, (192, 64))
 
             #draw up one wall on left
             if (self.horizontal_wall[y][increment(x,1)] == 1):
                 screen.blit(self.edgeList2[0], (64, -64))
             elif (self.horizontal_wall[y][increment(x,1)] == 2):
+                screen.blit(self.doorList2[0], (64, -64))
+            elif (self.horizontal_wall[y][increment(x,1)] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
                 
             #draw up one wall on right
@@ -1685,11 +1994,15 @@ class Dungeon:
                 screen.blit(self.edgeList2[1], (448, -64))                
             elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 2):
                 screen.blit(self.doorList2[1], (448, -64))                
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 3):
+                screen.blit(self.doorList2[1], (448, -64))                
 
             #draw left one up wall
             if (self.vertical_wall[decrement(y,1)][increment(x,1)] == 1):
                 screen.blit(self.center1, (-448,-64))
             elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 2):
+                screen.blit(self.door1, (-448,-64))
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 3):
                 screen.blit(self.door1, (-448,-64))
 
             #draw right one up wall
@@ -1697,11 +2010,15 @@ class Dungeon:
                 screen.blit(self.center1, (576,-64))
             elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 2):
                 screen.blit(self.door1, (576,-64))
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 3):
+                screen.blit(self.door1, (576,-64))
 
             #draw just up wall
             if (self.vertical_wall[y][increment(x,1)] == 1):
                 screen.blit(self.center1, (64,-64))
             elif (self.vertical_wall[y][increment(x,1)] == 2):
+                screen.blit(self.door1, (64,-64))
+            elif (self.vertical_wall[y][increment(x,1)] == 3):
                 screen.blit(self.door1, (64,-64))
 
             #draw wall on left
@@ -1709,11 +2026,15 @@ class Dungeon:
                 screen.blit(self.edgeList1[0], (-192, -320))
             elif (self.horizontal_wall[y][x] == 2):
                 screen.blit(self.doorList1[0], (-192, -320))
+            elif (self.horizontal_wall[y][x] == 3):
+                screen.blit(self.doorList1[0], (-192, -320))
 
             #draw wall on right
             if (self.horizontal_wall[increment(y,1)][x] == 1):
                 screen.blit(self.edgeList1[1], (576, -320))
             elif (self.horizontal_wall[increment(y,1)][x] == 2):
+                screen.blit(self.doorList1[1], (576, -320))
+            elif (self.horizontal_wall[increment(y,1)][x] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
 
         #if party is looking down
@@ -1748,11 +2069,15 @@ class Dungeon:
                 screen.blit(self.center2, (192, 64))
             elif (self.horizontal_wall[increment(y,2)][x] == 2):
                 screen.blit(self.door2, (192, 64))
+            elif (self.horizontal_wall[increment(y,2)][x] == 3):
+                screen.blit(self.door2, (192, 64))
 
             #draw up one wall on left
             if (self.vertical_wall[increment(y,1)][increment(x,1)] == 1):
                 screen.blit(self.edgeList2[0], (64, -64))
             elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 2):
+                screen.blit(self.doorList2[0], (64, -64))
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
                 
             #draw up one wall on right
@@ -1760,11 +2085,15 @@ class Dungeon:
                 screen.blit(self.edgeList2[1], (448, -64))                
             elif (self.vertical_wall[increment(y,1)][x] == 2):
                 screen.blit(self.doorList2[1], (448, -64))                
+            elif (self.vertical_wall[increment(y,1)][x] == 3):
+                screen.blit(self.doorList2[1], (448, -64))                
 
             #draw left one up wall
             if (self.horizontal_wall[increment(y,1)][increment(x,1)] == 1):
                 screen.blit(self.center1, (-448,-64))
             elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 2):
+                screen.blit(self.door1, (-448,-64))
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.door1, (-448,-64))
 
             #draw right one up wall
@@ -1772,11 +2101,15 @@ class Dungeon:
                 screen.blit(self.center1, (576,-64))
             elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 2):
                 screen.blit(self.door1, (576,-64))
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 3):
+                screen.blit(self.door1, (576,-64))
 
             #draw just up wall
             if (self.horizontal_wall[increment(y,1)][x] == 1):
                 screen.blit(self.center1, (64,-64))
             if (self.horizontal_wall[increment(y,1)][x] == 2):
+                screen.blit(self.door1, (64,-64))
+            if (self.horizontal_wall[increment(y,1)][x] == 3):
                 screen.blit(self.door1, (64,-64))
 
             #draw wall on left
@@ -1784,11 +2117,15 @@ class Dungeon:
                 screen.blit(self.edgeList1[0], (-192, -320))
             elif (self.vertical_wall[y][increment(x,1)] == 2):
                 screen.blit(self.doorList1[0], (-192, -320))
+            elif (self.vertical_wall[y][increment(x,1)] == 3):
+                screen.blit(self.doorList1[0], (-192, -320))
 
             #draw wall on right
             if (self.vertical_wall[y][x] == 1):
                 screen.blit(self.edgeList1[1], (576, -320))
             elif (self.vertical_wall[y][x] == 2):
+                screen.blit(self.doorList1[1], (576, -320))
+            elif (self.vertical_wall[y][x] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
 
         #if the player is looking left
@@ -1823,11 +2160,15 @@ class Dungeon:
                 screen.blit(self.center2, (192, 64))
             elif (self.vertical_wall[y][decrement(x,1)] == 2):
                 screen.blit(self.door2, (192, 64))
+            elif (self.vertical_wall[y][decrement(x,1)] == 3):
+                screen.blit(self.door2, (192, 64))
 
             #draw up one wall on left
             if (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 1):
                 screen.blit(self.edgeList2[0], (64, -64))
             elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 2):
+                screen.blit(self.doorList2[0], (64, -64))
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
                 
             #draw up one wall on right
@@ -1835,11 +2176,15 @@ class Dungeon:
                 screen.blit(self.edgeList2[1], (448, -64))                
             elif (self.horizontal_wall[y][decrement(x,1)] == 2):
                 screen.blit(self.doorList2[1], (448, -64))                
+            elif (self.horizontal_wall[y][decrement(x,1)] == 3):
+                screen.blit(self.doorList2[1], (448, -64))                
 
             #draw left one up wall
             if (self.vertical_wall[increment(y,1)][x] == 1):
                 screen.blit(self.center1, (-448,-64))
             elif (self.vertical_wall[increment(y,1)][x] == 2):
+                screen.blit(self.door1, (-448,-64))
+            elif (self.vertical_wall[increment(y,1)][x] == 3):
                 screen.blit(self.door1, (-448,-64))
 
             #draw right one up wall
@@ -1847,11 +2192,15 @@ class Dungeon:
                 screen.blit(self.center1, (576,-64))
             if (self.vertical_wall[decrement(y,1)][x] == 2):
                 screen.blit(self.door1, (576,-64))
+            if (self.vertical_wall[decrement(y,1)][x] == 3):
+                screen.blit(self.door1, (576,-64))
 
             #draw just up wall
             if (self.vertical_wall[y][x] == 1):
                 screen.blit(self.center1, (64,-64))
             elif (self.vertical_wall[y][x] == 2):
+                screen.blit(self.door1, (64,-64))
+            elif (self.vertical_wall[y][x] == 3):
                 screen.blit(self.door1, (64,-64))
 
             #draw wall on left
@@ -1859,11 +2208,15 @@ class Dungeon:
                 screen.blit(self.edgeList1[0], (-192, -320))
             elif (self.horizontal_wall[increment(y,1)][x] == 2):
                 screen.blit(self.doorList1[0], (-192, -320))
+            elif (self.horizontal_wall[increment(y,1)][x] == 3):
+                screen.blit(self.doorList1[0], (-192, -320))
 
             #draw wall on right
             if (self.horizontal_wall[y][x] == 1):
                 screen.blit(self.edgeList1[1], (576, -320))
             elif (self.horizontal_wall[y][x] == 2):
+                screen.blit(self.doorList1[1], (576, -320))
+            elif (self.horizontal_wall[y][x] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
 
 

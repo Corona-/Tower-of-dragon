@@ -19,7 +19,7 @@ by pyinstaller
 
 1.Create folder and include all files in the folder
 
-2.on command line: Makespec.py --onefile --windowed --tk tower_of_dragonvxxx\tower_of_dragon.py
+2.on command line: Makespec.py --onefile --windowed --tk tower\tower_of_dragon.py
 
 (2.5 to add file : 
 	collect = COLLECT(a.binaries +

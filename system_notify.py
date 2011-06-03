@@ -878,6 +878,8 @@ class Confirm_window(window.Window):
     DOWNSTAIRS = 30
     UPSTAIRS= 31
 
+    SEARCH = 32
+
 
     YES, NO = 0, 1
     MENU_MAX = 1
@@ -927,6 +929,8 @@ class Confirm_window(window.Window):
              confirm_font = self.menu_font.render( u"下りる階段があります　下りますか？", True, COLOR_WHITE)
          elif self.instruction == self.UPSTAIRS:
              confirm_font = self.menu_font.render( u"上る階段があります　上りますか？", True, COLOR_WHITE)
+         elif self.instruction == self.SEARCH:
+             confirm_font = self.menu_font.render( u"探しますか？", True, COLOR_WHITE)
                
 
          yes_font = self.menu_font.render( u"はい", True, COLOR_WHITE) 
@@ -963,6 +967,12 @@ class Confirm_window(window.Window):
                     self.menu = 0
 
         if event.type == KEYDOWN and event.key == K_x:
+            if self.instruction == self.SEARCH:
+                self.is_visible = False
+                game_self.dungeon.dungeon_message_window.search_window = None
+                game_self.dungeon.dungeon_message_window.is_visible = False
+                return
+
             self.menu = 0
             self.is_visible = False
 
@@ -1129,8 +1139,35 @@ class Confirm_window(window.Window):
                 else:
                     self.is_visible = False
                     self = None
-                    
 
+            elif self.instruction == self.SEARCH:
+
+                if self.menu == self.YES:
+                    if game_self.dungeon.dungeon_message_window.coordinate == [10, 3, 1]:
+                        game_self.dungeon.dungeon_message_window.message.append( "" )
+                        game_self.dungeon.dungeon_message_window.message.append( u"冒険者は銅の鍵を見つけた!" )
+
+
+                    i = 0
+                    for chara in game_self.party.member:
+                        while (len(chara.items) < chara.item_max):
+                            chara.items.append( item.Item( game_self.item_data[900]))
+                            i+=1
+                            break
+                        if i == 1:
+                            break
+                        
+                    self.is_visible = False
+                    game_self.dungeon.dungeon_message_window.search_window = None
+                    #game_self.dungeon.dungeon_message_window.is_visible = False
+     
+                        
+                else:
+                    self.is_visible = False
+                    game_self.dungeon.dungeon_message_window.search_window = None
+                    game_self.dungeon.dungeon_message_window.is_visible = False
+                pass
+                    
 
 class level_up_window(window.Window):
 
@@ -2655,13 +2692,20 @@ class Item_menu_select(window.Window):
                 if use_item.category == 100:
                     self.use_target_window.is_visible = True
                 #if category is 101, no target selection is needed
-                #たいまつとか
+                #item like torches
                 elif use_item.category == 101:
                     game_self.party.torch += 30
                     if game_self.party.torch > 128:
                         game_self.party.torch = 128
                     del character.items[game_self.menu.item_window.item_view.menu]
                     pass
+
+                #keys
+                elif use_item.category == 250:
+                    if game_self.party.member[0].coordinate == [ 9, 10 ,1]:
+                        #dungeon is None in menu so change in temp of game_Self
+                        game_self.horizontal_wall_temp[10][9] = 2
+                    
                 else:
                     #not able to use in menu
                     pass

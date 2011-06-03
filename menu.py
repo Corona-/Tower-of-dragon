@@ -184,6 +184,12 @@ class Menu:
                     game_self.game_state = DUNGEON
                     game_self.menu = None
                     game_self.dungeon = dungeon.Dungeon(game_self.party.member[0].coordinate[2])
+                    game_self.dungeon.vertical_wall = game_self.vertical_wall_temp
+                    game_self.dungeon.horizontal_wall = game_self.horizontal_wall_temp
+                    game_self.dungeon.ground = game_self.ground_temp
+                    game_self.dungeon.space = game_self.space_temp
+                    game_self.dungeon.object = game_self.object_temp
+                                        
                     #dungeon load????
                 else:
                     game_self.game_state = CITY
@@ -204,6 +210,12 @@ class Menu:
                 game_self.menu = None
                 game_self.dungeon = dungeon.Dungeon(game_self.party.member[0].coordinate[2])
 
+                game_self.dungeon.vertical_wall = game_self.vertical_wall_temp
+                game_self.dungeon.horizontal_wall = game_self.horizontal_wall_temp
+                game_self.dungeon.ground = game_self.ground_temp
+                game_self.dungeon.space = game_self.space_temp
+                game_self.dungeon.object = game_self.object_temp
+          
                 #dungeon load?????
             else:
                 game_self.game_state = CITY

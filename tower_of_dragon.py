@@ -88,6 +88,12 @@ class tower_of_dragon:
             self.magic_data.append(temp)
             
 
+        self.vertical_wall_temp = None
+        self.horizontal_wall_temp = None
+        self.ground_temp = None
+        self.space_temp = None
+        self.object_temp = None
+        
         self.mainloop()
 
 
