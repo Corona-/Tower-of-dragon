@@ -44,6 +44,10 @@ class Dungeon_message(window.Window):
 
         #needs "探しますか？" 
         self.search_window = None
+        #"押しますか？"
+        self.press_window = None
+
+        self.key_press = False
 
     def update(self):
             
@@ -62,7 +66,8 @@ class Dungeon_message(window.Window):
 
         if self.search_window != None:
             self.search_window.draw(screen, game_self, None)
- 
+        if self.press_window != None:
+            self.press_window.draw(screen, game_self, None)
 
     def dungeon_message_handler(self, game_self, event):
         """event handler for dungeon"""
@@ -70,13 +75,18 @@ class Dungeon_message(window.Window):
         if self.search_window != None and self.search_window.is_visible:
             self.search_window.confirm_window_handler(game_self, event, None)
             return
+        elif self.press_window != None and self.press_window.is_visible:
+            self.press_window.confirm_window_handler(game_self, event, None)
+            return
 
         if event.type == KEYDOWN and (event.key == K_x or event.key ==K_z or event.key == K_SPACE or event.key == K_RETURN):
             #need to close the message
             self.is_visible = False
             self.coordinate = None
             self.message = None
-            self.search = None
+            self.search_window = None
+            self.press_window = None
+            self.key_press = False
 
     def set_coordinate(self, coordinate):
 
@@ -87,7 +97,22 @@ class Dungeon_message(window.Window):
             self.message = [u"部屋の中には、龍の彫像がある。", u"彫像はブロンズで、台座はオニキスで出来ている。"]
             self.search_window = system_notify.Confirm_window(Rect(190, 200, 200, 110), system_notify.Confirm_window.SEARCH)
             self.search_window.is_visible = True
+            self.key_press = True
+
+        if self.coordinate == [5,4,2]:
+            self.message = [u"部屋の中には、水溜りがある。", u"あまり綺麗とは言えないが不快ではない。"]
+            self.search_window = system_notify.Confirm_window(Rect(190, 200, 200, 110), system_notify.Confirm_window.SEARCH)
+            self.search_window.is_visible = True
+            self.key_press = True
+
+
+        if self.coordinate == [15,14,2]:
+            self.message = [ u"目の前にスイッチがある"]
+            if self.key_press == True:
+                self.press_window = system_notify.Confirm_window(Rect(190,200,200,110), system_notify.Confirm_window.PRESS)
+                self.press_window.is_visible = True
+
             
-        if self.message != None:
+        if self.message != None and self.key_press == True:
             self.is_visible = True
 

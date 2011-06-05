@@ -708,6 +708,8 @@ class Donate_finish_window(window.Window):
     COLLECT = 7
     TEMPLE_NOT_ENOUGH = 8
     TEMPLE_NOT_MOVABLE = 9
+    DUNGEON_LOCKED = 10
+    KEY_UNLOCK = 11
     
     def __init__(self, rectangle, instruction):
         window.Window.__init__(self, rectangle)
@@ -761,7 +763,13 @@ class Donate_finish_window(window.Window):
             elif self.instruction == self.TEMPLE_NOT_MOVABLE:
                 enough_font = self.menu_font.render( u"*行動不能です*", True, COLOR_WHITE)      
                 screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
-                
+            elif self.instruction == self.DUNGEON_LOCKED:
+                enough_font = self.menu_font.render( u"*鍵が掛かっている*", True, COLOR_WHITE)
+                screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
+            elif self.instruction == self.KEY_UNLOCK:
+                enough_font = self.menu_font.render( u"鍵が開いた!", True, COLOR_WHITE)
+                screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
+                   
 
 
     def donate_finish_window_handler(self, event, game_self):
@@ -811,12 +819,12 @@ class Donate_finish_window(window.Window):
                 self.is_visible = False
                 if game_self.shop.shop_window.buy_window.character_select.no_more == 1:
                     game_self.shop.shop_window.buy_window.character_select.is_visible = False
-        elif self.instruction == self.TEMPLE_NOT_ENOUGH or self.instruction == self.TEMPLE_NOT_MOVABLE:
+        elif self.instruction == self.TEMPLE_NOT_ENOUGH or self.instruction == self.TEMPLE_NOT_MOVABLE or self.instruction == self.DUNGEON_LOCKED or self.instruction == self.KEY_UNLOCK:
             if event.type == KEYDOWN and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
             
 
-
+ 
 class Rest_window(window.Window):
 
     REST = 0
@@ -879,6 +887,7 @@ class Confirm_window(window.Window):
     UPSTAIRS= 31
 
     SEARCH = 32
+    PRESS = 33
 
 
     YES, NO = 0, 1
@@ -931,6 +940,8 @@ class Confirm_window(window.Window):
              confirm_font = self.menu_font.render( u"上る階段があります　上りますか？", True, COLOR_WHITE)
          elif self.instruction == self.SEARCH:
              confirm_font = self.menu_font.render( u"探しますか？", True, COLOR_WHITE)
+         elif self.instruction == self.PRESS:
+             confirm_font = self.menu_font.render( u"押しますか？", True, COLOR_WHITE)
                
 
          yes_font = self.menu_font.render( u"はい", True, COLOR_WHITE) 
@@ -1148,26 +1159,77 @@ class Confirm_window(window.Window):
                         game_self.dungeon.dungeon_message_window.message.append( u"冒険者は銅の鍵を見つけた!" )
 
 
-                    i = 0
-                    for chara in game_self.party.member:
-                        while (len(chara.items) < chara.item_max):
-                            chara.items.append( item.Item( game_self.item_data[900]))
-                            i+=1
-                            break
-                        if i == 1:
-                            break
-                        
+                        i = 0
+                        for chara in game_self.party.member:
+                            while (len(chara.items) < chara.item_max):
+                                chara.items.append( item.Item( game_self.item_data[900]))
+                                i+=1
+                                break
+                            if i == 1:
+                                break
+
+                    if game_self.dungeon.dungeon_message_window.coordinate == [5, 4, 2]:
+                        game_self.dungeon.dungeon_message_window.message.append( "" )
+                        game_self.dungeon.dungeon_message_window.message.append( u"冒険者は緑の鍵を見つけた!" )
+
+                        i = 0
+                        for chara in game_self.party.member:
+                            while (len(chara.items) < chara.item_max):
+                                chara.items.append( item.Item( game_self.item_data[901]))
+                                i+=1
+                                break
+                            if i == 1:
+                                break
+
+
+                    
                     self.is_visible = False
                     game_self.dungeon.dungeon_message_window.search_window = None
-                    #game_self.dungeon.dungeon_message_window.is_visible = False
+                    #game_self.dungeon.dungeon_message_window.is_visible = False                  
+                    game_self.dungeon.dungeon_message_window.key_press = False                    
      
                         
                 else:
                     self.is_visible = False
+                    game_self.dungeon.dungeon_message_window.press_window = None
                     game_self.dungeon.dungeon_message_window.search_window = None
                     game_self.dungeon.dungeon_message_window.is_visible = False
+                    game_self.dungeon.dungeon_message_window.message = None
+                    game_self.dungeon.dungeon_message_window.coordinate = None
+                    game_self.dungeon.dungeon_message_window.key_press = False                    
+
+
                 pass
+
+            elif self.instruction == self.PRESS:
+                if self.menu == self.YES:
+                    if game_self.dungeon.dungeon_message_window.coordinate == [15,14,2]:
+
+                        game_self.dungeon.dungeon_message_window.message.append( "" )
+                        game_self.dungeon.dungeon_message_window.message.append( u"どこかで鍵が開く音がした" )
+
+                        #open the door
+                        #need to add one to position of game because it start with 0
+                        print game_self.dungeon.vertical_wall[13][7] 
+                        game_self.dungeon.vertical_wall[13][7] = 2
                     
+                    self.is_visible = False
+                    game_self.dungeon.dungeon_message_window.press_window = None
+                    game_self.dungeon.dungeon_message_window.key_press = False                    
+
+
+                    pass
+                else:
+                    self.is_visible = False
+                    game_self.dungeon.dungeon_message_window.press_window = None
+                    game_self.dungeon.dungeon_message_window.search_window = None
+                    game_self.dungeon.dungeon_message_window.is_visible = False
+                    game_self.dungeon.dungeon_message_window.message = None
+                    game_self.dungeon.dungeon_message_window.coordinate = None
+                    game_self.dungeon.dungeon_message_window.key_press = False                    
+
+
+                pass
 
 class level_up_window(window.Window):
 
@@ -2626,6 +2688,7 @@ class Item_menu_select(window.Window):
         self.use_target_window = Target_select(Rect(170, 50, 400, 240), 0)
         self.pass_target_window = Target_select(Rect(170, 50, 400, 240), 1)
 
+        self.key_unlocked_window = None
 
     def update(self):
         pass
@@ -2650,6 +2713,8 @@ class Item_menu_select(window.Window):
         self.use_target_window.draw( screen, game_self)
         self.pass_target_window.draw(screen,game_self)
 
+        if self.key_unlocked_window != None:
+            self.key_unlocked_window.draw(screen)
         
 
     def item_menu_select_handler(self, event, game_self):
@@ -2657,10 +2722,13 @@ class Item_menu_select(window.Window):
         if self.use_target_window.is_visible == True:
             self.use_target_window.target_select_handler( event, game_self)
             return
-        if self.pass_target_window.is_visible == True:
+        elif self.pass_target_window.is_visible == True:
             self.pass_target_window.target_select_handler( event, game_self)
             return
-
+        elif self.key_unlocked_window != None and self.key_unlocked_window.is_visible == True:
+            self.key_unlocked_window.donate_finish_window_handler(event, game_self)
+            return
+        
         if event.type == KEYDOWN and event.key == K_x:
             game_self.cancel_se.play()
             self.menu = 0
@@ -2702,14 +2770,27 @@ class Item_menu_select(window.Window):
 
                 #keys
                 elif use_item.category == 250:
-                    if game_self.party.member[0].coordinate == [ 9, 10 ,1]:
+                    if game_self.party.member[0].coordinate == [ 9, 10 ,1] or game_self.party.member[0].coordinate == [ 9, 9, 1]:
                         #dungeon is None in menu so change in temp of game_Self
                         game_self.horizontal_wall_temp[10][9] = 2
-                    
+                        #need to show that key matched
+                        self.key_unlocked_window = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.KEY_UNLOCK)
+                        self.key_unlocked_window.is_visible = True
+                    if game_self.party.member[0].coordinate == [ 7, 1 ,2] or game_self.party.member[0].coordinate == [ 7, 0, 2]:
+                        #dungeon is None in menu so change in temp of game_Self
+                        game_self.horizontal_wall_temp[1][7] = 2
+                        #need to show that key matched
+                        self.key_unlocked_window = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.KEY_UNLOCK)
+                        self.key_unlocked_window.is_visible = True
+                         
                 else:
                     #not able to use in menu
                     pass
                 self.menu = 0
+
+                if game_self.menu.item_window.item_view.menu > len(character.items)-1:
+                    game_self.menu.item_window.item_view.menu -= 1
+
 
             if self.menu == self.EQUIP_ITEM:
 
@@ -2822,4 +2903,8 @@ class Item_menu_select(window.Window):
                 del character.items[game_self.menu.item_window.item_view.menu]
                 self.menu = 0
                 self.is_visible = False
+                
+                if game_self.menu.item_window.item_view.menu > len(character.items)-1:
+                    game_self.menu.item_window.item_view.menu -= 1
+
                 

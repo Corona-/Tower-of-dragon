@@ -54,6 +54,12 @@ class Dungeon:
         self.center3 = pygame.image.load("Images/center_3.png").convert()
         self.center4 = pygame.image.load("Images/center_4.png").convert()
 
+        self.switch1 = pygame.image.load("Images/switch_1.png").convert()
+        self.switch2 = pygame.image.load("Images/switch_2.png").convert()
+        self.switch3 = pygame.image.load("Images/switch_3.png").convert()
+        self.switch4 = pygame.image.load("Images/switch_4.png").convert()
+
+
         self.door1 = pygame.image.load("Images/door_1.png").convert()
         self.door2 = pygame.image.load("Images/door_2.png").convert()
         self.door3 = pygame.image.load("Images/door_3.png").convert()
@@ -94,6 +100,17 @@ class Dungeon:
 
         self.edgeList3_3 = load_side_images("Images/edge_3-3.png", 320, 256, 5,0, 5, 0)
         self.edgeList4_3 = load_side_images("Images/edge_4-3.png", 160, 128, 5,0, 5, 0)
+
+        self.switchedgeList1 = load_side_images("Images/switchedge_1.png", 256, 1024, 1, 0, 1, 0)
+        self.switchedgeList2 = load_side_images("Images/switchedge_2.png", 128, 512, 1, 0, 1, 0)
+        self.switchedgeList3 = load_side_images("Images/switchedge_3.png", 64, 256, 1, 0, 1, 0)        
+        self.switchedgeList4 = load_side_images("Images/switchedge_4.png", 32, 128, 1, 0, 1, 0)
+
+        self.switchedgeList3_2 = load_side_images("Images/switchedge_3-2.png", 192, 256, 5,0, 5, 0)
+        self.switchedgeList4_2 = load_side_images("Images/switchedge_4-2.png", 96, 128, 5,0, 5, 0)
+
+        self.switchedgeList3_3 = load_side_images("Images/switchedge_3-3.png", 320, 256, 5,0, 5, 0)
+        self.switchedgeList4_3 = load_side_images("Images/switchedge_4-3.png", 160, 128, 5,0, 5, 0)
         
         self.doorList1 = load_side_images("Images/edgedoor_1.png", 256, 1024, 1, 0, 1, 0)
         self.doorList2 = load_side_images("Images/edgedoor_2.png", 128, 512, 1, 0, 1, 0)
@@ -194,6 +211,8 @@ class Dungeon:
         self.downstairs_window = None #system_notify.Confirm_window( Rect(160, 150, 380, 110) , system_notify.Confirm_window.DOWNSTAIRS)
         self.upstairs_window = None
 
+        self.dungeon_locked_window = None
+
         self.dungeon_message_window = dungeon_message.Dungeon_message( Rect(10, 10, 620, 200))
 
     def update(self):
@@ -214,10 +233,15 @@ class Dungeon:
             self.draw_dungeon_map(game_self, screen)
             return
 
-        if ( game_self.party.torch >= 1 ):
-            self.draw_dungeon_with_light(game_self, screen)
-        else:
-            self.draw_dungeon_no_light(game_self, screen)
+        coordinate = game_self.party.member[0].coordinate
+        x = coordinate[0]
+        y = coordinate[1]
+
+        if self.space[y][x] != 1:
+            if ( game_self.party.torch >= 1 ):
+                self.draw_dungeon_with_light(game_self, screen)
+            else:
+                self.draw_dungeon_no_light(game_self, screen)
 
         
         if self.battle_flag == 1:
@@ -229,6 +253,9 @@ class Dungeon:
             self.upstairs_window.draw( screen, game_self, None)
 
         self.dungeon_message_window.draw( game_self, screen)
+
+        if self.dungeon_locked_window != None:
+            self.dungeon_locked_window.draw(screen)
 
     def dungeon_handler(self, game_self, event):
         """event handler for dungeon"""
@@ -242,7 +269,10 @@ class Dungeon:
         elif self.dungeon_message_window.is_visible == True:
             self.dungeon_message_window.dungeon_message_handler( game_self, event)
             return
-
+        elif self.dungeon_locked_window != None and self.dungeon_locked_window.is_visible == True:
+            self.dungeon_locked_window.donate_finish_window_handler(event, game_self)
+            return
+        
         if self.battle_flag == 1:
             self.battle.battle_handler(game_self, event)
             return
@@ -274,25 +304,38 @@ class Dungeon:
         encount = random.randint(1, 100)
 
         if event.type == KEYDOWN and (event.key ==K_UP):
-            self.footstep_se.play()
             
             if game_self.party.torch > 0:
                 game_self.party.torch -= 1
-                
+
+            walked = 0   
             for character in game_self.party.member:
                 if (game_self.party.direction == 0):
                     #if there is a wall in front, can't move up
                     if( self.horizontal_wall[y][x] == 0):
                         character.coordinate[1] = decrement(character.coordinate[1],1)
+                        walked = 1
                 elif (game_self.party.direction == 1):
                     if( self.vertical_wall[y][increment(x,1)] == 0):
                         character.coordinate[0] = increment(character.coordinate[0],1)
+                        walked = 1
                 elif (game_self.party.direction == 2):
                     if( self.horizontal_wall[increment(y,1)][x] == 0):
                         character.coordinate[1] = increment(character.coordinate[1],1)
+                        walked = 1
                 elif (game_self.party.direction == 3):
                     if( self.vertical_wall[y][x] == 0):
                         character.coordinate[0] = decrement(character.coordinate[0],1)
+                        walked = 1
+
+            if walked == 1:
+                self.footstep_se.play()
+                #change direction randomly by turn table
+                if self.ground[character.coordinate[1]][character.coordinate[0]] == 4:
+                    random_direction = random.randint(0, 3)
+                    game_self.party.direction = random_direction
+                    
+                
             self.battle_encount( 5, game_self.party.member[0] )
 
             self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
@@ -335,12 +378,22 @@ class Dungeon:
             #self.music = 0
 
         if event.type == KEYDOWN and (event.key ==K_z or event.key == K_SPACE or event.key == K_RETURN):
+
+            walked = 0
+            
             if game_self.party.direction == 0:
+                #normal door
                 if (self.horizontal_wall[y][x] == 2):
                     self.door_se.play()
                     for character in game_self.party.member:
                         character.coordinate[1] = decrement(character.coordinate[1],1)
                     self.battle_encount( 10, game_self.party.member[0] )
+                    walked = 1
+                #locked door
+                elif (self.horizontal_wall[y][x] == 3):
+                    self.dungeon_locked_window = system_notify.Donate_finish_window(Rect(150,160,300,50), system_notify.Donate_finish_window.DUNGEON_LOCKED)
+                    self.dungeon_locked_window.is_visible = True
+                    pass
 
             if game_self.party.direction == 1:
                 if self.vertical_wall[y][increment(x,1)] == 2:
@@ -348,20 +401,45 @@ class Dungeon:
                     for character in game_self.party.member:
                         character.coordinate[0] = increment(character.coordinate[0],1)
                     self.battle_encount( 10, game_self.party.member[0] )
+                    walked = 1
+                elif self.vertical_wall[y][increment(x,1)] == 3:
+                    self.dungeon_locked_window = system_notify.Donate_finish_window(Rect(150,160,300,50), system_notify.Donate_finish_window.DUNGEON_LOCKED)
+                    self.dungeon_locked_window.is_visible = True
+                    pass
+
+
             if game_self.party.direction == 2:
                 if self.horizontal_wall[increment(y,1)][x] == 2:
                     self.door_se.play()
                     for character in game_self.party.member:
                         character.coordinate[1] = increment(character.coordinate[1],1)
                     self.battle_encount( 10, game_self.party.member[0] )
+                    walked = 1
+                elif self.horizontal_wall[increment(y,1)][x] == 3:
+                    self.dungeon_locked_window = system_notify.Donate_finish_window(Rect(150,160,300,50), system_notify.Donate_finish_window.DUNGEON_LOCKED)
+                    self.dungeon_locked_window.is_visible = True
+                    pass
+                
             if game_self.party.direction == 3:
                 if self.vertical_wall[y][x] == 2:
                     self.door_se.play()
                     for character in game_self.party.member:
                         character.coordinate[0] = decrement(character.coordinate[0],1)
                     self.battle_encount( 10, game_self.party.member[0] )
+                    walked = 1
+                elif self.vertical_wall[y][x] == 3:
+                    self.dungeon_locked_window = system_notify.Donate_finish_window(Rect(150,160,300,50), system_notify.Donate_finish_window.DUNGEON_LOCKED)
+                    self.dungeon_locked_window.is_visible = True
+                    pass
                     
             self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
+
+            if walked == 1:
+                #change direction randomly by turn table
+                if self.ground[character.coordinate[1]][character.coordinate[0]] == 4:
+                    random_direction = random.randint(0, 3)
+                    game_self.party.direction = random_direction
+                
 
 
             #find event on the new place?
@@ -381,11 +459,32 @@ class Dungeon:
             if self.ground[y][x] == 1:
                 self.upstairs_window = system_notify.Confirm_window( Rect(160, 150, 380, 110) , system_notify.Confirm_window.UPSTAIRS)
                 self.upstairs_window.is_visible = True
-                
-                    
+
+
+            #show switch message when key is pressed
+            if self.horizontal_wall[y][x] == 12 and game_self.party.direction == 0:
+                #show switch message
+                self.dungeon_message_window.key_press = True
+                self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
+            if self.horizontal_wall[increment(y,1)][x] == 13 and game_self.party.direction == 2:
+                self.dungeon_message_window.key_press = True
+                self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
+            if self.vertical_wall[y][x] == 12 and game_self.party.direction == 3:
+                self.dungeon_message_window.key_press = True
+                self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
+            if self.vertical_wall[y][increment(x,1)] == 13 and game_self.party.direction == 1:
+                self.dungeon_message_window.key_press = True
+                self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
+
+
+
+ 
+
             if self.object[y][x] == 15:
                 self.battle_encount( 80, game_self.party.member[0] )
                 self.object[y][x] = 0
+
+                
 
 
             
@@ -395,7 +494,7 @@ class Dungeon:
 
         encount = random.randint(1, 100)
 
-        if encount < probability:
+        if character.coordinate[2] != 5 and encount < probability:
             self.battle = battle.Battle(self.enemy_data, character.coordinate[2])
             self.battle_flag = 1
 
@@ -444,37 +543,77 @@ class Dungeon:
                 if j > 0 and j >= 1:
                     #only show floor
                     pygame.draw.rect(screen, Color(126,197,119), Rect(rect_x,rect_y,16,16), 0)
+
+                #need to be before wall to be accurate
+                if j > 0 and j >= 3:
+                    #additionaly show dark zone
+                    if self.space[y][x] == 1:
+                        pygame.draw.rect(screen, Color(255,0,255), Rect(rect_x,rect_y,16,16), 0)
+          
+
                 if j > 0 and j >= 2:
                     #additionaly show wall and door
 
                     #show wall
-                    if self.horizontal_wall[y][x] == 1 or self.horizontal_wall[y][x] == 2:
+                    if self.horizontal_wall[y][x] == 1 or self.horizontal_wall[y][x] == 2 or self.horizontal_wall[y][x] == 3 or self.horizontal_wall[y][x] == 13:
                         pygame.draw.rect(screen, Color(0,0,0), Rect(rect_x,rect_y,16,2), 0)
-                    if self.horizontal_wall[increment(y,1)][x] == 1 or self.horizontal_wall[increment(y,1)][x] == 2:
+                    if self.horizontal_wall[increment(y,1)][x] == 1 or self.horizontal_wall[increment(y,1)][x] == 2 or self.horizontal_wall[increment(y,1)][x] == 3 or self.horizontal_wall[increment(y,1)][x] == 12:
                         pygame.draw.rect(screen, Color(0,0,0), Rect(rect_x,rect_y+14,16,2), 0)
-                    if self.vertical_wall[y][x] == 1 or self.vertical_wall[y][x] == 2:
+                    if self.vertical_wall[y][x] == 1 or self.vertical_wall[y][x] == 2 or self.vertical_wall[y][x] == 3 or self.vertical_wall[y][x] == 13:
                         pygame.draw.rect(screen, Color(0,0,0), Rect(rect_x,rect_y,2,16), 0)
-                    if self.vertical_wall[y][increment(x,1)] == 1 or self.vertical_wall[y][increment(x,1)] == 2:
+                    if self.vertical_wall[y][increment(x,1)] == 1 or self.vertical_wall[y][increment(x,1)] == 2 or self.vertical_wall[y][increment(x,1)] == 3 or  self.vertical_wall[y][increment(x,1)] == 12:
                         pygame.draw.rect(screen, Color(0,0,0), Rect(rect_x+14,rect_y,2,16), 0)
 
                     #show door                                 
-                    if self.horizontal_wall[y][x] == 2:
+                    if self.horizontal_wall[y][x] == 2 or self.horizontal_wall[y][x] == 3:
                         pygame.draw.rect(screen, Color(190,128,14), Rect(rect_x+4,rect_y,8,2), 0)
-                    if self.horizontal_wall[increment(y,1)][x] == 2:
+                    if self.horizontal_wall[increment(y,1)][x] == 2 or self.horizontal_wall[increment(y,1)][x] == 3:
                         pygame.draw.rect(screen, Color(190,128,14), Rect(rect_x+4,rect_y+14,8,2), 0)
-                    if self.vertical_wall[y][x] == 2:
+                    if self.vertical_wall[y][x] == 2 or self.vertical_wall[y][x] == 3:
                         pygame.draw.rect(screen, Color(190,128,14), Rect(rect_x,rect_y+4,2,8), 0)
-                    if self.vertical_wall[y][increment(x,1)] == 2:
+                    if self.vertical_wall[y][increment(x,1)] == 2 or self.vertical_wall[y][increment(x,1)] == 3:
                         pygame.draw.rect(screen, Color(190,128,14), Rect(rect_x+14,rect_y+4,2,8), 0)
                                                
                     pass
-                if j > 0 and j >= 3:
-                    #additionaly show locked door
+          
                     pass
                 if j > 0 and j >= 4:
+                    #additionaly show locked door
+                    if self.horizontal_wall[y][x] == 3:
+                        pygame.draw.rect(screen, Color(255,0,0), Rect(rect_x+4,rect_y,8,2), 0)
+                    if self.horizontal_wall[increment(y,1)][x] == 3:
+                        pygame.draw.rect(screen, Color(255,0,0), Rect(rect_x+4,rect_y+14,8,2), 0)
+                    if self.vertical_wall[y][x] == 3:
+                        pygame.draw.rect(screen, Color(255,0,0), Rect(rect_x,rect_y+4,2,8), 0)
+                    if self.vertical_wall[y][increment(x,1)] == 3:
+                        pygame.draw.rect(screen, Color(255,0,0), Rect(rect_x+14,rect_y+4,2,8), 0)
+
+                    #additionaly show switch
+
+##                    if self.horizontal_wall[y][x] == 12:
+##                        pygame.draw.arc( screen, Color(0,0,255), Rect(rect_x+6, rect_y, 8, 4), 0, 3.14, 1)
+##                    if self.horizontal_wall[increment(y,1)][x] == 13:
+##                        pygame.draw.arc( screen, Color(0,0,255), Rect(rect_x+6, rect_y+16, 8, 4), 0, 3.14, 1)
+##                    if self.vertical_wall[y][x] == 12:
+##                        pygame.draw.arc( screen, Color(0,0,255), Rect(rect_x, rect_y+6, 4, 8), 0, 3.14, 1)
+##                    if self.vertical_wall[y][increment(x,1)] == 13:
+##                        pygame.draw.arc( screen, Color(0,0,255), Rect(rect_x+16, rect_y+6, 4, 8), 0, 3.14, 1)
+##                        
+
+                    if self.horizontal_wall[y][x] == 12:
+                        pygame.draw.rect(screen, Color(0,0,255), Rect(rect_x,rect_y,16,2), 0)
+                    if self.horizontal_wall[increment(y,1)][x] == 13:
+                        pygame.draw.rect(screen, Color(0,0,255), Rect(rect_x,rect_y+14,16,2), 0)
+                    if self.vertical_wall[y][x] == 12:
+                        pygame.draw.rect(screen, Color(0,0,255), Rect(rect_x,rect_y,2,16), 0)
+                    if self.vertical_wall[y][increment(x,1)] == 13:
+                        pygame.draw.rect(screen, Color(0,0,255), Rect(rect_x+14,rect_y,2,16), 0)
+
+                                      
+                if j > 0 and j >= 5:
                     #additionaly show trap
                     pass
-                if j > 0 and j >= 5:
+                if j > 0 and j >= 6:
                     #additionaly show each trap
                     pass
                     
@@ -513,77 +652,71 @@ class Dungeon:
         #if the player is looking up
         if ( game_self.party.direction == 0):
             #draw from back to front.
+            
             #draw ground below
-            if (self.ground[y][x] == 0 ):
-                screen.blit(self.ground_center1, (32, 448))
-
+            draw_dungeon_ground( screen, self.ground[y][x], self.ground_center1, (32, 448))
             #draw ground left
-            if (self.ground[y][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList1[0], (0, 448))
-
+            draw_dungeon_ground( screen, self.ground[y][decrement(x,1)], self.ground_sideList1[0], (0, 448))
             #draw ground right
-            if (self.ground[y][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList1[1], (576, 448))
-
+            draw_dungeon_ground( screen, self.ground[y][increment(x,1)], self.ground_sideList1[1], (576, 448))
             #draw ground up left
-            if (self.ground[decrement(y,1)][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[0], (0, 320))             
-
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][decrement(x,1)], self.ground_sideList2[0], (0,320))
             #draw ground up right
-            if (self.ground[decrement(y,1)][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[1], (448, 320))
-
-            #draw ground up left
-            if (self.ground[decrement(y,2)][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList3[0], (-128, 256))             
-
-            #draw ground up right
-            if (self.ground[decrement(y,2)][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList3[1], (384, 256))
-
-            #draw ground up left
-            if (self.ground[decrement(y,2)][decrement(x,2)] == 0 ):
-                screen.blit(self.ground_sideList3_2[0], (0, 256))             
-
-            #draw ground up right
-            if (self.ground[decrement(y,2)][increment(x,2)] == 0 ):
-                screen.blit(self.ground_sideList3_2[1], (576, 256))
-
-            #draw ground up left
-            if (self.ground[decrement(y,3)][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList4[0], (128, 224))             
-
-            #draw ground up right
-            if (self.ground[decrement(y,3)][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList4[1], (352, 224))
-
-            #draw ground up left
-            if (self.ground[decrement(y,3)][decrement(x,2)] == 0 ):
-                screen.blit(self.ground_sideList4_2[0], (0, 224))             
-
-            #draw ground up right
-            if (self.ground[decrement(y,3)][increment(x,2)] == 0 ):
-                screen.blit(self.ground_sideList4_2[1], (416, 224))
-                
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][increment(x,1)], self.ground_sideList2[1], (448,320))
+            #draw ground up two left
+            draw_dungeon_ground( screen, self.ground[decrement(y,2)][decrement(x,1)], self.ground_sideList3[0], (-128,256))
+            #draw ground up two right
+            draw_dungeon_ground( screen, self.ground[decrement(y,2)][increment(x,1)], self.ground_sideList3[1], (384,256))
+            #draw ground up two left two
+            draw_dungeon_ground( screen, self.ground[decrement(y,2)][decrement(x,2)], self.ground_sideList3_2[0], (0,256))
+            #draw ground up two right two
+            draw_dungeon_ground( screen, self.ground[decrement(y,2)][increment(x,2)], self.ground_sideList3_2[1], (576,256))
+            #draw ground up three left
+            draw_dungeon_ground( screen, self.ground[decrement(y,3)][decrement(x,1)], self.ground_sideList4[0], (128,224))
+            #draw ground up three right
+            draw_dungeon_ground( screen, self.ground[decrement(y,3)][increment(x,1)], self.ground_sideList4[1], (352,224))
+            #draw ground up three left two
+            draw_dungeon_ground( screen, self.ground[decrement(y,3)][decrement(x,2)], self.ground_sideList4_2[0], (0,224))
+            #draw ground up three right two
+            draw_dungeon_ground( screen, self.ground[decrement(y,3)][increment(x,2)], self.ground_sideList4_2[1], (416,224))                
             #draw ground up one
-            if (self.ground[decrement(y,1)][x] == 0 ):
-                screen.blit(self.ground_center2, (64, 320))
-
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][x], self.ground_center2, (64,320))
             #draw ground up two
-            if (self.ground[decrement(y,2)][x] == 0 ):
-                screen.blit(self.ground_center3, (192, 256))
-                
+            draw_dungeon_ground( screen, self.ground[decrement(y,2)][x], self.ground_center3, (192,256))                
             #draw ground up three
-            if (self.ground[decrement(y,3)][x] == 0 ):
-                screen.blit(self.ground_center4, (256, 224))
+            draw_dungeon_ground( screen, self.ground[decrement(y,3)][x], self.ground_center4, (256,224))
 
             #draw straight three block wall left two
+            #wall
             if (self.horizontal_wall[decrement(y,3)][decrement(x,2)] == 1):
                 screen.blit(self.center4, (160, 160))
+            #door
             elif (self.horizontal_wall[decrement(y,3)][decrement(x,2)] == 2):
-                screen.blit(self.door4, (160,160))                                               
+                screen.blit(self.door4, (160,160))
+            #locked door
             elif (self.horizontal_wall[decrement(y,3)][decrement(x,2)] == 3):
-                screen.blit(self.door4, (160,160))                                               
+                screen.blit(self.door4, (160,160))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,2)] == 4):
+                screen.blit(self.door4, (160,160))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,2)] == 6):
+                screen.blit(self.door4, (160,160))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,2)] == 7):
+                screen.blit(self.center4, (160,160))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,2)] == 8):
+                screen.blit(self.door4, (160,160))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,2)] == 9):
+                screen.blit(self.center4, (160,160))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,2)] == 12):
+                screen.blit(self.switch4, (160,160))                                                               
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,2)] == 13):
+                screen.blit(self.center4, (160,160))                                               
 
             #draw straight three block wall left one
             if (self.horizontal_wall[decrement(y,3)][decrement(x,1)] == 1):
@@ -592,6 +725,27 @@ class Dungeon:
                 screen.blit(self.door4, (224,160))                                               
             elif (self.horizontal_wall[decrement(y,3)][decrement(x,1)] == 3):
                 screen.blit(self.door4, (224,160))                                               
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,1)] == 4):
+                screen.blit(self.door4, (224,160))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,1)] == 6):
+                screen.blit(self.door4, (224,160))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,1)] == 7):
+                screen.blit(self.center4, (224,160))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,1)] == 8):
+                screen.blit(self.door4, (224,160))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,1)] == 9):
+                screen.blit(self.center4, (224,160))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,1)] == 12):
+                screen.blit(self.switch4, (224,160))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,3)][decrement(x,1)] == 13):
+                screen.blit(self.center4, (224,160))  
 
             #draw straight three block wall
             if (self.horizontal_wall[decrement(y,3)][x] == 1):
@@ -600,6 +754,27 @@ class Dungeon:
                 screen.blit(self.door4, (288,160))
             elif (self.horizontal_wall[decrement(y,3)][x] == 3):
                 screen.blit(self.door4, (288,160))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,3)][x] == 4):
+                screen.blit(self.door4, (288,160))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,3)][x] == 6):
+                screen.blit(self.door4, (288,160))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,3)][x] == 7):
+                screen.blit(self.center4, (288,160))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,3)][x] == 8):
+                screen.blit(self.door4, (288,160))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,3)][x] == 9):
+                screen.blit(self.center4, (288,160))
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,3)][x] == 12):
+                screen.blit(self.switch4, (288,160))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,3)][x] == 13):
+                screen.blit(self.center4, (288,160))  
 
             #draw straight three block wall right one
             if (self.horizontal_wall[decrement(y,3)][increment(x,1)] == 1):
@@ -608,6 +783,27 @@ class Dungeon:
                 screen.blit(self.door4, (352,160))                                               
             elif (self.horizontal_wall[decrement(y,3)][increment(x,1)] == 3):
                 screen.blit(self.door4, (352,160))                                               
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,1)] == 4):
+                screen.blit(self.door4, (352,160))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,1)] == 6):
+                screen.blit(self.door4, (352,160))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,1)] == 7):
+                screen.blit(self.center4, (352,160))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,1)] == 8):
+                screen.blit(self.door4, (352,160))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,1)] == 9):
+                screen.blit(self.center4, (352,160))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,1)] == 12):
+                screen.blit(self.switch4, (352,160))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,1)] == 13):
+                screen.blit(self.center4, (352,160))  
 
             #draw straight three block wall right two
             if (self.horizontal_wall[decrement(y,3)][increment(x,2)] == 1):
@@ -616,6 +812,27 @@ class Dungeon:
                 screen.blit(self.door4, (416,160))
             elif (self.horizontal_wall[decrement(y,3)][increment(x,2)] == 3):
                 screen.blit(self.door4, (416,160))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,2)] == 4):
+                screen.blit(self.door4, (416,160))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,2)] == 6):
+                screen.blit(self.door4, (416,160))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,2)] == 7):
+                screen.blit(self.center4, (416,160))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,2)] == 8):
+                screen.blit(self.door4, (416,160))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,2)] == 9):
+                screen.blit(self.center4, (416,160))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,2)] == 12):
+                screen.blit(self.switch4, (416,160))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,3)][increment(x,2)] == 13):
+                screen.blit(self.center4, (416,160))  
                 
             #draw up three wall on left three
             if (self.vertical_wall[decrement(y,3)][decrement(x,2)] == 1):
@@ -624,6 +841,27 @@ class Dungeon:
                 screen.blit(self.doorList4_3[0], (0, 128))
             elif (self.vertical_wall[decrement(y,3)][decrement(x,2)] == 3):
                 screen.blit(self.doorList4_3[0], (0, 128))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,2)] == 4):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,2)] == 6):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,2)] == 7):
+                screen.blit(self.edgeList4_3[0], (0, 128))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,2)] == 8):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,2)] == 9):
+                screen.blit(self.edgeList4_3[0], (0, 128))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,2)] == 12):
+                screen.blit(self.switchedgeList4_3[0], (0, 128)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,2)] == 13):
+                screen.blit(self.edgeList4_3[0], (0, 128)) 
 
             #draw up three wall on left two
             if (self.vertical_wall[decrement(y,3)][decrement(x,1)] == 1):
@@ -632,7 +870,27 @@ class Dungeon:
                 screen.blit(self.doorList4_2[0], (128, 128))
             elif (self.vertical_wall[decrement(y,3)][decrement(x,1)] == 3):
                 screen.blit(self.doorList4_2[0], (128, 128))
-
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,1)] == 4):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,1)] == 6):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,1)] == 7):
+                screen.blit(self.edgeList4_2[0], (128, 128))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,1)] == 8):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,1)] == 9):
+                screen.blit(self.edgeList4_2[0], (128, 128))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,1)] == 12):
+                screen.blit(self.switchedgeList4_2[0], (128, 128)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,3)][decrement(x,1)] == 13):
+                screen.blit(self.edgeList4_2[0], (128, 128)) 
 
             #draw up three wall on left
             if (self.vertical_wall[decrement(y,3)][x] == 1):
@@ -641,6 +899,27 @@ class Dungeon:
                 screen.blit(self.doorList4[0], (256, 128))
             elif (self.vertical_wall[decrement(y,3)][x] == 3):
                 screen.blit(self.doorList4[0], (256, 128))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,3)][x] == 4):
+                screen.blit(self.doorList4[0], (256, 128))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,3)][x] == 6):
+                screen.blit(self.doorList4[0], (256, 128))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,3)][x] == 7):
+                screen.blit(self.edgeList4[0], (256, 128))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,3)][x] == 8):
+                screen.blit(self.doorList4[0], (256, 128))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,3)][x] == 9):
+                screen.blit(self.edgeList4[0], (256, 128))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,3)][x] == 12):
+                screen.blit(self.switchedgeList4[0], (256, 128)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,3)][x] == 13):
+                screen.blit(self.edgeList4[0], (256, 128)) 
 
 
             #draw up three wall on right three
@@ -650,6 +929,28 @@ class Dungeon:
                 screen.blit(self.doorList4_3[1], (480, 128))  
             elif (self.vertical_wall[decrement(y,3)][increment(x,3)] == 3):
                 screen.blit(self.doorList4_3[1], (480, 128))  
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,3)][increment(x,3)] == 4):
+                screen.blit(self.doorList4_3[1], (480, 128))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,3)][increment(x,3)] == 6):
+                screen.blit(self.edgeList4_3[1], (480, 128))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,3)][increment(x,3)] == 7):
+                screen.blit(self.doorList4_3[1], (480, 128))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,3)][increment(x,3)] == 8):
+                screen.blit(self.edgeList4_3[1], (480, 128))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,3)][increment(x,3)] == 9):
+                screen.blit(self.doorList4_3[1], (480, 128))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,3)][increment(x,3)] == 12):
+                screen.blit(self.edgeList4_3[1], (480, 128)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,3)][increment(x,3)] == 13):
+                screen.blit(self.switchedgeList4_3[1], (480, 128)) 
+
 
             #draw up three wall on right two
             if (self.vertical_wall[decrement(y,3)][increment(x,2)] == 1):
@@ -658,6 +959,27 @@ class Dungeon:
                 screen.blit(self.doorList4_2[1], (416, 128))                               
             elif (self.vertical_wall[decrement(y,3)][increment(x,2)] == 3):
                 screen.blit(self.doorList4_2[1], (416, 128))                               
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,3)][increment(x,2)] == 4):
+                screen.blit(self.doorList4_2[1], (416, 128))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,3)][increment(x,2)] == 6):
+                screen.blit(self.edgeList4_2[1], (416, 128))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,3)][increment(x,2)] == 7):
+                screen.blit(self.doorList4_2[1], (416, 128))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,3)][increment(x,2)] == 8):
+                screen.blit(self.edgeList4_2[1], (416, 128))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,3)][increment(x,2)] == 9):
+                screen.blit(self.doorList4_2[1], (416, 128))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,3)][increment(x,2)] == 12):
+                screen.blit(self.edgeList4_2[1], (416, 128)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,3)][increment(x,2)] == 13):
+                screen.blit(self.switchedgeList4_2[1], (416, 128)) 
 
             #draw up three wall on right
             if (self.vertical_wall[decrement(y,3)][increment(x,1)] == 1):
@@ -666,6 +988,27 @@ class Dungeon:
                 screen.blit(self.doorList4[1], (352, 128))                
             elif (self.vertical_wall[decrement(y,3)][increment(x,1)] == 3):
                 screen.blit(self.doorList4[1], (352, 128))                
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,3)][increment(x,1)] == 4):
+                screen.blit(self.doorList4[1], (352, 128))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,3)][increment(x,1)] == 6):
+                screen.blit(self.edgeList4[1], (352, 128))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,3)][increment(x,1)] == 7):
+                screen.blit(self.doorList4[1], (352, 128))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,3)][increment(x,1)] == 8):
+                screen.blit(self.edgeList4[1], (352, 128))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,3)][increment(x,1)] == 9):
+                screen.blit(self.doorList4[1], (352, 128))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,3)][increment(x,1)] == 12):
+                screen.blit(self.edgeList4[1], (352, 128)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,3)][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList4[1], (352, 128)) 
 
 
             #draw straight two block wall left one
@@ -675,7 +1018,27 @@ class Dungeon:
                 screen.blit(self.door3, (0,128))
             elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 3):
                 screen.blit(self.door3, (0,128))
-
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 4):
+                screen.blit(self.door3, (0,128))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 6):
+                screen.blit(self.door3, (0,128))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 7):
+                screen.blit(self.center3, (0,128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 8):
+                screen.blit(self.door3, (0,128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 9):
+                screen.blit(self.center3, (0,128))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 12):
+                screen.blit(self.switch3, (0,128))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 13):
+                screen.blit(self.center3, (0,128))  
 
             #draw straight two block wall left one
             if (self.horizontal_wall[decrement(y,2)][decrement(x,1)] == 1):
@@ -684,6 +1047,27 @@ class Dungeon:
                 screen.blit(self.door3, (128,128))
             elif (self.horizontal_wall[decrement(y,2)][decrement(x,1)] == 3):
                 screen.blit(self.door3, (128,128))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,1)] == 4):
+                screen.blit(self.door3, (128,128))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,1)] == 6):
+                screen.blit(self.door3, (128,128))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,1)] == 7):
+                screen.blit(self.center3, (128,128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,1)] == 8):
+                screen.blit(self.door3, (128,128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,1)] == 9):
+                screen.blit(self.center3, (128,128))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,1)] == 12):
+                screen.blit(self.switch3, (128,128))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,1)] == 13):
+                screen.blit(self.center3, (128,128))  
 
             #draw straight two block wall
             if (self.horizontal_wall[decrement(y,2)][x] == 1):
@@ -692,7 +1076,28 @@ class Dungeon:
                 screen.blit(self.door3, (256,128))
             elif (self.horizontal_wall[decrement(y,2)][x] == 3):
                 screen.blit(self.door3, (256,128))
-
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,2)][x] == 4):
+                screen.blit(self.door3, (256,128))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][x] == 6):
+                screen.blit(self.door3, (256,128))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][x] == 7):
+                screen.blit(self.center3, (256,128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][x] == 8):
+                screen.blit(self.door3, (256,128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][x] == 9):
+                screen.blit(self.center3, (256,128))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,2)][x] == 12):
+                screen.blit(self.switch3, (256,128))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,2)][x] == 13):
+                screen.blit(self.center3, (256,128))
+                
             #draw straight two block wall right one
             if (self.horizontal_wall[decrement(y,2)][increment(x,1)] == 1):
                 screen.blit(self.center3, (384, 128))
@@ -700,7 +1105,28 @@ class Dungeon:
                 screen.blit(self.door3, (384,128))
             elif (self.horizontal_wall[decrement(y,2)][increment(x,1)] == 3):
                 screen.blit(self.door3, (384,128))
-
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,1)] == 4):
+                screen.blit(self.door3, (384,128))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,1)] == 6):
+                screen.blit(self.door3, (384,128))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,1)] == 7):
+                screen.blit(self.center3, (384,128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,1)] == 8):
+                screen.blit(self.door3, (384,128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,1)] == 9):
+                screen.blit(self.center3, (384,128))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,1)] == 12):
+                screen.blit(self.switch3, (384,128))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,1)] == 13):
+                screen.blit(self.center3, (384,128))
+                
             #draw straight two block wall right two
             if (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 1):
                 screen.blit(self.center3, (512, 128))
@@ -708,6 +1134,27 @@ class Dungeon:
                 screen.blit(self.door3, (512,128))
             elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 3):
                 screen.blit(self.door3, (512,128))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 4):
+                screen.blit(self.door3, (512,128))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 6):
+                screen.blit(self.door3, (512,128))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 7):
+                screen.blit(self.center3, (512,128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 8):
+                screen.blit(self.door3, (512,128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 9):
+                screen.blit(self.center3, (512,128))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 12):
+                screen.blit(self.switch3, (512,128))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 13):
+                screen.blit(self.center3, (512,128))
 
             #draw up two wall on left three
             if (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 1):
@@ -716,6 +1163,28 @@ class Dungeon:
                 screen.blit(self.doorList3_3[0], (-320, 64))
             elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 3):
                 screen.blit(self.doorList3_3[0], (-320, 64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 4):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 6):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 7):
+                screen.blit(self.edgeList3_3[0], (-320, 64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 8):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 9):
+                screen.blit(self.edgeList3_3[0], (-320, 64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 12):
+                screen.blit(self.switchedgeList3_3[0], (-320, 64)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 13):
+                screen.blit(self.edgeList3_3[0], (-320, 64)) 
+
 
             #draw up two wall on left two
             if (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 1):
@@ -724,6 +1193,27 @@ class Dungeon:
                 screen.blit(self.doorList3_2[0], (-64, 64))
             elif (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 3):
                 screen.blit(self.doorList3_2[0], (-64, 64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 4):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 6):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 7):
+                screen.blit(self.edgeList3_2[0], (-64, 64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 8):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 9):
+                screen.blit(self.edgeList3_2[0], (-64, 64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 12):
+                screen.blit(self.switchedgeList3_2[0], (-64, 64)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,1)] == 13):
+                screen.blit(self.edgeList3_2[0], (-64, 64)) 
 
             #draw up two wall on left
             if (self.vertical_wall[decrement(y,2)][x] == 1):
@@ -732,6 +1222,27 @@ class Dungeon:
                 screen.blit(self.doorList3[0], (192, 64))
             elif (self.vertical_wall[decrement(y,2)][x] == 3):
                 screen.blit(self.doorList3[0], (192, 64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,2)][x] == 4):
+                screen.blit(self.doorList3[0], (-64, 64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,2)][x] == 6):
+                screen.blit(self.doorList3[0], (-64, 64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,2)][x] == 7):
+                screen.blit(self.edgeList3[0], (-64, 64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,2)][x] == 8):
+                screen.blit(self.doorList3[0], (-64, 64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,2)][x] == 9):
+                screen.blit(self.edgeList3[0], (-64, 64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,2)][x] == 12):
+                screen.blit(self.switchedgeList3[0], (-64, 64)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,2)][x] == 13):
+                screen.blit(self.edgeList3[0], (-64, 64)) 
                 
             #draw up two wall on right three
             if (self.vertical_wall[decrement(y,2)][increment(x,3)] == 1):
@@ -740,6 +1251,28 @@ class Dungeon:
                 screen.blit(self.doorList3_3[1], (640, 64))    
             elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 3):
                 screen.blit(self.doorList3_3[1], (640, 64))    
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 4):
+                screen.blit(self.doorList3_3[1], (640, 64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 6):
+                screen.blit(self.edgeList3_3[1], (640, 64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 7):
+                screen.blit(self.doorList3_3[1], (640, 64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 8):
+                screen.blit(self.edgeList3_3[1], (640, 64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 9):
+                screen.blit(self.doorList3_3[1], (640, 64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 12):
+                screen.blit(self.edgeList3_3[1], (640, 64)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 13):
+                screen.blit(self.switchedgeList3_3[1], (640, 64)) 
+
 
 
             #draw up two wall on right two
@@ -749,6 +1282,28 @@ class Dungeon:
                 screen.blit(self.doorList3_2[1], (512, 64))    
             elif (self.vertical_wall[decrement(y,2)][increment(x,2)] == 3):
                 screen.blit(self.doorList3_2[1], (512, 64))    
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,2)][increment(x,2)] == 4):
+                screen.blit(self.doorList3_2[1], (512, 64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,2)][increment(x,2)] == 6):
+                screen.blit(self.edgeList3_2[1], (512, 64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,2)][increment(x,2)] == 7):
+                screen.blit(self.doorList3_2[1], (512, 64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,2)][increment(x,2)] == 8):
+                screen.blit(self.edgeList3_2[1], (512, 64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,2)][increment(x,2)] == 9):
+                screen.blit(self.doorList3_2[1], (512, 64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,2)][increment(x,2)] == 12):
+                screen.blit(self.edgeList3_2[1], (512, 64)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,2)][increment(x,2)] == 13):
+                screen.blit(self.switchedgeList3_2[1], (512, 64)) 
+
 
             #draw up two wall on right
             if (self.vertical_wall[decrement(y,2)][increment(x,1)] == 1):
@@ -757,7 +1312,27 @@ class Dungeon:
                 screen.blit(self.doorList3[1], (384, 64))                
             elif (self.vertical_wall[decrement(y,2)][increment(x,1)] == 3):
                 screen.blit(self.doorList3[1], (384, 64))                
-
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,2)][increment(x,1)] == 4):
+                screen.blit(self.doorList3[1], (384, 64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,2)][increment(x,1)] == 6):
+                screen.blit(self.edgeList3[1], (384, 64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,2)][increment(x,1)] == 7):
+                screen.blit(self.doorList3[1], (384, 64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,2)][increment(x,1)] == 8):
+                screen.blit(self.edgeList3[1], (384, 64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,2)][increment(x,1)] == 9):
+                screen.blit(self.doorList3[1], (384, 64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,2)][increment(x,1)] == 12):
+                screen.blit(self.edgeList3[1], (384, 64)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,2)][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList3[1], (384, 64)) 
 
             #draw straight one block wall left one
             if (self.horizontal_wall[decrement(y,1)][decrement(x,1)] == 1):
@@ -766,6 +1341,27 @@ class Dungeon:
                 screen.blit(self.door2, (-64,64))
             elif (self.horizontal_wall[decrement(y,1)][decrement(x,1)] == 3):
                 screen.blit(self.door2, (-64,64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,1)] == 4):
+                screen.blit(self.door2, (-64,64))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,1)] == 6):
+                screen.blit(self.door2, (-64,64))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,1)] == 7):
+                screen.blit(self.center2, (-64,64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,1)] == 8):
+                screen.blit(self.door2, (-64,64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,1)] == 9):
+                screen.blit(self.center2, (-64,64))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,1)] == 12):
+                screen.blit(self.switch2, (-64,64))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,1)] == 13):
+                screen.blit(self.center2, (-64,64))
         
             #draw straight one block wall
             if (self.horizontal_wall[decrement(y,1)][x] == 1):
@@ -774,6 +1370,27 @@ class Dungeon:
                 screen.blit(self.door2, (192,64))
             elif (self.horizontal_wall[decrement(y,1)][x] == 3):
                 screen.blit(self.door2, (192,64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,1)][x] == 4):
+                screen.blit(self.door2, (192,64))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][x] == 6):
+                screen.blit(self.door2, (192,64))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][x] == 7):
+                screen.blit(self.center2, (192,64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][x] == 8):
+                screen.blit(self.door2, (192,64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][x] == 9):
+                screen.blit(self.center2, (192,64))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,1)][x] == 12):
+                screen.blit(self.switch2, (192,64))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,1)][x] == 13):
+                screen.blit(self.center2, (192,64))
 
             #draw straight one block wall right one
             if (self.horizontal_wall[decrement(y,1)][increment(x,1)] == 1):
@@ -782,6 +1399,27 @@ class Dungeon:
                 screen.blit(self.door2, (448,64))
             elif (self.horizontal_wall[decrement(y,1)][increment(x,1)] == 3):
                 screen.blit(self.door2, (448,64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,1)] == 4):
+                screen.blit(self.door2, (448,64))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,1)] == 6):
+                screen.blit(self.door2, (448,64))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,1)] == 7):
+                screen.blit(self.center2, (448,64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,1)] == 8):
+                screen.blit(self.door2, (448,64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,1)] == 9):
+                screen.blit(self.center2, (448,64))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,1)] == 12):
+                screen.blit(self.switch2, (448,64))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,1)] == 13):
+                screen.blit(self.center2, (448,64))
 
             #draw up two wall on left
             if (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 1):
@@ -790,6 +1428,27 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (-192, -64))
             elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 3):
                 screen.blit(self.doorList2[0], (-192, -64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 4):
+                screen.blit(self.doorList2[0], (-192, -64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 6):
+                screen.blit(self.doorList2[0], (-192, -64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 7):
+                screen.blit(self.edgeList2[0], (-192, -64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 8):
+                screen.blit(self.doorList2[0], (-192, -64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 9):
+                screen.blit(self.edgeList2[0], (-192, -64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 12):
+                screen.blit(self.switchedgeList2[0], (-192, -64)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 13):
+                screen.blit(self.edgeList2[0], (-192, -64)) 
                                   
 
             #draw up one wall on left
@@ -799,6 +1458,27 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (64, -64))
             elif (self.vertical_wall[decrement(y,1)][x] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][x] == 4):
+                screen.blit(self.doorList2[0], (64, -64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][x] == 6):
+                screen.blit(self.doorList2[0], (64, -64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][x] == 7):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][x] == 8):
+                screen.blit(self.doorList2[0], (64, -64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][x] == 9):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][x] == 12):
+                screen.blit(self.switchedgeList2[0], (64, -64)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][x] == 13):
+                screen.blit(self.edgeList2[0], (64, -64)) 
                                    
             #draw up one wall on right
             if (self.vertical_wall[decrement(y,1)][increment(x,1)] == 1):
@@ -807,6 +1487,27 @@ class Dungeon:
                 screen.blit(self.doorList2[1], (448, -64))                
             elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 3):
                 screen.blit(self.doorList2[1], (448, -64))                
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 4):
+                screen.blit(self.doorList2[1], (448, -64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 6):
+                screen.blit(self.edgeList2[1], (448, -64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 7):
+                screen.blit(self.doorList2[1], (448, -64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 8):
+                screen.blit(self.edgeList2[1], (448, -64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 9):
+                screen.blit(self.doorList2[1], (448, -64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 12):
+                screen.blit(self.edgeList2[1], (448, -64)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList2[1], (448, -64)) 
 
             #draw left one up wall
             if (self.horizontal_wall[y][decrement(x,1)] == 1):
@@ -815,6 +1516,28 @@ class Dungeon:
                 screen.blit(self.door1, (-448,-64))
             elif (self.horizontal_wall[y][decrement(x,1)] == 3):
                 screen.blit(self.door1, (-448,-64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][decrement(x,1)] == 4):
+                screen.blit(self.door1, (-448,-64))
+            #one way door from right
+            elif (self.horizontal_wall[y][decrement(x,1)] == 6):
+                screen.blit(self.door1, (-448,-64))
+            #one way door from left
+            elif (self.horizontal_wall[y][decrement(x,1)] == 7):
+                screen.blit(self.center1, (-448,-64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][decrement(x,1)] == 8):
+                screen.blit(self.door1, (-448,-64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][decrement(x,1)] == 9):
+                screen.blit(self.center1, (-448,-64))
+            #switch on right side
+            elif (self.horizontal_wall[y][decrement(x,1)] == 12):
+                screen.blit(self.switch1, (-448,-64))  
+            #switch on left side
+            elif (self.horizontal_wall[y][decrement(x,1)] == 13):
+                screen.blit(self.center1, (-448,-64))
+
 
             #draw right one up wall
             if (self.horizontal_wall[y][increment(x,1)] == 1):
@@ -823,6 +1546,28 @@ class Dungeon:
                 screen.blit(self.door1, (576,-64))
             elif (self.horizontal_wall[y][increment(x,1)] == 3):
                 screen.blit(self.door1, (576,-64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][increment(x,1)] == 4):
+                screen.blit(self.door1, (576,-64))
+            #one way door from right
+            elif (self.horizontal_wall[y][increment(x,1)] == 6):
+                screen.blit(self.door1, (576,-64))
+            #one way door from left
+            elif (self.horizontal_wall[y][increment(x,1)] == 7):
+                screen.blit(self.center1, (576,-64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][increment(x,1)] == 8):
+                screen.blit(self.door1, (576,-64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][increment(x,1)] == 9):
+                screen.blit(self.center1, (576,-64))
+            #switch on right side
+            elif (self.horizontal_wall[y][increment(x,1)] == 12):
+                screen.blit(self.switch1,(576,-64))  
+            #switch on left side
+            elif (self.horizontal_wall[y][increment(x,1)] == 13):
+                screen.blit(self.center1, (576,-64))
+
 
             #draw just up wall
             if (self.horizontal_wall[y][x] == 1):
@@ -831,6 +1576,28 @@ class Dungeon:
                 screen.blit(self.door1, (64,-64))
             elif (self.horizontal_wall[y][x] == 3):
                 screen.blit(self.door1, (64,-64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][x] == 4):
+                screen.blit(self.door1, (64,-64))
+            #one way door from right
+            elif (self.horizontal_wall[y][x] == 6):
+                screen.blit(self.door1, (64,-64))
+            #one way door from left
+            elif (self.horizontal_wall[y][x] == 7):
+                screen.blit(self.center1, (64,-64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][x] == 8):
+                screen.blit(self.door1, (64,-64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][x] == 9):
+                screen.blit(self.center1, (64,-64))
+            #switch on right side
+            elif (self.horizontal_wall[y][x] == 12):
+                screen.blit(self.switch1,(64,-64))  
+            #switch on left side
+            elif (self.horizontal_wall[y][x] == 13):
+                screen.blit(self.center1, (64,-64))
+
 
             #draw wall on left
             if (self.vertical_wall[y][x] == 1):
@@ -839,6 +1606,27 @@ class Dungeon:
                 screen.blit(self.doorList1[0], (-192, -320))
             elif (self.vertical_wall[y][x] == 3):
                 screen.blit(self.doorList1[0], (-192, -320))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][x] == 4):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #one way door from right
+            elif (self.vertical_wall[y][x] == 6):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #one way door from left
+            elif (self.vertical_wall[y][x] == 7):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][x] == 8):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][x] == 9):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #switch on right side
+            elif (self.vertical_wall[y][x] == 12):
+                screen.blit(self.switchedgeList1[0], (-192, -320)) 
+            #switch on left side
+            elif (self.vertical_wall[y][x] == 13):
+                screen.blit(self.edgeList1[0], (-192, -320)) 
 
             #draw wall on right
             if (self.vertical_wall[y][increment(x,1)] == 1):
@@ -847,76 +1635,64 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
             elif (self.vertical_wall[y][increment(x,1)] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
-
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][increment(x,1)] == 4):
+                screen.blit(self.doorList1[1], (576, -320))
+            #one way door from right
+            elif (self.vertical_wall[y][increment(x,1)] == 6):
+                screen.blit(self.edgeList1[1], (576, -320))
+            #one way door from left
+            elif (self.vertical_wall[y][increment(x,1)] == 7):
+                screen.blit(self.doorList1[1], (576, -320))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][increment(x,1)] == 8):
+                screen.blit(self.edgeList1[1], (576, -320))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][increment(x,1)] == 9):
+                screen.blit(self.doorList1[1], (576, -320))
+            #switch on right side
+            elif (self.vertical_wall[y][increment(x,1)] == 12):
+                screen.blit(self.edgeList1[1], (576, -320)) 
+            #switch on left side
+            elif (self.vertical_wall[y][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList1[1], (576, -320)) 
 
         #if player is looking right
         elif (game_self.party.direction == 1):
-            
-            if (self.ground[y][x] == 0 ):
-                screen.blit(self.ground_center1, (32, 448))
 
+            #draw ground below
+            draw_dungeon_ground( screen, self.ground[y][x], self.ground_center1, (32, 448))
             #draw ground left
-            if (self.ground[decrement(y,1)][x] == 0 ):
-                screen.blit(self.ground_sideList1[0], (0, 448))
-
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][x], self.ground_sideList1[0], (0, 448))
             #draw ground right
-            if (self.ground[increment(y,1)][x] == 0 ):
-                screen.blit(self.ground_sideList1[1], (576, 448))
-
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][x], self.ground_sideList1[1], (576, 448))
             #draw ground up left
-            if (self.ground[decrement(y,1)][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[0], (0, 320))             
-
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][increment(x,1)], self.ground_sideList2[0], (0,320))
             #draw ground up right
-            if (self.ground[increment(y,1)][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[1], (448, 320))             
-
-            #draw ground up left
-            if (self.ground[decrement(y,1)][increment(x,2)] == 0 ):
-                screen.blit(self.ground_sideList3[0], (-128, 256))             
-
-            #draw ground up right
-            if (self.ground[increment(y,1)][increment(x,2)] == 0 ):
-                screen.blit(self.ground_sideList3[1], (384, 256))             
-
-            #draw ground up left
-            if (self.ground[decrement(y,2)][increment(x,2)] == 0 ):
-                screen.blit(self.ground_sideList3_2[0], (0, 256))             
-
-            #draw ground up right
-            if (self.ground[increment(y,2)][increment(x,2)] == 0 ):
-                screen.blit(self.ground_sideList3_2[1], (576, 256))
-
-
-            #draw ground up left
-            if (self.ground[decrement(y,1)][increment(x,3)] == 0 ):
-                screen.blit(self.ground_sideList4[0], (128, 224))             
-
-            #draw ground up right
-            if (self.ground[increment(y,1)][increment(x,3)] == 0 ):
-                screen.blit(self.ground_sideList4[1], (352, 224))
-
-            #draw ground up left
-            if (self.ground[decrement(y,2)][increment(x,3)] == 0 ):
-                screen.blit(self.ground_sideList4_2[0], (0, 224))             
-
-            #draw ground up right
-            if (self.ground[increment(y,2)][increment(x,3)] == 0 ):
-                screen.blit(self.ground_sideList4_2[1], (416, 224))
-
-
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][increment(x,1)], self.ground_sideList2[1], (448,320))
+            #draw ground up two left
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][increment(x,2)], self.ground_sideList3[0], (-128,256))
+            #draw ground up two right
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][increment(x,2)], self.ground_sideList3[1], (384,256))
+            #draw ground up two left two
+            draw_dungeon_ground( screen, self.ground[decrement(y,2)][increment(x,2)], self.ground_sideList3_2[0], (0,256))
+            #draw ground up two right two
+            draw_dungeon_ground( screen, self.ground[increment(y,2)][increment(x,2)], self.ground_sideList3_2[1], (576,256))
+            #draw ground up three left
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][increment(x,3)], self.ground_sideList4[0], (128,224))
+            #draw ground up three right
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][increment(x,3)], self.ground_sideList4[1], (352,224))
+            #draw ground up three left two
+            draw_dungeon_ground( screen, self.ground[decrement(y,2)][increment(x,3)], self.ground_sideList4_2[0], (0,224))
+            #draw ground up three right two
+            draw_dungeon_ground( screen, self.ground[increment(y,2)][increment(x,3)], self.ground_sideList4_2[1], (416,224))                
             #draw ground up one
-            if (self.ground[y][increment(x,1)] == 0 ):
-                screen.blit(self.ground_center2, (64, 320))
-
+            draw_dungeon_ground( screen, self.ground[y][increment(x,1)], self.ground_center2, (64,320))
             #draw ground up two
-            if (self.ground[y][increment(x,2)] == 0 ):
-                screen.blit(self.ground_center3, (192, 256))
-                
+            draw_dungeon_ground( screen, self.ground[y][increment(x,2)], self.ground_center3, (192,256))                
             #draw ground up three
-            if (self.ground[y][increment(x,3)] == 0 ):
-                screen.blit(self.ground_center4, (256, 224))
-                
+            draw_dungeon_ground( screen, self.ground[y][increment(x,3)], self.ground_center4, (256,224))
+
 
 
             #draw straight three block wall left two
@@ -926,6 +1702,28 @@ class Dungeon:
                 screen.blit(self.door4, (160,160))                                               
             elif (self.vertical_wall[decrement(y,2)][increment(x,4)] == 3):
                 screen.blit(self.door4, (160,160))                                               
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,2)][increment(x,4)] == 4):
+                screen.blit(self.door4, (160,160))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,2)][increment(x,4)] == 6):
+                screen.blit(self.center4, (160,160))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,2)][increment(x,4)] == 7):
+                screen.blit(self.door4, (160,160))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,2)][increment(x,4)] == 8):
+                screen.blit(self.center4, (160,160))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,2)][increment(x,4)] == 9):
+                screen.blit(self.door4, (160,160))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,2)][increment(x,4)] == 12):
+                screen.blit(self.center4, (160,160))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,2)][increment(x,4)] == 13):
+                screen.blit(self.switch4, (160,160))   
+
 
             #draw straight three block wall left one
             if (self.vertical_wall[decrement(y,1)][increment(x,4)] == 1):
@@ -934,6 +1732,28 @@ class Dungeon:
                 screen.blit(self.door4, (224,160))                                               
             elif (self.vertical_wall[decrement(y,1)][increment(x,4)] == 3):
                 screen.blit(self.door4, (224,160))                                               
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][increment(x,4)] == 4):
+                screen.blit(self.door4, (224,160))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,4)] == 6):
+                screen.blit(self.center4, (224,160))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,4)] == 7):
+                screen.blit(self.door4, (224,160))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,4)] == 8):
+                screen.blit(self.center4, (224,160))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,4)] == 9):
+                screen.blit(self.door4, (224,160))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,4)] == 12):
+                screen.blit(self.center4, (224,160))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,4)] == 13):
+                screen.blit(self.switch4, (224,160))   
+
 
             #draw straight three block wall
             if (self.vertical_wall[y][increment(x,4)] == 1):
@@ -942,6 +1762,28 @@ class Dungeon:
                 screen.blit(self.door4, (288,160))
             elif (self.vertical_wall[y][increment(x,4)] == 3):
                 screen.blit(self.door4, (288,160))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][increment(x,4)] == 4):
+                screen.blit(self.door4, (288,160))
+            #one way door from right
+            elif (self.vertical_wall[y][increment(x,4)] == 6):
+                screen.blit(self.center4, (288,160))
+            #one way door from left
+            elif (self.vertical_wall[y][increment(x,4)] == 7):
+                screen.blit(self.door4, (288,160))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][increment(x,4)] == 8):
+                screen.blit(self.center4, (288,160))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][increment(x,4)] == 9):
+                screen.blit(self.door4, (288,160))
+            #switch on right side
+            elif (self.vertical_wall[y][increment(x,4)] == 12):
+                screen.blit(self.center4, (288,160))                                                               
+            #switch on left side
+            elif (self.vertical_wall[y][increment(x,4)] == 13):
+                screen.blit(self.switch4, (288,160))   
+
 
             #draw straight three block wall right one
             if (self.vertical_wall[increment(y,1)][increment(x,4)] == 1):
@@ -950,6 +1792,27 @@ class Dungeon:
                 screen.blit(self.door4, (352,160))                                               
             elif (self.vertical_wall[increment(y,1)][increment(x,4)] == 3):
                 screen.blit(self.door4, (352,160))                                               
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][increment(x,4)] == 4):
+                screen.blit(self.door4, (352,160))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,4)] == 6):
+                screen.blit(self.center4, (352,160))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,4)] == 7):
+                screen.blit(self.door4, (352,160))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,4)] == 8):
+                screen.blit(self.center4, (352,160))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,4)] == 9):
+                screen.blit(self.door4, (352,160))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][increment(x,4)] == 12):
+                screen.blit(self.center4, (352,160))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][increment(x,4)] == 13):
+                screen.blit(self.switch4, (352,160)) 
 
             #draw straight three block wall right two
             if (self.vertical_wall[increment(y,2)][increment(x,4)] == 1):
@@ -958,6 +1821,28 @@ class Dungeon:
                 screen.blit(self.door4, (416,160))
             elif (self.vertical_wall[increment(y,2)][increment(x,4)] == 3):
                 screen.blit(self.door4, (416,160))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,2)][increment(x,4)] == 4):
+                screen.blit(self.door4, (416,160))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,2)][increment(x,4)] == 6):
+                screen.blit(self.center4, (416,160))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,2)][increment(x,4)] == 7):
+                screen.blit(self.door4, (416,160))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,2)][increment(x,4)] == 8):
+                screen.blit(self.center4, (416,160))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,2)][increment(x,4)] == 9):
+                screen.blit(self.door4, (416,160))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,2)][increment(x,4)] == 12):
+                screen.blit(self.center4, (416,160))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,2)][increment(x,4)] == 13):
+                screen.blit(self.switch4, (416,160)) 
+
 
 
             #draw up three wall on left three
@@ -967,6 +1852,29 @@ class Dungeon:
                 screen.blit(self.doorList4_3[0], (0, 128))
             elif (self.horizontal_wall[decrement(y,2)][increment(x,3)] == 3):
                 screen.blit(self.doorList4_3[0], (0, 128))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,3)] == 4):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,3)] == 6):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,3)] == 7):
+                screen.blit(self.edgeList4_3[0], (0, 128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,3)] == 8):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,3)] == 9):
+                screen.blit(self.edgeList4_3[0], (0, 128))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,3)] == 12):
+                screen.blit(self.switchedgeList4_3[0], (0, 128)) 
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,3)] == 13):
+                screen.blit(self.edgeList4_3[0], (0, 128)) 
+
+
 
             #draw up three wall on left two
             if (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 1):
@@ -975,6 +1883,28 @@ class Dungeon:
                 screen.blit(self.doorList4_2[0], (128, 128))
             elif (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 3):
                 screen.blit(self.doorList4_2[0], (128, 128))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 4):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 6):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 7):
+                screen.blit(self.edgeList4_2[0], (128, 128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 8):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 9):
+                screen.blit(self.edgeList4_2[0], (128, 128))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 12):
+                screen.blit(self.switchedgeList4_2[0], (128, 128)) 
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,3)] == 13):
+                screen.blit(self.edgeList4_2[0], (128, 128)) 
+
 
 
             #draw up three wall on left
@@ -984,6 +1914,28 @@ class Dungeon:
                 screen.blit(self.doorList4[0], (256, 128))
             elif (self.horizontal_wall[y][increment(x,3)] == 3):
                 screen.blit(self.doorList4[0], (256, 128))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][increment(x,3)] == 4):
+                screen.blit(self.doorList4[0], (256, 128))
+            #one way door from right
+            elif (self.horizontal_wall[y][increment(x,3)] == 6):
+                screen.blit(self.doorList4[0], (256, 128))
+            #one way door from left
+            elif (self.horizontal_wall[y][increment(x,3)] == 7):
+                screen.blit(self.edgeList4[0], (256, 128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][increment(x,3)] == 8):
+                screen.blit(self.doorList4[0], (256, 128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][increment(x,3)] == 9):
+                screen.blit(self.edgeList4[0], (256, 128))
+            #switch on right side
+            elif (self.horizontal_wall[y][increment(x,3)] == 12):
+                screen.blit(self.switchedgeList4[0], (256, 128)) 
+            #switch on left side
+            elif (self.horizontal_wall[y][increment(x,3)] == 13):
+                screen.blit(self.edgeList4[0], (256, 128)) 
+
 
             #draw up three wall on right three
             if (self.horizontal_wall[increment(y,3)][increment(x,3)] == 1):
@@ -992,6 +1944,27 @@ class Dungeon:
                 screen.blit(self.doorList4_3[1], (480, 128))  
             elif (self.horizontal_wall[increment(y,3)][increment(x,3)] == 3):
                 screen.blit(self.doorList4_3[1], (480, 128))  
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,3)][increment(x,3)] == 4):
+                screen.blit(self.doorList4_3[1], (480, 128))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,3)][increment(x,3)] == 6):
+                screen.blit(self.edgeList4_3[1], (480, 128))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,3)][increment(x,3)] == 7):
+                screen.blit(self.doorList4_3[1], (480, 128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,3)][increment(x,3)] == 8):
+                screen.blit(self.edgeList4_3[1], (480, 128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,3)][increment(x,3)] == 9):
+                screen.blit(self.doorList4_3[1], (480, 128))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,3)][increment(x,3)] == 12):
+                screen.blit(self.edgeList4_3[1], (480, 128)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,3)][increment(x,3)] == 13):
+                screen.blit(self.switchedgeList4_3[1], (480, 128)) 
 
             #draw up three wall on right two
             if (self.horizontal_wall[increment(y,2)][increment(x,3)] == 1):
@@ -1000,6 +1973,27 @@ class Dungeon:
                 screen.blit(self.doorList4_2[1], (416, 128))                               
             elif (self.horizontal_wall[increment(y,2)][increment(x,3)] == 3):
                 screen.blit(self.doorList4_2[1], (416, 128))                               
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,2)][increment(x,3)] == 4):
+                screen.blit(self.doorList4_2[1], (416, 128))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,2)][increment(x,3)] == 6):
+                screen.blit(self.edgeList4_2[1], (416, 128))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,2)][increment(x,3)] == 7):
+                screen.blit(self.doorList4_2[1], (416, 128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,2)][increment(x,3)] == 8):
+                screen.blit(self.edgeList4_2[1], (416, 128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,2)][increment(x,3)] == 9):
+                screen.blit(self.doorList4_2[1], (416, 128))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,2)][increment(x,3)] == 12):
+                screen.blit(self.edgeList4_2[1], (416, 128)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,2)][increment(x,3)] == 13):
+                screen.blit(self.switchedgeList4_2[1], (416, 128)) 
 
             #draw up three wall on right
             if (self.horizontal_wall[increment(y,1)][increment(x,3)] == 1):
@@ -1008,6 +2002,27 @@ class Dungeon:
                 screen.blit(self.doorList4[1], (352, 128))                
             elif (self.horizontal_wall[increment(y,1)][increment(x,3)] == 3):
                 screen.blit(self.doorList4[1], (352, 128))                
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][increment(x,3)] == 4):
+                screen.blit(self.doorList4[1], (352, 128))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][increment(x,3)] == 6):
+                screen.blit(self.edgeList4[1], (352, 128))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][increment(x,3)] == 7):
+                screen.blit(self.doorList4[1], (352, 128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][increment(x,3)] == 8):
+                screen.blit(self.edgeList4[1], (352, 128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][increment(x,3)] == 9):
+                screen.blit(self.doorList4[1], (352, 128))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][increment(x,3)] == 12):
+                screen.blit(self.edgeList4[1], (352, 128)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][increment(x,3)] == 13):
+                screen.blit(self.switchedgeList4[1], (352, 128)) 
 
             #draw straight two block wall left two
             if (self.vertical_wall[decrement(y,2)][increment(x,3)] == 1):
@@ -1016,6 +2031,27 @@ class Dungeon:
                 screen.blit(self.door3, (0,128))
             elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 3):
                 screen.blit(self.door3, (0,128))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 4):
+                screen.blit(self.door3, (0,128))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 6):
+                screen.blit(self.center3, (0,128))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 7):
+                screen.blit(self.door3, (0,128))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 8):
+                screen.blit(self.center3, (0,128))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 9):
+                screen.blit(self.door3, (0,128))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 12):
+                screen.blit(self.center3, (0,128))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,2)][increment(x,3)] == 13):
+                screen.blit(self.switch3, (0,128)) 
 
             #draw straight two block wall left one
             if (self.vertical_wall[decrement(y,1)][increment(x,3)] == 1):
@@ -1024,6 +2060,28 @@ class Dungeon:
                 screen.blit(self.door3, (128,128))
             elif (self.vertical_wall[decrement(y,1)][increment(x,3)] == 3):
                 screen.blit(self.door3, (128,128))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][increment(x,3)] == 4):
+                screen.blit(self.door3, (128,128))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,3)] == 6):
+                screen.blit(self.center3, (128,128))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,3)] == 7):
+                screen.blit(self.door3, (128,128))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,3)] == 8):
+                screen.blit(self.center3, (128,128))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,3)] == 9):
+                screen.blit(self.door3, (128,128))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,3)] == 12):
+                screen.blit(self.center3, (128,128))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,3)] == 13):
+                screen.blit(self.switch3, (128,128)) 
+
 
             #draw straight two block wall
             if (self.vertical_wall[y][increment(x,3)] == 1):
@@ -1032,6 +2090,27 @@ class Dungeon:
                 screen.blit(self.door3, (256,128))
             elif (self.vertical_wall[y][increment(x,3)] == 3):
                 screen.blit(self.door3, (256,128))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][increment(x,3)] == 4):
+                screen.blit(self.door3, (256,128))
+            #one way door from right
+            elif (self.vertical_wall[y][increment(x,3)] == 6):
+                screen.blit(self.center3, (256,128))
+            #one way door from left
+            elif (self.vertical_wall[y][increment(x,3)] == 7):
+                screen.blit(self.door3, (256,128))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][increment(x,3)] == 8):
+                screen.blit(self.center3, (256,128))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][increment(x,3)] == 9):
+                screen.blit(self.door3, (256,128))
+            #switch on right side
+            elif (self.vertical_wall[y][increment(x,3)] == 12):
+                screen.blit(self.center3, (256,128))                                                               
+            #switch on left side
+            elif (self.vertical_wall[y][increment(x,3)] == 13):
+                screen.blit(self.switch3, (256,128)) 
 
             #draw straight two block wall right one
             if (self.vertical_wall[increment(y,1)][increment(x,3)] == 1):
@@ -1040,6 +2119,27 @@ class Dungeon:
                 screen.blit(self.door3, (384,128))
             elif (self.vertical_wall[increment(y,1)][increment(x,3)] == 3):
                 screen.blit(self.door3, (384,128))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][increment(x,3)] == 4):
+                screen.blit(self.door3, (384,128))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,3)] == 6):
+                screen.blit(self.center3, (384,128))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,3)] == 7):
+                screen.blit(self.door3, (384,128))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,3)] == 8):
+                screen.blit(self.center3, (384,128))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,3)] == 9):
+                screen.blit(self.door3, (384,128))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][increment(x,3)] == 12):
+                screen.blit(self.center3, (384,128))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][increment(x,3)] == 13):
+                screen.blit(self.switch3, (384,128)) 
 
             #draw straight two block wall right two
             if (self.vertical_wall[increment(y,2)][increment(x,3)] == 1):
@@ -1048,7 +2148,27 @@ class Dungeon:
                 screen.blit(self.door3, (512,128))
             elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 3):
                 screen.blit(self.door3, (512,128))
-
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 4):
+                screen.blit(self.door3, (512,128))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 6):
+                screen.blit(self.center3, (512,128))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 7):
+                screen.blit(self.door3, (512,128))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 8):
+                screen.blit(self.center3, (512,128))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 9):
+                screen.blit(self.door3, (512,128))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 12):
+                screen.blit(self.center3, (512,128))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 13):
+                screen.blit(self.switch3, (512,128)) 
 
 
             #draw up two wall on left three
@@ -1058,6 +2178,28 @@ class Dungeon:
                 screen.blit(self.doorList3_3[0], (-320, 64))
             elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 3):
                 screen.blit(self.doorList3_3[0], (-320, 64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 4):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 6):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 7):
+                screen.blit(self.edgeList3_3[0], (-320, 64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 8):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 9):
+                screen.blit(self.edgeList3_3[0], (-320, 64))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 12):
+                screen.blit(self.switchedgeList3_3[0], (-320, 64)) 
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,2)][increment(x,2)] == 13):
+                screen.blit(self.edgeList3_3[0], (-320, 64)) 
+
 
             #draw up two wall on left two
             if (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 1):
@@ -1066,6 +2208,27 @@ class Dungeon:
                 screen.blit(self.doorList3_2[0], (-64, 64))
             elif (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 3):
                 screen.blit(self.doorList3_2[0], (-64, 64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 4):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 6):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 7):
+                screen.blit(self.edgeList3_2[0], (-64, 64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 8):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 9):
+                screen.blit(self.edgeList3_2[0], (-64, 64))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 12):
+                screen.blit(self.switchedgeList3_2[0], (-64, 64)) 
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,1)][increment(x,2)] == 13):
+                screen.blit(self.edgeList3_2[0], (-64, 64)) 
 
             #draw up two wall on left
             if (self.horizontal_wall[y][increment(x,2)] == 1):
@@ -1074,6 +2237,27 @@ class Dungeon:
                 screen.blit(self.doorList3[0], (192, 64))
             elif (self.horizontal_wall[y][increment(x,2)] == 3):
                 screen.blit(self.doorList3[0], (192, 64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][increment(x,2)] == 4):
+                screen.blit(self.doorList3[0], (192, 64))
+            #one way door from right
+            elif (self.horizontal_wall[y][increment(x,2)] == 6):
+                screen.blit(self.doorList3[0], (192, 64))
+            #one way door from left
+            elif (self.horizontal_wall[y][increment(x,2)] == 7):
+                screen.blit(self.edgeList3[0], (192, 64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][increment(x,2)] == 8):
+                screen.blit(self.doorList3[0], (192, 64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][increment(x,2)] == 9):
+                screen.blit(self.edgeList3[0], (192, 64))
+            #switch on right side
+            elif (self.horizontal_wall[y][increment(x,2)] == 12):
+                screen.blit(self.switchedgeList3[0], (192, 64)) 
+            #switch on left side
+            elif (self.horizontal_wall[y][increment(x,2)] == 13):
+                screen.blit(self.edgeList3[0], (192, 64)) 
                 
             #draw up two wall on right three
             if (self.horizontal_wall[increment(y,3)][increment(x,2)] == 1):
@@ -1082,6 +2266,27 @@ class Dungeon:
                 screen.blit(self.doorList3_3[1], (640, 64))    
             elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 3):
                 screen.blit(self.doorList3_3[1], (640, 64))    
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 4):
+                screen.blit(self.doorList3_3[1],  (640, 64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 6):
+                screen.blit(self.edgeList3_3[1],  (640, 64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 7):
+                screen.blit(self.doorList3_3[1],  (640, 64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 8):
+                screen.blit(self.edgeList3_3[1],  (640, 64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 9):
+                screen.blit(self.doorList3_3[1],  (640, 64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 12):
+                screen.blit(self.edgeList3_3[1],  (640, 64)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 13):
+                screen.blit(self.switchedgeList3_3[1],  (640, 64)) 
 
 
             #draw up two wall on right two
@@ -1091,6 +2296,27 @@ class Dungeon:
                 screen.blit(self.doorList3_2[1], (512, 64))    
             elif (self.horizontal_wall[increment(y,2)][increment(x,2)] == 3):
                 screen.blit(self.doorList3_2[1], (512, 64))    
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,2)][increment(x,2)] == 4):
+                screen.blit(self.doorList3_2[1],  (512, 64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,2)][increment(x,2)] == 6):
+                screen.blit(self.edgeList3_2[1],  (512, 64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,2)][increment(x,2)] == 7):
+                screen.blit(self.doorList3_2[1],  (512, 64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,2)][increment(x,2)] == 8):
+                screen.blit(self.edgeList3_2[1],  (512, 64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,2)][increment(x,2)] == 9):
+                screen.blit(self.doorList3_2[1],  (512, 64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,2)][increment(x,2)] == 12):
+                screen.blit(self.edgeList3_2[1],  (512, 64)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,2)][increment(x,2)] == 13):
+                screen.blit(self.switchedgeList3_2[1],  (512, 64)) 
 
             #draw up two wall on right
             if (self.horizontal_wall[increment(y,1)][increment(x,2)] == 1):
@@ -1099,6 +2325,27 @@ class Dungeon:
                 screen.blit(self.doorList3[1], (384, 64))  
             elif (self.horizontal_wall[increment(y,1)][increment(x,2)] == 3):
                 screen.blit(self.doorList3[1], (384, 64))  
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][increment(x,2)] == 4):
+                screen.blit(self.doorList3[1],  (384, 64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][increment(x,2)] == 6):
+                screen.blit(self.edgeList3[1],  (384, 64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][increment(x,2)] == 7):
+                screen.blit(self.doorList3[1],  (384, 64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][increment(x,2)] == 8):
+                screen.blit(self.edgeList3[1],  (384, 64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][increment(x,2)] == 9):
+                screen.blit(self.doorList3[1],  (384, 64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][increment(x,2)] == 12):
+                screen.blit(self.edgeList3[1],  (384, 64)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][increment(x,2)] == 13):
+                screen.blit(self.switchedgeList3[1],  (384, 64)) 
 
 
             #draw straight one block wall left one
@@ -1108,6 +2355,27 @@ class Dungeon:
                 screen.blit(self.door2, (-64,64))
             elif (self.vertical_wall[decrement(y,1)][increment(x,2)] == 3):
                 screen.blit(self.door2, (-64,64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][increment(x,2)] == 4):
+                screen.blit(self.door2, (-64,64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,2)] == 6):
+                screen.blit(self.center2, (-64,64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,2)] == 7):
+                screen.blit(self.door2, (-64,64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,2)] == 8):
+                screen.blit(self.center2, (-64,64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,2)] == 9):
+                screen.blit(self.door2, (-64,64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,2)] == 12):
+                screen.blit(self.center2, (-64,64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,2)] == 13):
+                screen.blit(self.switch2, (-64,64)) 
         
             #draw straight one block wall
             if (self.vertical_wall[y][increment(x,2)] == 1):
@@ -1116,6 +2384,27 @@ class Dungeon:
                 screen.blit(self.door2, (192, 64))
             elif (self.vertical_wall[y][increment(x,2)] == 3):
                 screen.blit(self.door2, (192, 64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][increment(x,2)] == 4):
+                screen.blit(self.door2, (192,64))
+            #one way door from right
+            elif (self.vertical_wall[y][increment(x,2)] == 6):
+                screen.blit(self.center2, (192,64))
+            #one way door from left
+            elif (self.vertical_wall[y][increment(x,2)] == 7):
+                screen.blit(self.door2, (192,64))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][increment(x,2)] == 8):
+                screen.blit(self.center2, (192,64))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][increment(x,2)] == 9):
+                screen.blit(self.door2, (192,64))
+            #switch on right side
+            elif (self.vertical_wall[y][increment(x,2)] == 12):
+                screen.blit(self.center2, (192,64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[y][increment(x,2)] == 13):
+                screen.blit(self.switch2, (192,64)) 
 
             #draw straight one block wall right one
             if (self.vertical_wall[increment(y,1)][increment(x,2)] == 1):
@@ -1124,8 +2413,28 @@ class Dungeon:
                 screen.blit(self.door2, (448,64))
             elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 3):
                 screen.blit(self.door2, (448,64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 4):
+                screen.blit(self.door2, (448,64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 6):
+                screen.blit(self.center2, (448,64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 7):
+                screen.blit(self.door2, (448,64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 8):
+                screen.blit(self.center2, (448,64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 9):
+                screen.blit(self.door2, (448,64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 12):
+                screen.blit(self.center2, (448,64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 13):
+                screen.blit(self.switch2, (448,64)) 
 
-                
 
             #draw up one wall on left
             if (self.horizontal_wall[y][increment(x,1)] == 1):
@@ -1134,6 +2443,27 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (64, -64))
             elif (self.horizontal_wall[y][increment(x,1)] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][increment(x,1)] == 4):
+                screen.blit(self.doorList2[0], (64, -64))
+            #one way door from right
+            elif (self.horizontal_wall[y][increment(x,1)] == 6):
+                screen.blit(self.doorList2[0], (64, -64))
+            #one way door from left
+            elif (self.horizontal_wall[y][increment(x,1)] == 7):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][increment(x,1)] == 8):
+                screen.blit(self.doorList2[0], (64, -64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][increment(x,1)] == 9):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #switch on right side
+            elif (self.horizontal_wall[y][increment(x,1)] == 12):
+                screen.blit(self.switchedgeList2[0], (64, -64)) 
+            #switch on left side
+            elif (self.horizontal_wall[y][increment(x,1)] == 13):
+                screen.blit(self.edgeList2[0], (64, -64)) 
                 
             #draw up one wall on right
             if (self.horizontal_wall[increment(y,1)][increment(x,1)] == 1):
@@ -1142,6 +2472,28 @@ class Dungeon:
                 screen.blit(self.doorList2[1], (448, -64))                
             elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.doorList2[1], (448, -64))                
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 4):
+                screen.blit(self.doorList2[1],  (448, -64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 6):
+                screen.blit(self.edgeList2[1],  (448, -64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 7):
+                screen.blit(self.doorList2[1],  (448, -64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 8):
+                screen.blit(self.edgeList2[1],  (448, -64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 9):
+                screen.blit(self.doorList2[1],  (448, -64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 12):
+                screen.blit(self.edgeList2[1],  (448, -64)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList2[1],  (448, -64)) 
+
 
             #draw left one up wall
             if (self.vertical_wall[decrement(y,1)][increment(x,1)] == 1):
@@ -1150,6 +2502,27 @@ class Dungeon:
                 screen.blit(self.door1, (-448,-64))
             elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 3):
                 screen.blit(self.door1, (-448,-64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 4):
+                screen.blit(self.door1, (-448,-64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 6):
+                screen.blit(self.center1, (-448,-64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 7):
+                screen.blit(self.door1, (-448,-64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 8):
+                screen.blit(self.center1, (-448,-64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 9):
+                screen.blit(self.door1, (-448,-64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 12):
+                screen.blit(self.center1, (-448,-64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 13):
+                screen.blit(self.switch1, (-448,-64)) 
 
             #draw right one up wall
             if (self.vertical_wall[increment(y,1)][increment(x,1)] == 1):
@@ -1158,6 +2531,28 @@ class Dungeon:
                 screen.blit(self.door1, (576,-64))
             elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.door1, (576,-64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 4):
+                screen.blit(self.door1, (576,-64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 6):
+                screen.blit(self.center1, (576,-64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 7):
+                screen.blit(self.door1, (576,-64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 8):
+                screen.blit(self.center1, (576,-64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 9):
+                screen.blit(self.door1, (576,-64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 12):
+                screen.blit(self.center1, (576,-64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 13):
+                screen.blit(self.switch1, (576,-64)) 
+
 
             #draw just up wall
             if (self.vertical_wall[y][increment(x,1)] == 1):
@@ -1166,6 +2561,27 @@ class Dungeon:
                 screen.blit(self.door1, (64,-64))
             elif (self.vertical_wall[y][increment(x,1)] == 3):
                 screen.blit(self.door1, (64,-64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][increment(x,1)] == 4):
+                screen.blit(self.door1, (64,-64))
+            #one way door from right
+            elif (self.vertical_wall[y][increment(x,1)] == 6):
+                screen.blit(self.center1, (64,-64))
+            #one way door from left
+            elif (self.vertical_wall[y][increment(x,1)] == 7):
+                screen.blit(self.door1, (64,-64))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][increment(x,1)] == 8):
+                screen.blit(self.center1, (64,-64))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][increment(x,1)] == 9):
+                screen.blit(self.door1, (64,-64))
+            #switch on right side
+            elif (self.vertical_wall[y][increment(x,1)] == 12):
+                screen.blit(self.center1, (64,-64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[y][increment(x,1)] == 13):
+                screen.blit(self.switch1, (64,-64)) 
 
             #draw wall on left
             if (self.horizontal_wall[y][x] == 1):
@@ -1174,6 +2590,27 @@ class Dungeon:
                 screen.blit(self.doorList1[0], (-192, -320))
             elif (self.horizontal_wall[y][x] == 3):
                 screen.blit(self.doorList1[0], (-192, -320))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][x] == 4):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #one way door from right
+            elif (self.horizontal_wall[y][x] == 6):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #one way door from left
+            elif (self.horizontal_wall[y][x] == 7):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][x] == 8):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][x] == 9):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #switch on right side
+            elif (self.horizontal_wall[y][x] == 12):
+                screen.blit(self.switchedgeList1[0], (-192, -320)) 
+            #switch on left side
+            elif (self.horizontal_wall[y][x] == 13):
+                screen.blit(self.edgeList1[0], (-192, -320)) 
 
             #draw wall on right
             if (self.horizontal_wall[increment(y,1)][x] == 1):
@@ -1182,73 +2619,64 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
             elif (self.horizontal_wall[increment(y,1)][x] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][x] == 4):
+                screen.blit(self.doorList1[1],  (576, -320))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][x] == 6):
+                screen.blit(self.edgeList1[1],  (576, -320))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][x] == 7):
+                screen.blit(self.doorList1[1],  (576, -320))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][x] == 8):
+                screen.blit(self.edgeList1[1],  (576, -320))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][x] == 9):
+                screen.blit(self.doorList1[1],  (576, -320))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][x] == 12):
+                screen.blit(self.edgeList1[1],  (576, -320)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][x] == 13):
+                screen.blit(self.switchedgeList1[1],  (576, -320)) 
+
 
         #if party is looking down
         elif (game_self.party.direction == 2):
-            
-            if (self.ground[y][x] == 0 ):
-                screen.blit(self.ground_center1, (32, 448))
 
+            #draw ground below
+            draw_dungeon_ground( screen, self.ground[y][x], self.ground_center1, (32, 448))
             #draw ground left
-            if (self.ground[y][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList1[0], (0, 448))
-
+            draw_dungeon_ground( screen, self.ground[y][increment(x,1)], self.ground_sideList1[0], (0, 448))
             #draw ground right
-            if (self.ground[y][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList1[1], (576, 448))
-
+            draw_dungeon_ground( screen, self.ground[y][decrement(x,1)], self.ground_sideList1[1], (576, 448))
             #draw ground up left
-            if (self.ground[increment(y,1)][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[0], (0, 320))             
-
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][increment(x,1)], self.ground_sideList2[0], (0,320))
             #draw ground up right
-            if (self.ground[increment(y,1)][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[1], (448, 320))
-
-            #draw ground up left
-            if (self.ground[increment(y,2)][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList3[0], (-128, 256))             
-
-            #draw ground up right
-            if (self.ground[increment(y,2)][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList3[1], (384, 256))
-
-            #draw ground up left
-            if (self.ground[increment(y,2)][increment(x,2)] == 0 ):
-                screen.blit(self.ground_sideList3_2[0], (0, 256))             
-
-            #draw ground up right
-            if (self.ground[increment(y,2)][decrement(x,2)] == 0 ):
-                screen.blit(self.ground_sideList3_2[1], (576, 256))
-
-
-            #draw ground up left
-            if (self.ground[increment(y,3)][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList4[0], (128, 224))             
-
-            #draw ground up right
-            if (self.ground[increment(y,3)][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList4[1], (352, 224))
-
-            #draw ground up left
-            if (self.ground[increment(y,3)][increment(x,2)] == 0 ):
-                screen.blit(self.ground_sideList4_2[0], (0, 224))             
-
-            #draw ground up right
-            if (self.ground[increment(y,3)][decrement(x,2)] == 0 ):
-                screen.blit(self.ground_sideList4_2[1], (416, 224))
-
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][decrement(x,1)], self.ground_sideList2[1], (448,320))
+            #draw ground up two left
+            draw_dungeon_ground( screen, self.ground[increment(y,2)][increment(x,1)], self.ground_sideList3[0], (-128,256))
+            #draw ground up two right
+            draw_dungeon_ground( screen, self.ground[increment(y,2)][decrement(x,1)], self.ground_sideList3[1], (384,256))
+            #draw ground up two left two
+            draw_dungeon_ground( screen, self.ground[increment(y,2)][increment(x,2)], self.ground_sideList3_2[0], (0,256))
+            #draw ground up two right two
+            draw_dungeon_ground( screen, self.ground[increment(y,2)][decrement(x,2)], self.ground_sideList3_2[1], (576,256))
+            #draw ground up three left
+            draw_dungeon_ground( screen, self.ground[increment(y,3)][increment(x,1)], self.ground_sideList4[0], (128,224))
+            #draw ground up three right
+            draw_dungeon_ground( screen, self.ground[increment(y,3)][decrement(x,1)], self.ground_sideList4[1], (352,224))
+            #draw ground up three left two
+            draw_dungeon_ground( screen, self.ground[increment(y,3)][increment(x,2)], self.ground_sideList4_2[0], (0,224))
+            #draw ground up three right two
+            draw_dungeon_ground( screen, self.ground[increment(y,3)][decrement(x,2)], self.ground_sideList4_2[1], (416,224))                
             #draw ground up one
-            if (self.ground[increment(y,1)][x] == 0 ):
-                screen.blit(self.ground_center2, (64, 320))
-
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][x], self.ground_center2, (64,320))
             #draw ground up two
-            if (self.ground[increment(y,2)][x] == 0 ):
-                screen.blit(self.ground_center3, (192, 256))
-                
+            draw_dungeon_ground( screen, self.ground[increment(y,2)][x], self.ground_center3, (192,256))                
             #draw ground up three
-            if (self.ground[increment(y,3)][x] == 0 ):
-                screen.blit(self.ground_center4, (256, 224))
+            draw_dungeon_ground( screen, self.ground[increment(y,3)][x], self.ground_center4, (256,224))
 
 
             #draw straight three block wall left two
@@ -1257,7 +2685,28 @@ class Dungeon:
             elif (self.horizontal_wall[increment(y,4)][increment(x,2)] == 2):
                 screen.blit(self.door4, (160,160))                                               
             elif (self.horizontal_wall[increment(y,4)][increment(x,2)] == 3):
-                screen.blit(self.door4, (160,160))                                               
+                screen.blit(self.door4, (160,160))
+            #hidden door
+            elif (self.horizontal_wall[increment(y,4)][increment(x,2)] == 4):
+                screen.blit(self.door4, (160,160))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,4)][increment(x,2)] == 6):
+                screen.blit(self.center4, (160,160))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,4)][increment(x,2)] == 7):
+                screen.blit(self.door4, (160,160))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,4)][increment(x,2)] == 8):
+                screen.blit(self.center4, (160,160))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,4)][increment(x,2)] == 9):
+                screen.blit(self.door4, (160,160))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,4)][increment(x,2)] == 12):
+                screen.blit(self.center4, (160,160))                                                               
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,4)][increment(x,2)] == 13):
+                screen.blit(self.switch4, (160,160))    
 
             #draw straight three block wall left one
             if (self.horizontal_wall[increment(y,4)][increment(x,1)] == 1):
@@ -1266,6 +2715,27 @@ class Dungeon:
                 screen.blit(self.door4, (224,160))                                               
             elif (self.horizontal_wall[increment(y,4)][increment(x,1)] == 3):
                 screen.blit(self.door4, (224,160))                                               
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,4)][increment(x,1)] == 4):
+                screen.blit(self.door4, (224,160))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,4)][increment(x,1)] == 6):
+                screen.blit(self.center4, (224,160))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,4)][increment(x,1)] == 7):
+                screen.blit(self.door4, (224,160))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,4)][increment(x,1)] == 8):
+                screen.blit(self.center4, (224,160))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,4)][increment(x,1)] == 9):
+                screen.blit(self.door4, (224,160))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,4)][increment(x,1)] == 12):
+                screen.blit(self.center4, (224,160))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,4)][increment(x,1)] == 13):
+                screen.blit(self.switch4, (224,160)) 
 
             #draw straight three block wall
             if (self.horizontal_wall[increment(y,4)][x] == 1):
@@ -1274,6 +2744,28 @@ class Dungeon:
                 screen.blit(self.door4, (288,160))
             elif (self.horizontal_wall[increment(y,4)][x] == 3):
                 screen.blit(self.door4, (288,160))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,4)][x] == 4):
+                screen.blit(self.door4, (288,160))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,4)][x] == 6):
+                screen.blit(self.center4, (288,160))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,4)][x] == 7):
+                screen.blit(self.door4, (288,160))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,4)][x] == 8):
+                screen.blit(self.center4, (288,160))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,4)][x] == 9):
+                screen.blit(self.door4, (288,160))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,4)][x] == 12):
+                screen.blit(self.center4, (288,160))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,4)][x] == 13):
+                screen.blit(self.switch4, (288,160)) 
+
 
             #draw straight three block wall right one
             if (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 1):
@@ -1282,6 +2774,27 @@ class Dungeon:
                 screen.blit(self.door4, (352,160))                                               
             elif (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 3):
                 screen.blit(self.door4, (352,160))                                               
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 4):
+                screen.blit(self.door4, (352,160))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 6):
+                screen.blit(self.center4, (352,160))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 7):
+                screen.blit(self.door4, (352,160))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 8):
+                screen.blit(self.center4, (352,160))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 9):
+                screen.blit(self.door4, (352,160))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 12):
+                screen.blit(self.center4, (352,160))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,1)] == 13):
+                screen.blit(self.switch4, (352,160)) 
 
             #draw straight three block wall right two
             if (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 1):
@@ -1290,6 +2803,27 @@ class Dungeon:
                 screen.blit(self.door4, (416,160))
             elif (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 3):
                 screen.blit(self.door4, (416,160))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 4):
+                screen.blit(self.door4, (416,160))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 6):
+                screen.blit(self.center4, (416,160))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 7):
+                screen.blit(self.door4, (416,160))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 8):
+                screen.blit(self.center4, (416,160))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 9):
+                screen.blit(self.door4, (416,160))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 12):
+                screen.blit(self.center4, (416,160))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,4)][decrement(x,2)] == 13):
+                screen.blit(self.switch4, (416,160)) 
 
             #draw up three wall on left three
             if (self.vertical_wall[increment(y,3)][increment(x,3)] == 1):
@@ -1298,6 +2832,28 @@ class Dungeon:
                 screen.blit(self.doorList4_3[0], (0, 128))
             elif (self.vertical_wall[increment(y,3)][increment(x,3)] == 3):
                 screen.blit(self.doorList4_3[0], (0, 128))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,3)][increment(x,3)] == 4):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,3)][increment(x,3)] == 6):
+                screen.blit(self.edgeList4_3[0], (0, 128))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,3)][increment(x,3)] == 7):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,3)][increment(x,3)] == 8):
+                screen.blit(self.edgeList4_3[0], (0, 128))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,3)][increment(x,3)] == 9):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,3)][increment(x,3)] == 12):
+                screen.blit(self.edgeList4_3[0], (0, 128)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,3)][increment(x,3)] == 13):
+                screen.blit(self.switchedgeList4_3[0], (0, 128)) 
+
 
             #draw up three wall on left two
             if (self.vertical_wall[increment(y,3)][increment(x,2)] == 1):
@@ -1306,7 +2862,27 @@ class Dungeon:
                 screen.blit(self.doorList4_2[0], (128, 128))
             elif (self.vertical_wall[increment(y,3)][increment(x,2)] == 3):
                 screen.blit(self.doorList4_2[0], (128, 128))
-
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,3)][increment(x,2)] == 4):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,3)][increment(x,2)] == 6):
+                screen.blit(self.edgeList4_2[0], (128, 128))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,3)][increment(x,2)] == 7):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,3)][increment(x,2)] == 8):
+                screen.blit(self.edgeList4_2[0], (128, 128))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,3)][increment(x,2)] == 9):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,3)][increment(x,2)] == 12):
+                screen.blit(self.edgeList4_2[0], (128, 128)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,3)][increment(x,2)] == 13):
+                screen.blit(self.switchedgeList4_2[0], (128, 128)) 
 
             #draw up three wall on left
             if (self.vertical_wall[increment(y,3)][increment(x,1)] == 1):
@@ -1315,6 +2891,27 @@ class Dungeon:
                 screen.blit(self.doorList4[0], (256, 128))
             elif (self.vertical_wall[increment(y,3)][increment(x,1)] == 3):
                 screen.blit(self.doorList4[0], (256, 128))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,3)][increment(x,1)] == 4):
+                screen.blit(self.doorList4[0], (256, 128))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,3)][increment(x,1)] == 6):
+                screen.blit(self.edgeList4[0], (256, 128))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,3)][increment(x,1)] == 7):
+                screen.blit(self.doorList4[0], (256, 128))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,3)][increment(x,1)] == 8):
+                screen.blit(self.edgeList4[0], (256, 128))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,3)][increment(x,1)] == 9):
+                screen.blit(self.doorList4[0], (256, 128))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,3)][increment(x,1)] == 12):
+                screen.blit(self.edgeList4[0], (256, 128)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,3)][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList4[0], (256, 128)) 
 
 
             #draw up three wall on right three
@@ -1324,6 +2921,27 @@ class Dungeon:
                 screen.blit(self.doorList4_3[1], (480, 128))  
             elif (self.vertical_wall[increment(y,3)][decrement(x,2)] == 3):
                 screen.blit(self.doorList4_3[1], (480, 128))  
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,3)][decrement(x,2)] == 4):
+                screen.blit(self.doorList4_3[1], (480, 128))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,3)][decrement(x,2)] == 6):
+                screen.blit(self.doorList4_3[1], (480, 128))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,3)][decrement(x,2)] == 7):
+                screen.blit(self.edgeList4_3[1], (480, 128))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,3)][decrement(x,2)] == 8):
+                screen.blit(self.doorList4_3[1], (480, 128))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,3)][decrement(x,2)] == 9):
+                screen.blit(self.edgeList4_3[1], (480, 128))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,3)][decrement(x,2)] == 12):
+                screen.blit(self.switchedgeList4_3[1], (480, 128)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,3)][decrement(x,2)] == 13):
+                screen.blit(self.edgeList4_3[1], (480, 128)) 
 
             #draw up three wall on right two
             if (self.vertical_wall[increment(y,3)][decrement(x,1)] == 1):
@@ -1332,6 +2950,27 @@ class Dungeon:
                 screen.blit(self.doorList4_2[1], (416, 128))                               
             elif (self.vertical_wall[increment(y,3)][decrement(x,1)] == 3):
                 screen.blit(self.doorList4_2[1], (416, 128))                               
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,3)][decrement(x,1)] == 4):
+                screen.blit(self.doorList4_2[1], (416, 128))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,3)][decrement(x,1)] == 6):
+                screen.blit(self.doorList4_2[1], (416, 128))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,3)][decrement(x,1)] == 7):
+                screen.blit(self.edgeList4_2[1], (416, 128))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,3)][decrement(x,1)] == 8):
+                screen.blit(self.doorList4_2[1], (416, 128))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,3)][decrement(x,1)] == 9):
+                screen.blit(self.edgeList4_2[1], (416, 128))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,3)][decrement(x,1)] == 12):
+                screen.blit(self.switchedgeList4_2[1], (416, 128)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,3)][decrement(x,1)] == 13):
+                screen.blit(self.edgeList4_2[1], (416, 128)) 
 
             #draw up three wall on right
             if (self.vertical_wall[increment(y,3)][x] == 1):
@@ -1340,7 +2979,27 @@ class Dungeon:
                 screen.blit(self.doorList4[1], (352, 128))                
             elif (self.vertical_wall[increment(y,3)][x] == 3):
                 screen.blit(self.doorList4[1], (352, 128))                
-
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,3)][x] == 4):
+                screen.blit(self.doorList4[1], (352, 128))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,3)][x] == 6):
+                screen.blit(self.doorList4[1], (352, 128))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,3)][x] == 7):
+                screen.blit(self.edgeList4[1], (352, 128))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,3)][x] == 8):
+                screen.blit(self.doorList4[1], (352, 128))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,3)][x] == 9):
+                screen.blit(self.edgeList4[1], (352, 128))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,3)][x] == 12):
+                screen.blit(self.switchedgeList4[1], (352, 128)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,3)][x] == 13):
+                screen.blit(self.edgeList4[1], (352, 128)) 
 
 
             #draw straight two block wall left one
@@ -1350,7 +3009,27 @@ class Dungeon:
                 screen.blit(self.door3, (0,128))
             elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 3):
                 screen.blit(self.door3, (0,128))
-
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 4):
+                screen.blit(self.door3, (0,128))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 6):
+                screen.blit(self.center3, (0,128))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 7):
+                screen.blit(self.door3, (0,128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 8):
+                screen.blit(self.center3, (0,128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 9):
+                screen.blit(self.door3, (0,128))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 12):
+                screen.blit(self.center3, (0,128))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,3)][increment(x,2)] == 13):
+                screen.blit(self.switch3, (0,128))  
 
             #draw straight two block wall left one
             if (self.horizontal_wall[increment(y,3)][increment(x,1)] == 1):
@@ -1359,6 +3038,27 @@ class Dungeon:
                 screen.blit(self.door3, (128,128))
             elif (self.horizontal_wall[increment(y,3)][increment(x,1)] == 3):
                 screen.blit(self.door3, (128,128))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,3)][increment(x,1)] == 4):
+                screen.blit(self.door3, (128,128))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,3)][increment(x,1)] == 6):
+                screen.blit(self.center3, (128,128))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,3)][increment(x,1)] == 7):
+                screen.blit(self.door3, (128,128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,3)][increment(x,1)] == 8):
+                screen.blit(self.center3, (128,128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,3)][increment(x,1)] == 9):
+                screen.blit(self.door3, (128,128))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,3)][increment(x,1)] == 12):
+                screen.blit(self.center3, (128,128))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,3)][increment(x,1)] == 13):
+                screen.blit(self.switch3, (128,128))  
 
             #draw straight two block wall
             if (self.horizontal_wall[increment(y,3)][x] == 1):
@@ -1367,6 +3067,28 @@ class Dungeon:
                 screen.blit(self.door3, (256,128))
             elif (self.horizontal_wall[increment(y,3)][x] == 3):
                 screen.blit(self.door3, (256,128))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,3)][x] == 4):
+                screen.blit(self.door3, (256,128))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,3)][x] == 6):
+                screen.blit(self.center3, (256,128))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,3)][x] == 7):
+                screen.blit(self.door3, (256,128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,3)][x] == 8):
+                screen.blit(self.center3, (256,128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,3)][x] == 9):
+                screen.blit(self.door3, (256,128))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,3)][x] == 12):
+                screen.blit(self.center3, (256,128))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,3)][x] == 13):
+                screen.blit(self.switch3, (256,128))
+                
 
             #draw straight two block wall right one
             if (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 1):
@@ -1375,6 +3097,27 @@ class Dungeon:
                 screen.blit(self.door3, (384,128))
             elif (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 3):
                 screen.blit(self.door3, (384,128))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 4):
+                screen.blit(self.door3, (384,128))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 6):
+                screen.blit(self.center3, (384,128))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 7):
+                screen.blit(self.door3, (384,128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 8):
+                screen.blit(self.center3, (384,128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 9):
+                screen.blit(self.door3, (384,128))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 12):
+                screen.blit(self.center3, (384,128))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,1)] == 13):
+                screen.blit(self.switch3, (384,128))
 
             #draw straight two block wall right two
             if (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 1):
@@ -1383,7 +3126,27 @@ class Dungeon:
                 screen.blit(self.door3, (512,128))
             elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 3):
                 screen.blit(self.door3, (512,128))
-
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 4):
+                screen.blit(self.door3, (512,128))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 6):
+                screen.blit(self.center3, (512,128))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 7):
+                screen.blit(self.door3, (512,128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 8):
+                screen.blit(self.center3, (512,128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 9):
+                screen.blit(self.door3, (512,128))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 12):
+                screen.blit(self.center3, (512,128))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 13):
+                screen.blit(self.switch3, (512,128))
 
             #draw up two wall on left three
             if (self.vertical_wall[increment(y,2)][increment(x,3)] == 1):
@@ -1392,6 +3155,28 @@ class Dungeon:
                 screen.blit(self.doorList3_3[0], (-320, 64))
             elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 3):
                 screen.blit(self.doorList3_3[0], (-320, 64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 4):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 6):
+                screen.blit(self.edgeList3_3[0], (-320, 64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 7):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 8):
+                screen.blit(self.edgeList3_3[0], (-320, 64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 9):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 12):
+                screen.blit(self.edgeList3_3[0], (-320, 64)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,2)][increment(x,3)] == 13):
+                screen.blit(self.switchedgeList3_3[0], (-320, 64)) 
+
 
             #draw up two wall on left two
             if (self.vertical_wall[increment(y,2)][increment(x,2)] == 1):
@@ -1400,6 +3185,27 @@ class Dungeon:
                 screen.blit(self.doorList3_2[0], (-64, 64))
             elif (self.vertical_wall[increment(y,2)][increment(x,2)] == 3):
                 screen.blit(self.doorList3_2[0], (-64, 64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,2)][increment(x,2)] == 4):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,2)][increment(x,2)] == 6):
+                screen.blit(self.edgeList3_2[0], (-64, 64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,2)][increment(x,2)] == 7):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,2)][increment(x,2)] == 8):
+                screen.blit(self.edgeList3_2[0], (-64, 64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,2)][increment(x,2)] == 9):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,2)][increment(x,2)] == 12):
+                screen.blit(self.edgeList3_2[0], (-64, 64)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,2)][increment(x,2)] == 13):
+                screen.blit(self.switchedgeList3_2[0], (-64, 64)) 
 
             #draw up two wall on left
             if (self.vertical_wall[increment(y,2)][increment(x,1)] == 1):
@@ -1408,6 +3214,27 @@ class Dungeon:
                 screen.blit(self.doorList3[0], (192, 64))
             elif (self.vertical_wall[increment(y,2)][increment(x,1)] == 3):
                 screen.blit(self.doorList3[0], (192, 64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,2)][increment(x,1)] == 4):
+                screen.blit(self.doorList3[0], (-64, 64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,2)][increment(x,1)] == 6):
+                screen.blit(self.edgeList3[0], (-64, 64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,2)][increment(x,1)] == 7):
+                screen.blit(self.doorList3[0], (-64, 64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,2)][increment(x,1)] == 8):
+                screen.blit(self.edgeList3[0], (-64, 64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,2)][increment(x,1)] == 9):
+                screen.blit(self.doorList3[0], (-64, 64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,2)][increment(x,1)] == 12):
+                screen.blit(self.edgeList3[0], (-64, 64)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,2)][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList3[0], (-64, 64)) 
                 
             #draw up two wall on right three
             if (self.vertical_wall[increment(y,2)][decrement(x,2)] == 1):
@@ -1416,6 +3243,27 @@ class Dungeon:
                 screen.blit(self.doorList3_3[1], (640, 64))    
             elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 3):
                 screen.blit(self.doorList3_3[1], (640, 64))    
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 4):
+                screen.blit(self.doorList3_3[1], (640, 64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 6):
+                screen.blit(self.doorList3_3[1], (640, 64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 7):
+                screen.blit(self.edgeList3_3[1], (640, 64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 8):
+                screen.blit(self.doorList3_3[1], (640, 64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 9):
+                screen.blit(self.edgeList3_3[1], (640, 64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 12):
+                screen.blit(self.switchedgeList3_3[1], (640, 64)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 13):
+                screen.blit(self.edgeList3_3[1], (640, 64)) 
 
 
             #draw up two wall on right two
@@ -1425,6 +3273,27 @@ class Dungeon:
                 screen.blit(self.doorList3_2[1], (512, 64))    
             elif (self.vertical_wall[increment(y,2)][decrement(x,1)] == 3):
                 screen.blit(self.doorList3_2[1], (512, 64))    
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,2)][decrement(x,1)] == 4):
+                screen.blit(self.doorList3_2[1], (512, 64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,2)][decrement(x,1)] == 6):
+                screen.blit(self.doorList3_2[1], (512, 64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,2)][decrement(x,1)] == 7):
+                screen.blit(self.edgeList3_2[1], (512, 64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,2)][decrement(x,1)] == 8):
+                screen.blit(self.doorList3_2[1], (512, 64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,2)][decrement(x,1)] == 9):
+                screen.blit(self.edgeList3_2[1], (512, 64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,2)][decrement(x,1)] == 12):
+                screen.blit(self.switchedgeList3_2[1], (512, 64)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,2)][decrement(x,1)] == 13):
+                screen.blit(self.edgeList3_2[1], (512, 64)) 
 
             #draw up two wall on right
             if (self.vertical_wall[increment(y,2)][x] == 1):
@@ -1433,6 +3302,27 @@ class Dungeon:
                 screen.blit(self.doorList3[1], (384, 64))  
             elif (self.vertical_wall[increment(y,2)][x] == 3):
                 screen.blit(self.doorList3[1], (384, 64))  
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,2)][x] == 4):
+                screen.blit(self.doorList3[1], (384, 64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,2)][x] == 6):
+                screen.blit(self.doorList3[1], (384, 64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,2)][x] == 7):
+                screen.blit(self.edgeList3[1], (384, 64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,2)][x] == 8):
+                screen.blit(self.doorList3[1], (384, 64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,2)][x] == 9):
+                screen.blit(self.edgeList3[1], (384, 64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,2)][x] == 12):
+                screen.blit(self.switchedgeList3[1], (384, 64)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,2)][x] == 13):
+                screen.blit(self.edgeList3[1], (384, 64)) 
 
             #draw straight one block wall left one
             if (self.horizontal_wall[increment(y,2)][increment(x,1)] == 1):
@@ -1441,6 +3331,27 @@ class Dungeon:
                 screen.blit(self.door2, (-64,64))
             elif (self.horizontal_wall[increment(y,2)][increment(x,1)] == 3):
                 screen.blit(self.door2, (-64,64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,2)][increment(x,1)] == 4):
+                screen.blit(self.door2, (-64,64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,2)][increment(x,1)] == 6):
+                screen.blit(self.center2, (-64,64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,2)][increment(x,1)] == 7):
+                screen.blit(self.door2, (-64,64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,2)][increment(x,1)] == 8):
+                screen.blit(self.center2, (-64,64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,2)][increment(x,1)] == 9):
+                screen.blit(self.door2, (-64,64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,2)][increment(x,1)] == 12):
+                screen.blit(self.center2, (-64,64))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,2)][increment(x,1)] == 13):
+                screen.blit(self.switch2, (-64,64))
         
             #draw straight one block wall
             if (self.horizontal_wall[increment(y,2)][x] == 1):
@@ -1449,6 +3360,27 @@ class Dungeon:
                 screen.blit(self.door2, (192, 64))
             elif (self.horizontal_wall[increment(y,2)][x] == 3):
                 screen.blit(self.door2, (192, 64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,2)][x] == 4):
+                screen.blit(self.door2, (192,64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,2)][x] == 6):
+                screen.blit(self.center2, (192,64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,2)][x] == 7):
+                screen.blit(self.door2, (192,64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,2)][x] == 8):
+                screen.blit(self.center2, (192,64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,2)][x] == 9):
+                screen.blit(self.door2, (192,64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,2)][x] == 12):
+                screen.blit(self.center2, (192,64))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,2)][x] == 13):
+                screen.blit(self.switch2, (192,64))
 
             #draw straight one block wall right one
             if (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 1):
@@ -1457,6 +3389,27 @@ class Dungeon:
                 screen.blit(self.door2, (448,64))
             elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 3):
                 screen.blit(self.door2, (448,64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 4):
+                screen.blit(self.door2, (448,64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 6):
+                screen.blit(self.center2, (448,64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 7):
+                screen.blit(self.door2, (448,64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 8):
+                screen.blit(self.center2, (448,64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 9):
+                screen.blit(self.door2, (448,64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 12):
+                screen.blit(self.center2, (448,64))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 13):
+                screen.blit(self.switch2, (448,64))
 
             #draw up one wall on left
             if (self.vertical_wall[increment(y,1)][increment(x,1)] == 1):
@@ -1465,6 +3418,27 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (64, -64))
             elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 4):
+                screen.blit(self.doorList2[0], (64, -64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 6):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 7):
+                screen.blit(self.doorList2[0], (64, -64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 8):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 9):
+                screen.blit(self.doorList2[0], (64, -64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 12):
+                screen.blit(self.edgeList2[0], (64, -64)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList2[0], (64, -64)) 
                 
             #draw up one wall on right
             if (self.vertical_wall[increment(y,1)][x] == 1):
@@ -1473,6 +3447,27 @@ class Dungeon:
                 screen.blit(self.doorList2[1], (448, -64))                
             elif (self.vertical_wall[increment(y,1)][x] == 3):
                 screen.blit(self.doorList2[1], (448, -64))                
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][x] == 4):
+                screen.blit(self.doorList2[1], (448, -64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][x] == 6):
+                screen.blit(self.doorList2[1], (448, -64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][x] == 7):
+                screen.blit(self.edgeList2[1], (448, -64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][x] == 8):
+                screen.blit(self.doorList2[1], (448, -64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][x] == 9):
+                screen.blit(self.edgeList2[1], (448, -64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][x] == 12):
+                screen.blit(self.switchedgeList2[1], (448, -64)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][x] == 13):
+                screen.blit(self.edgeList2[1], (448, -64)) 
 
             #draw left one up wall
             if (self.horizontal_wall[increment(y,1)][increment(x,1)] == 1):
@@ -1481,6 +3476,28 @@ class Dungeon:
                 screen.blit(self.door1, (-448,-64))
             elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.door1, (-448,-64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 4):
+                screen.blit(self.door1, (-448,-64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 6):
+                screen.blit(self.center1, (-448,-64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 7):
+                screen.blit(self.door1, (-448,-64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 8):
+                screen.blit(self.center1, (-448,-64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 9):
+                screen.blit(self.door1, (-448,-64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 12):
+                screen.blit(self.center1, (-448,-64))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 13):
+                screen.blit(self.switch1, (-448,-64))
+
 
             #draw right one up wall
             if (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 1):
@@ -1489,15 +3506,56 @@ class Dungeon:
                 screen.blit(self.door1, (576,-64))
             elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 3):
                 screen.blit(self.door1, (576,-64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 4):
+                screen.blit(self.door1, (576,-64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 6):
+                screen.blit(self.center1, (576,-64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 7):
+                screen.blit(self.door1, (576,-64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 8):
+                screen.blit(self.center1, (576,-64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 9):
+                screen.blit(self.door1, (576,-64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 12):
+                screen.blit(self.center,(576,-64))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 13):
+                screen.blit(self.switch1, (576,-64))
 
             #draw just up wall
             if (self.horizontal_wall[increment(y,1)][x] == 1):
                 screen.blit(self.center1, (64,-64))
-            if (self.horizontal_wall[increment(y,1)][x] == 2):
+            elif (self.horizontal_wall[increment(y,1)][x] == 2):
                 screen.blit(self.door1, (64,-64))
-            if (self.horizontal_wall[increment(y,1)][x] == 3):
+            elif (self.horizontal_wall[increment(y,1)][x] == 3):
                 screen.blit(self.door1, (64,-64))
-
+            elif (self.horizontal_wall[increment(y,1)][x] == 4):
+                screen.blit(self.door1, (64,-64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][x] == 6):
+                screen.blit(self.center1, (64,-64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][x] == 7):
+                screen.blit(self.door1, (64,-64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][x] == 8):
+                screen.blit(self.center1, (64,-64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][x] == 9):
+                screen.blit(self.door1, (64,-64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][x] == 12):
+                screen.blit(self.center1,(64,-64))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][x] == 13):
+                screen.blit(self.switch1, (64,-64))
+                
             #draw wall on left
             if (self.vertical_wall[y][increment(x,1)] == 1):
                 screen.blit(self.edgeList1[0], (-192, -320))
@@ -1505,7 +3563,28 @@ class Dungeon:
                 screen.blit(self.doorList1[0], (-192, -320))
             elif (self.vertical_wall[y][increment(x,1)] == 3):
                 screen.blit(self.doorList1[0], (-192, -320))
-
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][increment(x,1)] == 4):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #one way door from right
+            elif (self.vertical_wall[y][increment(x,1)] == 6):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #one way door from left
+            elif (self.vertical_wall[y][increment(x,1)] == 7):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][increment(x,1)] == 8):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][increment(x,1)] == 9):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #switch on right side
+            elif (self.vertical_wall[y][increment(x,1)] == 12):
+                screen.blit(self.edgeList1[0], (-192, -320)) 
+            #switch on left side
+            elif (self.vertical_wall[y][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList1[0], (-192, -320))
+                
             #draw wall on right
             if (self.vertical_wall[y][x] == 1):
                 screen.blit(self.edgeList1[1], (576, -320))
@@ -1513,72 +3592,65 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
             elif (self.vertical_wall[y][x] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][x] == 4):
+                screen.blit(self.doorList1[1], (576, -320))
+            #one way door from right
+            elif (self.vertical_wall[y][x] == 6):
+                screen.blit(self.doorList1[1], (576, -320))
+            #one way door from left
+            elif (self.vertical_wall[y][x] == 7):
+                screen.blit(self.edgeList1[1], (576, -320))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][x] == 8):
+                screen.blit(self.doorList1[1], (576, -320))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][x] == 9):
+                screen.blit(self.edgeList1[1], (576, -320))
+            #switch on right side
+            elif (self.vertical_wall[y][x] == 12):
+                screen.blit(self.switchedgeList1[1], (576, -320)) 
+            #switch on left side
+            elif (self.vertical_wall[y][x] == 13):
+                screen.blit(self.edgeList1[1], (576, -320)) 
+
 
         #if the player is looking left
         elif (game_self.party.direction == 3):
 
-            if (self.ground[y][x] == 0 ):
-                screen.blit(self.ground_center1, (32, 448))
-
+            #draw ground below
+            draw_dungeon_ground( screen, self.ground[y][x], self.ground_center1, (32, 448))
             #draw ground left
-            if (self.ground[increment(y,1)][x] == 0 ):
-                screen.blit(self.ground_sideList1[0], (0, 448))
-
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][x], self.ground_sideList1[0], (0, 448))
             #draw ground right
-            if (self.ground[decrement(y,1)][x] == 0 ):
-                screen.blit(self.ground_sideList1[1], (576, 448))
-
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][x], self.ground_sideList1[1], (576, 448))
             #draw ground up left
-            if (self.ground[increment(y,1)][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[0], (0, 320))             
-
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][decrement(x,1)], self.ground_sideList2[0], (0,320))
             #draw ground up right
-            if (self.ground[decrement(y,1)][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[1], (448, 320))             
-            
-            #draw ground up left
-            if (self.ground[increment(y,1)][decrement(x,2)] == 0 ):
-                screen.blit(self.ground_sideList3[0], (-128, 256))             
-
-            #draw ground up right
-            if (self.ground[decrement(y,1)][decrement(x,2)] == 0 ):
-                screen.blit(self.ground_sideList3[1], (384, 256))             
-
-            #draw ground up left
-            if (self.ground[increment(y,2)][decrement(x,2)] == 0 ):
-                screen.blit(self.ground_sideList3_2[0], (0, 256))             
-
-            #draw ground up right
-            if (self.ground[decrement(y,2)][decrement(x,2)] == 0 ):
-                screen.blit(self.ground_sideList3_2[1], (576, 256))
-
-            #draw ground up left
-            if (self.ground[increment(y,1)][decrement(x,3)] == 0 ):
-                screen.blit(self.ground_sideList4[0], (128, 224))             
-
-            #draw ground up right
-            if (self.ground[decrement(y,1)][decrement(x,3)] == 0 ):
-                screen.blit(self.ground_sideList4[1], (352, 224))
-
-            #draw ground up left
-            if (self.ground[increment(y,2)][decrement(x,3)] == 0 ):
-                screen.blit(self.ground_sideList4_2[0], (0, 224))             
-
-            #draw ground up right
-            if (self.ground[decrement(y,2)][decrement(x,3)] == 0 ):
-                screen.blit(self.ground_sideList4_2[1], (416, 224))
-
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][decrement(x,1)], self.ground_sideList2[1], (448,320))
+            #draw ground up two left
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][decrement(x,2)], self.ground_sideList3[0], (-128,256))
+            #draw ground up two right
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][decrement(x,2)], self.ground_sideList3[1], (384,256))
+            #draw ground up two left two
+            draw_dungeon_ground( screen, self.ground[increment(y,2)][decrement(x,2)], self.ground_sideList3_2[0], (0,256))
+            #draw ground up two right two
+            draw_dungeon_ground( screen, self.ground[decrement(y,2)][decrement(x,2)], self.ground_sideList3_2[1], (576,256))
+            #draw ground up three left
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][decrement(x,3)], self.ground_sideList4[0], (128,224))
+            #draw ground up three right
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][decrement(x,3)], self.ground_sideList4[1], (352,224))
+            #draw ground up three left two
+            draw_dungeon_ground( screen, self.ground[increment(y,2)][decrement(x,3)], self.ground_sideList4_2[0], (0,224))
+            #draw ground up three right two
+            draw_dungeon_ground( screen, self.ground[decrement(y,2)][decrement(x,3)], self.ground_sideList4_2[1], (416,224))                
             #draw ground up one
-            if (self.ground[y][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_center2, (64, 320))
-
+            draw_dungeon_ground( screen, self.ground[y][decrement(x,1)], self.ground_center2, (64,320))
             #draw ground up two
-            if (self.ground[y][decrement(x,2)] == 0 ):
-                screen.blit(self.ground_center3, (192, 256))
-                
+            draw_dungeon_ground( screen, self.ground[y][decrement(x,2)], self.ground_center3, (192,256))                
             #draw ground up three
-            if (self.ground[y][decrement(x,3)] == 0 ):
-                screen.blit(self.ground_center4, (256, 224))
+            draw_dungeon_ground( screen, self.ground[y][decrement(x,3)], self.ground_center4, (256,224))
+                                            
                                 
             #draw straight three block wall left two
             if (self.vertical_wall[increment(y,2)][decrement(x,3)] == 1):
@@ -1587,6 +3659,27 @@ class Dungeon:
                 screen.blit(self.door4, (160,160))                                               
             elif (self.vertical_wall[increment(y,2)][decrement(x,3)] == 3):
                 screen.blit(self.door4, (160,160))                                               
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,2)][decrement(x,3)] == 4):
+                screen.blit(self.door4, (160,160))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,2)][decrement(x,3)] == 6):
+                screen.blit(self.door4, (160,160))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,2)][decrement(x,3)] == 7):
+                screen.blit(self.center4, (160,160))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,2)][decrement(x,3)] == 8):
+                screen.blit(self.door4, (160,160))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,2)][decrement(x,3)] == 9):
+                screen.blit(self.center4, (160,160))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,2)][decrement(x,3)] == 12):
+                screen.blit(self.switch4, (160,160))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,2)][decrement(x,3)] == 13):
+                screen.blit(self.center4, (160,160))   
 
             #draw straight three block wall left one
             if (self.vertical_wall[increment(y,1)][decrement(x,3)] == 1):
@@ -1595,6 +3688,27 @@ class Dungeon:
                 screen.blit(self.door4, (224,160))                                               
             elif (self.vertical_wall[increment(y,1)][decrement(x,3)] == 3):
                 screen.blit(self.door4, (224,160))                                               
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][decrement(x,3)] == 4):
+                screen.blit(self.door4, (224,160))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][decrement(x,3)] == 6):
+                screen.blit(self.door4, (224,160))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][decrement(x,3)] == 7):
+                screen.blit(self.center4, (224,160))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][decrement(x,3)] == 8):
+                screen.blit(self.door4, (224,160))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][decrement(x,3)] == 9):
+                screen.blit(self.center4, (224,160))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][decrement(x,3)] == 12):
+                screen.blit(self.switch4, (224,160))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][decrement(x,3)] == 13):
+                screen.blit(self.center4, (224,160))  
 
             #draw straight three block wall
             if (self.vertical_wall[y][decrement(x,3)] == 1):
@@ -1603,6 +3717,27 @@ class Dungeon:
                 screen.blit(self.door4, (288,160))
             elif (self.vertical_wall[y][decrement(x,3)] == 3):
                 screen.blit(self.door4, (288,160))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][decrement(x,3)] == 4):
+                screen.blit(self.door4, (288,160))
+            #one way door from right
+            elif (self.vertical_wall[y][decrement(x,3)] == 6):
+                screen.blit(self.door4, (288,160))
+            #one way door from left
+            elif (self.vertical_wall[y][decrement(x,3)] == 7):
+                screen.blit(self.center4, (288,160))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][decrement(x,3)] == 8):
+                screen.blit(self.door4, (288,160))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][decrement(x,3)] == 9):
+                screen.blit(self.center4, (288,160))
+            #switch on right side
+            elif (self.vertical_wall[y][decrement(x,3)] == 12):
+                screen.blit(self.switch4, (288,160))                                                               
+            #switch on left side
+            elif (self.vertical_wall[y][decrement(x,3)] == 13):
+                screen.blit(self.center4, (288,160))   
 
             #draw straight three block wall right one
             if (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 1):
@@ -1611,6 +3746,27 @@ class Dungeon:
                 screen.blit(self.door4, (352,160))                                               
             elif (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 3):
                 screen.blit(self.door4, (352,160))                                               
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 4):
+                screen.blit(self.door4, (352,160))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 6):
+                screen.blit(self.door4, (352,160))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 7):
+                screen.blit(self.center4, (352,160))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 8):
+                screen.blit(self.door4, (352,160))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 9):
+                screen.blit(self.center4, (352,160))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 12):
+                screen.blit(self.switch4, (352,160))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,3)] == 13):
+                screen.blit(self.center4, (352,160)) 
 
             #draw straight three block wall right two
             if (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 1):
@@ -1619,6 +3775,27 @@ class Dungeon:
                 screen.blit(self.door4, (416,160))
             elif (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 3):
                 screen.blit(self.door4, (416,160))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 4):
+                screen.blit(self.door4, (416,160))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 6):
+                screen.blit(self.door4, (416,160))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 7):
+                screen.blit(self.center4, (416,160))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 8):
+                screen.blit(self.door4, (416,160))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 9):
+                screen.blit(self.center4, (416,160))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 12):
+                screen.blit(self.switch4, (416,160))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,3)] == 13):
+                screen.blit(self.center4, (416,160)) 
 
             #draw up three wall on left three
             if (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 1):
@@ -1627,6 +3804,27 @@ class Dungeon:
                 screen.blit(self.doorList4_3[0], (0, 128))
             elif (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 3):
                 screen.blit(self.doorList4_3[0], (0, 128))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 4):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 6):
+                screen.blit(self.edgeList4_3[0], (0, 128))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 7):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 8):
+                screen.blit(self.edgeList4_3[0], (0, 128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 9):
+                screen.blit(self.doorList4_3[0], (0, 128))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 12):
+                screen.blit(self.edgeList4_3[0], (0, 128)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,3)] == 13):
+                screen.blit(self.switchedgeList4_3[0], (0, 128)) 
 
             #draw up three wall on left two
             if (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 1):
@@ -1635,6 +3833,27 @@ class Dungeon:
                 screen.blit(self.doorList4_2[0], (128, 128))
             elif (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 3):
                 screen.blit(self.doorList4_2[0], (128, 128))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 4):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 6):
+                screen.blit(self.edgeList4_2[0], (128, 128))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 7):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 8):
+                screen.blit(self.edgeList4_2[0], (128, 128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 9):
+                screen.blit(self.doorList4_2[0], (128, 128))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 12):
+                screen.blit(self.edgeList4_2[0], (128, 128)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,3)] == 13):
+                screen.blit(self.switchedgeList4_2[0], (128, 128)) 
 
             #draw up three wall on left
             if (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 1):
@@ -1643,6 +3862,27 @@ class Dungeon:
                 screen.blit(self.doorList4[0], (256, 128))
             elif (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 3):
                 screen.blit(self.doorList4[0], (256, 128))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 4):
+                screen.blit(self.doorList4[0], (256, 128))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 6):
+                screen.blit(self.edgeList4[0], (256, 128))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 7):
+                screen.blit(self.doorList4[0], (256, 128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 8):
+                screen.blit(self.edgeList4[0], (256, 128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 9):
+                screen.blit(self.doorList4[0], (256, 128))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 12):
+                screen.blit(self.edgeList4[0], (256, 128)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,3)] == 13):
+                screen.blit(self.switchedgeList4[0], (256, 128)) 
 
             #draw up three wall on right three
             if (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 1):
@@ -1651,6 +3891,28 @@ class Dungeon:
                 screen.blit(self.doorList4_3[1], (480, 128))  
             elif (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 3):
                 screen.blit(self.doorList4_3[1], (480, 128))  
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 4):
+                screen.blit(self.doorList4_3[1], (480, 128))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 6):
+                screen.blit(self.doorList4_3[1], (480, 128))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 7):
+                screen.blit(self.edgeList4_3[1], (480, 128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 8):
+                screen.blit(self.doorList4_3[1], (480, 128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 9):
+                screen.blit(self.edgeList4_3[1], (480, 128))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 12):
+                screen.blit(self.switchedgeList4_3[1], (480, 128)) 
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,3)] == 13):
+                screen.blit(self.edgeList4_3[1], (480, 128)) 
+
 
             #draw up three wall on right two
             if (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 1):
@@ -1659,6 +3921,27 @@ class Dungeon:
                 screen.blit(self.doorList4_2[1], (416, 128))                               
             elif (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 3):
                 screen.blit(self.doorList4_2[1], (416, 128))                               
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 4):
+                screen.blit(self.doorList4_2[1], (416, 128))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 6):
+                screen.blit(self.doorList4_2[1], (416, 128))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 7):
+                screen.blit(self.edgeList4_2[1], (416, 128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 8):
+                screen.blit(self.doorList4_2[1], (416, 128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 9):
+                screen.blit(self.edgeList4_2[1], (416, 128))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 12):
+                screen.blit(self.switchedgeList4_2[1], (416, 128)) 
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,3)] == 13):
+                screen.blit(self.edgeList4_2[1], (416, 128)) 
 
             #draw up three wall on right
             if (self.horizontal_wall[y][decrement(x,3)] == 1):
@@ -1667,14 +3950,57 @@ class Dungeon:
                 screen.blit(self.doorList4[1], (352, 128))  
             elif (self.horizontal_wall[y][decrement(x,3)] == 3):
                 screen.blit(self.doorList4[1], (352, 128))  
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][decrement(x,3)] == 4):
+                screen.blit(self.doorList4[1], (352, 128))
+            #one way door from right
+            elif (self.horizontal_wall[y][decrement(x,3)] == 6):
+                screen.blit(self.doorList4[1], (352, 128))
+            #one way door from left
+            elif (self.horizontal_wall[y][decrement(x,3)] == 7):
+                screen.blit(self.edgeList4[1], (352, 128))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][decrement(x,3)] == 8):
+                screen.blit(self.doorList4[1], (352, 128))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][decrement(x,3)] == 9):
+                screen.blit(self.edgeList4[1], (352, 128))
+            #switch on right side
+            elif (self.horizontal_wall[y][decrement(x,3)] == 12):
+                screen.blit(self.switchedgeList4[1], (352, 128)) 
+            #switch on left side
+            elif (self.horizontal_wall[y][decrement(x,3)] == 13):
+                screen.blit(self.edgeList4[1], (352, 128)) 
 
             #draw straight two block wall left two
             if (self.vertical_wall[increment(y,2)][decrement(x,2)] == 1):
                 screen.blit(self.center3, (0, 128))
-            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 2):
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 2):
                 screen.blit(self.door3, (0,128))
-            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 3):
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 3):
                 screen.blit(self.door3, (0,128))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 4):
+                screen.blit(self.door3, (0,128))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 6):
+                screen.blit(self.door3, (0,128))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 7):
+                screen.blit(self.center3, (0,128))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 8):
+                screen.blit(self.door3, (0,128))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 9):
+                screen.blit(self.center3, (0,128))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 12):
+                screen.blit(self.switch3, (0,128))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 13):
+                screen.blit(self.center3, (0,128)) 
+
 
             #draw straight two block wall left one
             if (self.vertical_wall[increment(y,1)][decrement(x,2)] == 1):
@@ -1683,6 +4009,28 @@ class Dungeon:
                 screen.blit(self.door3, (128,128))
             elif (self.vertical_wall[increment(y,1)][decrement(x,2)] == 3):
                 screen.blit(self.door3, (128,128))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][decrement(x,2)] == 4):
+                screen.blit(self.door3, (128,128))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][decrement(x,2)] == 6):
+                screen.blit(self.door3, (128,128))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][decrement(x,2)] == 7):
+                screen.blit(self.center3, (128,128))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][decrement(x,2)] == 8):
+                screen.blit(self.door3, (128,128))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][decrement(x,2)] == 9):
+                screen.blit(self.center3, (128,128))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][decrement(x,2)] == 12):
+                screen.blit(self.switch3, (128,128))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][decrement(x,2)] == 13):
+                screen.blit(self.center3, (128,128)) 
+
 
             #draw straight two block wall
             if (self.vertical_wall[y][decrement(x,2)] == 1):
@@ -1691,7 +4039,28 @@ class Dungeon:
                 screen.blit(self.door3, (256,128))
             elif (self.vertical_wall[y][decrement(x,2)] == 3):
                 screen.blit(self.door3, (256,128))
-
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][decrement(x,2)] == 4):
+                screen.blit(self.door3, (256,128))
+            #one way door from right
+            elif (self.vertical_wall[y][decrement(x,2)] == 6):
+                screen.blit(self.door3, (256,128))
+            #one way door from left
+            elif (self.vertical_wall[y][decrement(x,2)] == 7):
+                screen.blit(self.center3, (256,128))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][decrement(x,2)] == 8):
+                screen.blit(self.door3, (256,128))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][decrement(x,2)] == 9):
+                screen.blit(self.center3, (256,128))
+            #switch on right side
+            elif (self.vertical_wall[y][decrement(x,2)] == 12):
+                screen.blit(self.switch3, (256,128))                                                               
+            #switch on left side
+            elif (self.vertical_wall[y][decrement(x,2)] == 13):
+                screen.blit(self.center3, (256,128)) 
+
             #draw straight two block wall right one
             if (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 1):
                 screen.blit(self.center3, (384, 128))
@@ -1699,14 +4068,57 @@ class Dungeon:
                 screen.blit(self.door3, (384,128))
             elif (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 3):
                 screen.blit(self.door3, (384,128))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 4):
+                screen.blit(self.door3, (384,128))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 6):
+                screen.blit(self.door3, (384,128))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 7):
+                screen.blit(self.center3, (384,128))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 8):
+                screen.blit(self.door3, (384,128))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 9):
+                screen.blit(self.center3, (384,128))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 12):
+                screen.blit(self.switch3, (384,128))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 13):
+                screen.blit(self.center3, (384,128)) 
 
             #draw straight two block wall right two
             if (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 1):
                 screen.blit(self.center3, (512, 128))
-            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 2):
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 2):
                 screen.blit(self.door3, (512,128))
-            elif (self.vertical_wall[increment(y,2)][decrement(x,2)] == 3):
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 3):
                 screen.blit(self.door3, (512,128))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 4):
+                screen.blit(self.door3, (512,128))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 6):
+                screen.blit(self.door3, (512,128))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 7):
+                screen.blit(self.center3, (512,128))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 8):
+                screen.blit(self.door3, (512,128))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 9):
+                screen.blit(self.center3, (512,128))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 12):
+                screen.blit(self.switch3, (512,128))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,2)][decrement(x,2)] == 13):
+                screen.blit(self.center3, (512,128)) 
+
 
             #draw up two wall on left three
             if (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 1):
@@ -1715,6 +4127,28 @@ class Dungeon:
                 screen.blit(self.doorList3_3[0], (-320, 64))
             elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 3):
                 screen.blit(self.doorList3_3[0], (-320, 64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 4):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 6):
+                screen.blit(self.edgeList3_3[0], (-320, 64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 7):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 8):
+                screen.blit(self.edgeList3_3[0], (-320, 64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 9):
+                screen.blit(self.doorList3_3[0], (-320, 64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 12):
+                screen.blit(self.edgeList3_3[0], (-320, 64)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,3)][decrement(x,2)] == 13):
+                screen.blit(self.switchedgeList3_3[0], (-320, 64)) 
+
 
             #draw up two wall on left two
             if (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 1):
@@ -1723,7 +4157,28 @@ class Dungeon:
                 screen.blit(self.doorList3_2[0], (-64, 64))
             elif (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 3):
                 screen.blit(self.doorList3_2[0], (-64, 64))
-
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 4):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 6):
+                screen.blit(self.edgeList3_2[0], (-64, 64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 7):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 8):
+                screen.blit(self.edgeList3_2[0], (-64, 64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 9):
+                screen.blit(self.doorList3_2[0], (-64, 64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 12):
+                screen.blit(self.edgeList3_2[0], (-64, 64)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 13):
+                screen.blit(self.switchedgeList3_2[0], (-64, 64)) 
+
             #draw up two wall on left
             if (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 1):
                 screen.blit(self.edgeList3[0], (192, 64))
@@ -1731,6 +4186,28 @@ class Dungeon:
                 screen.blit(self.doorList3[0], (192, 64))
             elif (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 3):
                 screen.blit(self.doorList3[0], (192, 64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 4):
+                screen.blit(self.doorList3[0], (192, 64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 6):
+                screen.blit(self.edgeList3[0], (192, 64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 7):
+                screen.blit(self.doorList3[0], (192, 64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 8):
+                screen.blit(self.edgeList3[0], (192, 64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 9):
+                screen.blit(self.doorList3[0], (192, 64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 12):
+                screen.blit(self.edgeList3[0], (192, 64)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 13):
+                screen.blit(self.switchedgeList3[0], (192, 64)) 
+                
                 
             #draw up two wall on right three
             if (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 1):
@@ -1739,7 +4216,27 @@ class Dungeon:
                 screen.blit(self.doorList3_3[1], (640, 64))    
             elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 3):
                 screen.blit(self.doorList3_3[1], (640, 64))    
-
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 4):
+                screen.blit(self.doorList3_3[1],  (640, 64))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 6):
+                screen.blit(self.doorList3_3[1],  (640, 64))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 7):
+                screen.blit(self.edgeList3_3[1],  (640, 64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 8):
+                screen.blit(self.doorList3_3[1],  (640, 64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 9):
+                screen.blit(self.edgeList3_3[1],  (640, 64))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 12):
+                screen.blit(self.switchedgeList3_3[1],  (640, 64)) 
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,2)][decrement(x,2)] == 13):
+                screen.blit(self.edgeList3_3[1],  (640, 64))
 
             #draw up two wall on right two
             if (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 1):
@@ -1748,6 +4245,27 @@ class Dungeon:
                 screen.blit(self.doorList3_2[1], (512, 64))    
             elif (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 3):
                 screen.blit(self.doorList3_2[1], (512, 64))    
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 4):
+                screen.blit(self.doorList3_2[1],  (512, 64))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 6):
+                screen.blit(self.doorList3_2[1],  (512, 64))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 7):
+                screen.blit(self.edgeList3_2[1],  (512, 64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 8):
+                screen.blit(self.doorList3_2[1],  (512, 64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 9):
+                screen.blit(self.edgeList3_2[1],  (512, 64))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 12):
+                screen.blit(self.switchedgeList3_2[1],  (512, 64)) 
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,1)][decrement(x,2)] == 13):
+                screen.blit(self.edgeList3_2[1],  (512, 64)) 
 
             #draw up two wall on right
             if (self.horizontal_wall[y][decrement(x,2)] == 1):
@@ -1756,6 +4274,27 @@ class Dungeon:
                 screen.blit(self.doorList3[1], (384, 64))  
             elif (self.horizontal_wall[y][decrement(x,2)] == 3):
                 screen.blit(self.doorList3[1], (384, 64))  
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][decrement(x,2)] == 4):
+                screen.blit(self.doorList3[1],  (384, 64))
+            #one way door from right
+            elif (self.horizontal_wall[y][decrement(x,2)] == 6):
+                screen.blit(self.doorList3[1],  (384, 64))
+            #one way door from left
+            elif (self.horizontal_wall[y][decrement(x,2)] == 7):
+                screen.blit(self.edgeList3[1],  (384, 64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][decrement(x,2)] == 8):
+                screen.blit(self.doorList3[1],  (384, 64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][decrement(x,2)] == 9):
+                screen.blit(self.edgeList3[1],  (384, 64))
+            #switch on right side
+            elif (self.horizontal_wall[y][decrement(x,2)] == 12):
+                screen.blit(self.switchedgeList3[1],  (384, 64)) 
+            #switch on left side
+            elif (self.horizontal_wall[y][decrement(x,2)] == 13):
+                screen.blit(self.edgeList3[1],  (384, 64)) 
                 
             #draw straight one block wall left one
             if (self.vertical_wall[increment(y,1)][decrement(x,1)] == 1):
@@ -1764,6 +4303,27 @@ class Dungeon:
                 screen.blit(self.door2, (-64,64))
             elif (self.vertical_wall[increment(y,1)][decrement(x,1)] == 3):
                 screen.blit(self.door2, (-64,64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][decrement(x,1)] == 4):
+                screen.blit(self.door2, (-64,64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][decrement(x,1)] == 6):
+                screen.blit(self.door2, (-64,64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][decrement(x,1)] == 7):
+                screen.blit(self.center2, (-64,64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][decrement(x,1)] == 8):
+                screen.blit(self.door2, (-64,64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][decrement(x,1)] == 9):
+                screen.blit(self.center2, (-64,64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][decrement(x,1)] == 12):
+                screen.blit(self.switch2, (-64,64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][decrement(x,1)] == 13):
+                screen.blit(self.center2, (-64,64)) 
         
             #draw straight one block wall
             if (self.vertical_wall[y][decrement(x,1)] == 1):
@@ -1772,7 +4332,27 @@ class Dungeon:
                 screen.blit(self.door2, (192, 64))
             elif (self.vertical_wall[y][decrement(x,1)] == 3):
                 screen.blit(self.door2, (192, 64))
-
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][decrement(x,1)] == 4):
+                screen.blit(self.door2, (192,64))
+            #one way door from right
+            elif (self.vertical_wall[y][decrement(x,1)] == 6):
+                screen.blit(self.door2, (192,64))
+            #one way door from left
+            elif (self.vertical_wall[y][decrement(x,1)] == 7):
+                screen.blit(self.center2, (192,64))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][decrement(x,1)] == 8):
+                screen.blit(self.door2, (192,64))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][decrement(x,1)] == 9):
+                screen.blit(self.center2, (192,64))
+            #switch on right side
+            elif (self.vertical_wall[y][decrement(x,1)] == 12):
+                screen.blit(self.switch2, (192,64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[y][decrement(x,1)] == 13):
+                screen.blit(self.center2, (192,64)) 
 
             #draw straight one block wall right one
             if (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 1):
@@ -1781,7 +4361,27 @@ class Dungeon:
                 screen.blit(self.door2, (448,64))
             elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 3):
                 screen.blit(self.door2, (448,64))
-
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 4):
+                screen.blit(self.door2, (448,64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 6):
+                screen.blit(self.door2, (448,64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 7):
+                screen.blit(self.center2, (448,64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 8):
+                screen.blit(self.door2, (448,64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 9):
+                screen.blit(self.center2, (448,64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 12):
+                screen.blit(self.switch2, (448,64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 13):
+                screen.blit(self.center2, (448,64)) 
 
             #draw up one wall on left
             if (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 1):
@@ -1790,6 +4390,27 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (64, -64))
             elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 4):
+                screen.blit(self.doorList2[0], (64, -64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 6):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 7):
+                screen.blit(self.doorList2[0], (64, -64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 8):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 9):
+                screen.blit(self.doorList2[0], (64, -64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 12):
+                screen.blit(self.edgeList2[0], (64, -64)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 13):
+                screen.blit(self.switchedgeList2[0], (64, -64)) 
                 
             #draw up one wall on right
             if (self.horizontal_wall[y][decrement(x,1)] == 1):
@@ -1798,6 +4419,29 @@ class Dungeon:
                 screen.blit(self.doorList2[1], (448, -64))                
             elif (self.horizontal_wall[y][decrement(x,1)] == 3):
                 screen.blit(self.doorList2[1], (448, -64))                
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][decrement(x,1)] == 4):
+                screen.blit(self.doorList2[1],  (448, -64))
+            #one way door from right
+            elif (self.horizontal_wall[y][decrement(x,1)] == 6):
+                screen.blit(self.doorList2[1],  (448, -64))
+            #one way door from left
+            elif (self.horizontal_wall[y][decrement(x,1)] == 7):
+                screen.blit(self.edgeList2[1],  (448, -64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][decrement(x,1)] == 8):
+                screen.blit(self.doorList2[1],  (448, -64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][decrement(x,1)] == 9):
+                screen.blit(self.edgeList2[1],  (448, -64))
+            #switch on right side
+            elif (self.horizontal_wall[y][decrement(x,1)] == 12):
+                screen.blit(self.switchedgeList2[1],  (448, -64)) 
+            #switch on left side
+            elif (self.horizontal_wall[y][decrement(x,1)] == 13):
+                screen.blit(self.edgeList2[1],  (448, -64)) 
+
+
 
             #draw left one up wall
             if (self.vertical_wall[increment(y,1)][x] == 1):
@@ -1806,6 +4450,27 @@ class Dungeon:
                 screen.blit(self.door1, (-448,-64))
             elif (self.vertical_wall[increment(y,1)][x] == 3):
                 screen.blit(self.door1, (-448,-64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][x] == 4):
+                screen.blit(self.door1, (-448,-64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][x] == 6):
+                screen.blit(self.door1, (-448,-64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][x] == 7):
+                screen.blit(self.center1, (-448,-64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][x] == 8):
+                screen.blit(self.door1, (-448,-64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][x] == 9):
+                screen.blit(self.center1, (-448,-64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][x] == 12):
+                screen.blit(self.switch1, (-448,-64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][x] == 13):
+                screen.blit(self.center1, (-448,-64)) 
 
             #draw right one up wall
             if (self.vertical_wall[decrement(y,1)][x] == 1):
@@ -1814,6 +4479,27 @@ class Dungeon:
                 screen.blit(self.door1, (576,-64))
             if (self.vertical_wall[decrement(y,1)][x] == 3):
                 screen.blit(self.door1, (576,-64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][x] == 4):
+                screen.blit(self.door1, (576,-64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][x] == 6):
+                screen.blit(self.door1, (576,-64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][x] == 7):
+                screen.blit(self.center1, (576,-64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][x] == 8):
+                screen.blit(self.door1, (576,-64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][x] == 9):
+                screen.blit(self.center1, (576,-64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][x] == 12):
+                screen.blit(self.switch1, (576,-64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][x] == 13):
+                screen.blit(self.center1, (576,-64)) 
 
             #draw just up wall
             if (self.vertical_wall[y][x] == 1):
@@ -1822,6 +4508,27 @@ class Dungeon:
                 screen.blit(self.door1, (64,-64))
             elif (self.vertical_wall[y][x] == 3):
                 screen.blit(self.door1, (64,-64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][x] == 4):
+                screen.blit(self.door1, (64,-64))
+            #one way door from right
+            elif (self.vertical_wall[y][x] == 6):
+                screen.blit(self.door1, (64,-64))
+            #one way door from left
+            elif (self.vertical_wall[y][x] == 7):
+                screen.blit(self.center1, (64,-64))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][x] == 8):
+                screen.blit(self.door1, (64,-64))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][x] == 9):
+                screen.blit(self.center1, (64,-64))
+            #switch on right side
+            elif (self.vertical_wall[y][x] == 12):
+                screen.blit(self.switch1, (64,-64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[y][x] == 13):
+                screen.blit(self.center1, (64,-64)) 
 
             #draw wall on left
             if (self.horizontal_wall[increment(y,1)][x] == 1):
@@ -1830,6 +4537,27 @@ class Dungeon:
                 screen.blit(self.doorList1[0], (-192, -320))
             elif (self.horizontal_wall[increment(y,1)][x] == 3):
                 screen.blit(self.doorList1[0], (-192, -320))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][x] == 4):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][x] == 6):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][x] == 7):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][x] == 8):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][x] == 9):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][x] == 12):
+                screen.blit(self.edgeList1[0], (-192, -320)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][x] == 13):
+                screen.blit(self.switchedgeList1[0], (-192, -320)) 
 
             #draw wall on right
             if (self.horizontal_wall[y][x] == 1):
@@ -1838,6 +4566,27 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
             elif (self.horizontal_wall[y][x] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][x] == 4):
+                screen.blit(self.doorList1[1],  (576, -320))
+            #one way door from right
+            elif (self.horizontal_wall[y][x] == 6):
+                screen.blit(self.doorList1[1],  (576, -320))
+            #one way door from left
+            elif (self.horizontal_wall[y][x] == 7):
+                screen.blit(self.edgeList1[1],  (576, -320))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][x] == 8):
+                screen.blit(self.doorList1[1],  (576, -320))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][x] == 9):
+                screen.blit(self.edgeList1[1],  (576, -320))
+            #switch on right side
+            elif (self.horizontal_wall[y][x] == 12):
+                screen.blit(self.switchedgeList1[1],  (576, -320)) 
+            #switch on left side
+            elif (self.horizontal_wall[y][x] == 13):
+                screen.blit(self.edgeList1[1],  (576, -320)) 
 
 
     def draw_dungeon_no_light(self, game_self, screen):
@@ -1858,37 +4607,52 @@ class Dungeon:
         #if the player is looking up
         if ( game_self.party.direction == 0):
             #draw from back to front.
+
+
             #draw ground below
-            if (self.ground[y][x] == 0 ):
-                screen.blit(self.ground_center1, (32, 448))
-
+            draw_dungeon_ground( screen, self.ground[y][x], self.ground_center1, (32, 448))
             #draw ground left
-            if (self.ground[y][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList1[0], (0, 448))
-
+            draw_dungeon_ground( screen, self.ground[y][decrement(x,1)], self.ground_sideList1[0], (0, 448))
             #draw ground right
-            if (self.ground[y][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList1[1], (576, 448))
-
+            draw_dungeon_ground( screen, self.ground[y][increment(x,1)], self.ground_sideList1[1], (576, 448))
             #draw ground up left
-            if (self.ground[decrement(y,1)][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[0], (0, 320))             
-
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][decrement(x,1)], self.ground_sideList2[0], (0,320))
             #draw ground up right
-            if (self.ground[decrement(y,1)][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[1], (448, 320))             
-            
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][increment(x,1)], self.ground_sideList2[1], (448,320))
             #draw ground up one
-            if (self.ground[decrement(y,1)][x] == 0 ):
-                screen.blit(self.ground_center2, (64, 320))
-        
-            #draw straight one block wall
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][x], self.ground_center2, (64,320))
+
+
+
+           #draw straight one block wall
             if (self.horizontal_wall[decrement(y,1)][x] == 1):
                 screen.blit(self.center2, (192, 64))
             elif (self.horizontal_wall[decrement(y,1)][x] == 2):
                 screen.blit(self.door2, (192,64))
             elif (self.horizontal_wall[decrement(y,1)][x] == 3):
                 screen.blit(self.door2, (192,64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[decrement(y,1)][x] == 4):
+                screen.blit(self.door2, (192,64))
+            #one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][x] == 6):
+                screen.blit(self.door2, (192,64))
+            #one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][x] == 7):
+                screen.blit(self.center2, (192,64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[decrement(y,1)][x] == 8):
+                screen.blit(self.door2, (192,64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[decrement(y,1)][x] == 9):
+                screen.blit(self.center2, (192,64))
+            #switch on right side
+            elif (self.horizontal_wall[decrement(y,1)][x] == 12):
+                screen.blit(self.switch2, (192,64))  
+            #switch on left side
+            elif (self.horizontal_wall[decrement(y,1)][x] == 13):
+                screen.blit(self.center2, (192,64))
+
 
             #draw up one wall on left
             if (self.vertical_wall[decrement(y,1)][x] == 1):
@@ -1897,6 +4661,27 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (64, -64))
             elif (self.vertical_wall[decrement(y,1)][x] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][x] == 4):
+                screen.blit(self.doorList2[0], (64, -64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][x] == 6):
+                screen.blit(self.doorList2[0], (64, -64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][x] == 7):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][x] == 8):
+                screen.blit(self.doorList2[0], (64, -64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][x] == 9):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][x] == 12):
+                screen.blit(self.switchedgeList2[0], (64, -64)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][x] == 13):
+                screen.blit(self.edgeList2[0], (64, -64)) 
                                    
             #draw up one wall on right
             if (self.vertical_wall[decrement(y,1)][increment(x,1)] == 1):
@@ -1905,6 +4690,27 @@ class Dungeon:
                 screen.blit(self.doorList2[1], (448, -64))                
             elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 3):
                 screen.blit(self.doorList2[1], (448, -64))                
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 4):
+                screen.blit(self.doorList2[1], (448, -64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 6):
+                screen.blit(self.edgeList2[1], (448, -64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 7):
+                screen.blit(self.doorList2[1], (448, -64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 8):
+                screen.blit(self.edgeList2[1], (448, -64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 9):
+                screen.blit(self.doorList2[1], (448, -64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 12):
+                screen.blit(self.edgeList2[1], (448, -64)) 
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList2[1], (448, -64)) 
 
             #draw left one up wall
             if (self.horizontal_wall[y][decrement(x,1)] == 1):
@@ -1913,6 +4719,28 @@ class Dungeon:
                 screen.blit(self.door1, (-448,-64))
             elif (self.horizontal_wall[y][decrement(x,1)] == 3):
                 screen.blit(self.door1, (-448,-64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][decrement(x,1)] == 4):
+                screen.blit(self.door1, (-448,-64))
+            #one way door from right
+            elif (self.horizontal_wall[y][decrement(x,1)] == 6):
+                screen.blit(self.door1, (-448,-64))
+            #one way door from left
+            elif (self.horizontal_wall[y][decrement(x,1)] == 7):
+                screen.blit(self.center1, (-448,-64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][decrement(x,1)] == 8):
+                screen.blit(self.door1, (-448,-64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][decrement(x,1)] == 9):
+                screen.blit(self.center1, (-448,-64))
+            #switch on right side
+            elif (self.horizontal_wall[y][decrement(x,1)] == 12):
+                screen.blit(self.switch1, (-448,-64))  
+            #switch on left side
+            elif (self.horizontal_wall[y][decrement(x,1)] == 13):
+                screen.blit(self.center1, (-448,-64))
+
 
             #draw right one up wall
             if (self.horizontal_wall[y][increment(x,1)] == 1):
@@ -1921,6 +4749,28 @@ class Dungeon:
                 screen.blit(self.door1, (576,-64))
             elif (self.horizontal_wall[y][increment(x,1)] == 3):
                 screen.blit(self.door1, (576,-64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][increment(x,1)] == 4):
+                screen.blit(self.door1, (576,-64))
+            #one way door from right
+            elif (self.horizontal_wall[y][increment(x,1)] == 6):
+                screen.blit(self.door1, (576,-64))
+            #one way door from left
+            elif (self.horizontal_wall[y][increment(x,1)] == 7):
+                screen.blit(self.center1, (576,-64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][increment(x,1)] == 8):
+                screen.blit(self.door1, (576,-64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][increment(x,1)] == 9):
+                screen.blit(self.center1, (576,-64))
+            #switch on right side
+            elif (self.horizontal_wall[y][increment(x,1)] == 12):
+                screen.blit(self.switch1,(576,-64))  
+            #switch on left side
+            elif (self.horizontal_wall[y][increment(x,1)] == 13):
+                screen.blit(self.center1, (576,-64))
+
 
             #draw just up wall
             if (self.horizontal_wall[y][x] == 1):
@@ -1929,6 +4779,28 @@ class Dungeon:
                 screen.blit(self.door1, (64,-64))
             elif (self.horizontal_wall[y][x] == 3):
                 screen.blit(self.door1, (64,-64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][x] == 4):
+                screen.blit(self.door1, (64,-64))
+            #one way door from right
+            elif (self.horizontal_wall[y][x] == 6):
+                screen.blit(self.door1, (64,-64))
+            #one way door from left
+            elif (self.horizontal_wall[y][x] == 7):
+                screen.blit(self.center1, (64,-64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][x] == 8):
+                screen.blit(self.door1, (64,-64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][x] == 9):
+                screen.blit(self.center1, (64,-64))
+            #switch on right side
+            elif (self.horizontal_wall[y][x] == 12):
+                screen.blit(self.switch1,(64,-64))  
+            #switch on left side
+            elif (self.horizontal_wall[y][x] == 13):
+                screen.blit(self.center1, (64,-64))
+
 
             #draw wall on left
             if (self.vertical_wall[y][x] == 1):
@@ -1937,6 +4809,27 @@ class Dungeon:
                 screen.blit(self.doorList1[0], (-192, -320))
             elif (self.vertical_wall[y][x] == 3):
                 screen.blit(self.doorList1[0], (-192, -320))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][x] == 4):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #one way door from right
+            elif (self.vertical_wall[y][x] == 6):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #one way door from left
+            elif (self.vertical_wall[y][x] == 7):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][x] == 8):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][x] == 9):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #switch on right side
+            elif (self.vertical_wall[y][x] == 12):
+                screen.blit(self.switchedgeList1[0], (-192, -320)) 
+            #switch on left side
+            elif (self.vertical_wall[y][x] == 13):
+                screen.blit(self.edgeList1[0], (-192, -320)) 
 
             #draw wall on right
             if (self.vertical_wall[y][increment(x,1)] == 1):
@@ -1945,32 +4838,43 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
             elif (self.vertical_wall[y][increment(x,1)] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][increment(x,1)] == 4):
+                screen.blit(self.doorList1[1], (576, -320))
+            #one way door from right
+            elif (self.vertical_wall[y][increment(x,1)] == 6):
+                screen.blit(self.edgeList1[1], (576, -320))
+            #one way door from left
+            elif (self.vertical_wall[y][increment(x,1)] == 7):
+                screen.blit(self.doorList1[1], (576, -320))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][increment(x,1)] == 8):
+                screen.blit(self.edgeList1[1], (576, -320))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][increment(x,1)] == 9):
+                screen.blit(self.doorList1[1], (576, -320))
+            #switch on right side
+            elif (self.vertical_wall[y][increment(x,1)] == 12):
+                screen.blit(self.edgeList1[1], (576, -320)) 
+            #switch on left side
+            elif (self.vertical_wall[y][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList1[1], (576, -320)) 
 
         #if player is looking right
         elif (game_self.party.direction == 1):
-            
-            if (self.ground[y][x] == 0 ):
-                screen.blit(self.ground_center1, (32, 448))
 
+            #draw ground below
+            draw_dungeon_ground( screen, self.ground[y][x], self.ground_center1, (32, 448))
             #draw ground left
-            if (self.ground[decrement(y,1)][x] == 0 ):
-                screen.blit(self.ground_sideList1[0], (0, 448))
-
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][x], self.ground_sideList1[0], (0, 448))
             #draw ground right
-            if (self.ground[increment(y,1)][x] == 0 ):
-                screen.blit(self.ground_sideList1[1], (576, 448))
-
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][x], self.ground_sideList1[1], (576, 448))
             #draw ground up left
-            if (self.ground[decrement(y,1)][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[0], (0, 320))             
-
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][increment(x,1)], self.ground_sideList2[0], (0,320))
             #draw ground up right
-            if (self.ground[increment(y,1)][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[1], (448, 320))             
-            
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][increment(x,1)], self.ground_sideList2[1], (448,320))             
             #draw ground up one
-            if (self.ground[y][increment(x,1)] == 0 ):
-                screen.blit(self.ground_center2, (64, 320))
+            draw_dungeon_ground( screen, self.ground[y][increment(x,1)], self.ground_center2, (64,320))
 
         
             #draw straight one block wall
@@ -1980,6 +4884,57 @@ class Dungeon:
                 screen.blit(self.door2, (192, 64))
             elif (self.vertical_wall[y][increment(x,2)] == 3):
                 screen.blit(self.door2, (192, 64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][increment(x,2)] == 4):
+                screen.blit(self.door2, (192,64))
+            #one way door from right
+            elif (self.vertical_wall[y][increment(x,2)] == 6):
+                screen.blit(self.center2, (192,64))
+            #one way door from left
+            elif (self.vertical_wall[y][increment(x,2)] == 7):
+                screen.blit(self.door2, (192,64))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][increment(x,2)] == 8):
+                screen.blit(self.center2, (192,64))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][increment(x,2)] == 9):
+                screen.blit(self.door2, (192,64))
+            #switch on right side
+            elif (self.vertical_wall[y][increment(x,2)] == 12):
+                screen.blit(self.center2, (192,64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[y][increment(x,2)] == 13):
+                screen.blit(self.switch2, (192,64)) 
+
+            #draw straight one block wall right one
+            if (self.vertical_wall[increment(y,1)][increment(x,2)] == 1):
+                screen.blit(self.center2, (448, 64))
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 2):
+                screen.blit(self.door2, (448,64))
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 3):
+                screen.blit(self.door2, (448,64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 4):
+                screen.blit(self.door2, (448,64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 6):
+                screen.blit(self.center2, (448,64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 7):
+                screen.blit(self.door2, (448,64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 8):
+                screen.blit(self.center2, (448,64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 9):
+                screen.blit(self.door2, (448,64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 12):
+                screen.blit(self.center2, (448,64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 13):
+                screen.blit(self.switch2, (448,64)) 
+
 
             #draw up one wall on left
             if (self.horizontal_wall[y][increment(x,1)] == 1):
@@ -1988,6 +4943,27 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (64, -64))
             elif (self.horizontal_wall[y][increment(x,1)] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][increment(x,1)] == 4):
+                screen.blit(self.doorList2[0], (64, -64))
+            #one way door from right
+            elif (self.horizontal_wall[y][increment(x,1)] == 6):
+                screen.blit(self.doorList2[0], (64, -64))
+            #one way door from left
+            elif (self.horizontal_wall[y][increment(x,1)] == 7):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][increment(x,1)] == 8):
+                screen.blit(self.doorList2[0], (64, -64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][increment(x,1)] == 9):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #switch on right side
+            elif (self.horizontal_wall[y][increment(x,1)] == 12):
+                screen.blit(self.switchedgeList2[0], (64, -64)) 
+            #switch on left side
+            elif (self.horizontal_wall[y][increment(x,1)] == 13):
+                screen.blit(self.edgeList2[0], (64, -64)) 
                 
             #draw up one wall on right
             if (self.horizontal_wall[increment(y,1)][increment(x,1)] == 1):
@@ -1996,6 +4972,28 @@ class Dungeon:
                 screen.blit(self.doorList2[1], (448, -64))                
             elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.doorList2[1], (448, -64))                
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 4):
+                screen.blit(self.doorList2[1],  (448, -64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 6):
+                screen.blit(self.edgeList2[1],  (448, -64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 7):
+                screen.blit(self.doorList2[1],  (448, -64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 8):
+                screen.blit(self.edgeList2[1],  (448, -64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 9):
+                screen.blit(self.doorList2[1],  (448, -64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 12):
+                screen.blit(self.edgeList2[1],  (448, -64)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList2[1],  (448, -64)) 
+
 
             #draw left one up wall
             if (self.vertical_wall[decrement(y,1)][increment(x,1)] == 1):
@@ -2004,6 +5002,27 @@ class Dungeon:
                 screen.blit(self.door1, (-448,-64))
             elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 3):
                 screen.blit(self.door1, (-448,-64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 4):
+                screen.blit(self.door1, (-448,-64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 6):
+                screen.blit(self.center1, (-448,-64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 7):
+                screen.blit(self.door1, (-448,-64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 8):
+                screen.blit(self.center1, (-448,-64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 9):
+                screen.blit(self.door1, (-448,-64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 12):
+                screen.blit(self.center1, (-448,-64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 13):
+                screen.blit(self.switch1, (-448,-64)) 
 
             #draw right one up wall
             if (self.vertical_wall[increment(y,1)][increment(x,1)] == 1):
@@ -2012,6 +5031,28 @@ class Dungeon:
                 screen.blit(self.door1, (576,-64))
             elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.door1, (576,-64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 4):
+                screen.blit(self.door1, (576,-64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 6):
+                screen.blit(self.center1, (576,-64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 7):
+                screen.blit(self.door1, (576,-64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 8):
+                screen.blit(self.center1, (576,-64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 9):
+                screen.blit(self.door1, (576,-64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 12):
+                screen.blit(self.center1, (576,-64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 13):
+                screen.blit(self.switch1, (576,-64)) 
+
 
             #draw just up wall
             if (self.vertical_wall[y][increment(x,1)] == 1):
@@ -2020,6 +5061,27 @@ class Dungeon:
                 screen.blit(self.door1, (64,-64))
             elif (self.vertical_wall[y][increment(x,1)] == 3):
                 screen.blit(self.door1, (64,-64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][increment(x,1)] == 4):
+                screen.blit(self.door1, (64,-64))
+            #one way door from right
+            elif (self.vertical_wall[y][increment(x,1)] == 6):
+                screen.blit(self.center1, (64,-64))
+            #one way door from left
+            elif (self.vertical_wall[y][increment(x,1)] == 7):
+                screen.blit(self.door1, (64,-64))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][increment(x,1)] == 8):
+                screen.blit(self.center1, (64,-64))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][increment(x,1)] == 9):
+                screen.blit(self.door1, (64,-64))
+            #switch on right side
+            elif (self.vertical_wall[y][increment(x,1)] == 12):
+                screen.blit(self.center1, (64,-64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[y][increment(x,1)] == 13):
+                screen.blit(self.switch1, (64,-64)) 
 
             #draw wall on left
             if (self.horizontal_wall[y][x] == 1):
@@ -2028,6 +5090,27 @@ class Dungeon:
                 screen.blit(self.doorList1[0], (-192, -320))
             elif (self.horizontal_wall[y][x] == 3):
                 screen.blit(self.doorList1[0], (-192, -320))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][x] == 4):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #one way door from right
+            elif (self.horizontal_wall[y][x] == 6):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #one way door from left
+            elif (self.horizontal_wall[y][x] == 7):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][x] == 8):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][x] == 9):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #switch on right side
+            elif (self.horizontal_wall[y][x] == 12):
+                screen.blit(self.switchedgeList1[0], (-192, -320)) 
+            #switch on left side
+            elif (self.horizontal_wall[y][x] == 13):
+                screen.blit(self.edgeList1[0], (-192, -320)) 
 
             #draw wall on right
             if (self.horizontal_wall[increment(y,1)][x] == 1):
@@ -2036,33 +5119,45 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
             elif (self.horizontal_wall[increment(y,1)][x] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][x] == 4):
+                screen.blit(self.doorList1[1],  (576, -320))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][x] == 6):
+                screen.blit(self.edgeList1[1],  (576, -320))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][x] == 7):
+                screen.blit(self.doorList1[1],  (576, -320))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][x] == 8):
+                screen.blit(self.edgeList1[1],  (576, -320))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][x] == 9):
+                screen.blit(self.doorList1[1],  (576, -320))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][x] == 12):
+                screen.blit(self.edgeList1[1],  (576, -320)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][x] == 13):
+                screen.blit(self.switchedgeList1[1],  (576, -320)) 
+
 
         #if party is looking down
         elif (game_self.party.direction == 2):
-            
-            if (self.ground[y][x] == 0 ):
-                screen.blit(self.ground_center1, (32, 448))
 
+            #draw ground below
+            draw_dungeon_ground( screen, self.ground[y][x], self.ground_center1, (32, 448))
             #draw ground left
-            if (self.ground[y][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList1[0], (0, 448))
-
+            draw_dungeon_ground( screen, self.ground[y][increment(x,1)], self.ground_sideList1[0], (0, 448))
             #draw ground right
-            if (self.ground[y][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList1[1], (576, 448))
-
+            draw_dungeon_ground( screen, self.ground[y][decrement(x,1)], self.ground_sideList1[1], (576, 448))
             #draw ground up left
-            if (self.ground[increment(y,1)][increment(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[0], (0, 320))             
-
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][increment(x,1)], self.ground_sideList2[0], (0,320))
             #draw ground up right
-            if (self.ground[increment(y,1)][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[1], (448, 320))             
-            
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][decrement(x,1)], self.ground_sideList2[1], (448,320))             
             #draw ground up one
-            if (self.ground[increment(y,1)][x] == 0 ):
-                screen.blit(self.ground_center2, (64, 320))
-                
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][x], self.ground_center2, (64,320))
+
         
             #draw straight one block wall
             if (self.horizontal_wall[increment(y,2)][x] == 1):
@@ -2071,6 +5166,56 @@ class Dungeon:
                 screen.blit(self.door2, (192, 64))
             elif (self.horizontal_wall[increment(y,2)][x] == 3):
                 screen.blit(self.door2, (192, 64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,2)][x] == 4):
+                screen.blit(self.door2, (192,64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,2)][x] == 6):
+                screen.blit(self.center2, (192,64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,2)][x] == 7):
+                screen.blit(self.door2, (192,64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,2)][x] == 8):
+                screen.blit(self.center2, (192,64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,2)][x] == 9):
+                screen.blit(self.door2, (192,64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,2)][x] == 12):
+                screen.blit(self.center2, (192,64))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,2)][x] == 13):
+                screen.blit(self.switch2, (192,64))
+
+            #draw straight one block wall right one
+            if (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 1):
+                screen.blit(self.center2, (448, 64))
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 2):
+                screen.blit(self.door2, (448,64))
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 3):
+                screen.blit(self.door2, (448,64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 4):
+                screen.blit(self.door2, (448,64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 6):
+                screen.blit(self.center2, (448,64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 7):
+                screen.blit(self.door2, (448,64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 8):
+                screen.blit(self.center2, (448,64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 9):
+                screen.blit(self.door2, (448,64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 12):
+                screen.blit(self.center2, (448,64))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 13):
+                screen.blit(self.switch2, (448,64))
 
             #draw up one wall on left
             if (self.vertical_wall[increment(y,1)][increment(x,1)] == 1):
@@ -2079,6 +5224,27 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (64, -64))
             elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 4):
+                screen.blit(self.doorList2[0], (64, -64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 6):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 7):
+                screen.blit(self.doorList2[0], (64, -64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 8):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 9):
+                screen.blit(self.doorList2[0], (64, -64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 12):
+                screen.blit(self.edgeList2[0], (64, -64)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList2[0], (64, -64)) 
                 
             #draw up one wall on right
             if (self.vertical_wall[increment(y,1)][x] == 1):
@@ -2087,6 +5253,27 @@ class Dungeon:
                 screen.blit(self.doorList2[1], (448, -64))                
             elif (self.vertical_wall[increment(y,1)][x] == 3):
                 screen.blit(self.doorList2[1], (448, -64))                
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][x] == 4):
+                screen.blit(self.doorList2[1], (448, -64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][x] == 6):
+                screen.blit(self.doorList2[1], (448, -64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][x] == 7):
+                screen.blit(self.edgeList2[1], (448, -64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][x] == 8):
+                screen.blit(self.doorList2[1], (448, -64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][x] == 9):
+                screen.blit(self.edgeList2[1], (448, -64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][x] == 12):
+                screen.blit(self.switchedgeList2[1], (448, -64)) 
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][x] == 13):
+                screen.blit(self.edgeList2[1], (448, -64)) 
 
             #draw left one up wall
             if (self.horizontal_wall[increment(y,1)][increment(x,1)] == 1):
@@ -2095,6 +5282,28 @@ class Dungeon:
                 screen.blit(self.door1, (-448,-64))
             elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 3):
                 screen.blit(self.door1, (-448,-64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 4):
+                screen.blit(self.door1, (-448,-64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 6):
+                screen.blit(self.center1, (-448,-64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 7):
+                screen.blit(self.door1, (-448,-64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 8):
+                screen.blit(self.center1, (-448,-64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 9):
+                screen.blit(self.door1, (-448,-64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 12):
+                screen.blit(self.center1, (-448,-64))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 13):
+                screen.blit(self.switch1, (-448,-64))
+
 
             #draw right one up wall
             if (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 1):
@@ -2103,15 +5312,56 @@ class Dungeon:
                 screen.blit(self.door1, (576,-64))
             elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 3):
                 screen.blit(self.door1, (576,-64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 4):
+                screen.blit(self.door1, (576,-64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 6):
+                screen.blit(self.center1, (576,-64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 7):
+                screen.blit(self.door1, (576,-64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 8):
+                screen.blit(self.center1, (576,-64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 9):
+                screen.blit(self.door1, (576,-64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 12):
+                screen.blit(self.center,(576,-64))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 13):
+                screen.blit(self.switch1, (576,-64))
 
             #draw just up wall
             if (self.horizontal_wall[increment(y,1)][x] == 1):
                 screen.blit(self.center1, (64,-64))
-            if (self.horizontal_wall[increment(y,1)][x] == 2):
+            elif (self.horizontal_wall[increment(y,1)][x] == 2):
                 screen.blit(self.door1, (64,-64))
-            if (self.horizontal_wall[increment(y,1)][x] == 3):
+            elif (self.horizontal_wall[increment(y,1)][x] == 3):
                 screen.blit(self.door1, (64,-64))
-
+            elif (self.horizontal_wall[increment(y,1)][x] == 4):
+                screen.blit(self.door1, (64,-64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][x] == 6):
+                screen.blit(self.center1, (64,-64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][x] == 7):
+                screen.blit(self.door1, (64,-64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][x] == 8):
+                screen.blit(self.center1, (64,-64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][x] == 9):
+                screen.blit(self.door1, (64,-64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][x] == 12):
+                screen.blit(self.center1,(64,-64))  
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][x] == 13):
+                screen.blit(self.switch1, (64,-64))
+                
             #draw wall on left
             if (self.vertical_wall[y][increment(x,1)] == 1):
                 screen.blit(self.edgeList1[0], (-192, -320))
@@ -2119,7 +5369,28 @@ class Dungeon:
                 screen.blit(self.doorList1[0], (-192, -320))
             elif (self.vertical_wall[y][increment(x,1)] == 3):
                 screen.blit(self.doorList1[0], (-192, -320))
-
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][increment(x,1)] == 4):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #one way door from right
+            elif (self.vertical_wall[y][increment(x,1)] == 6):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #one way door from left
+            elif (self.vertical_wall[y][increment(x,1)] == 7):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][increment(x,1)] == 8):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][increment(x,1)] == 9):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #switch on right side
+            elif (self.vertical_wall[y][increment(x,1)] == 12):
+                screen.blit(self.edgeList1[0], (-192, -320)) 
+            #switch on left side
+            elif (self.vertical_wall[y][increment(x,1)] == 13):
+                screen.blit(self.switchedgeList1[0], (-192, -320))
+                
             #draw wall on right
             if (self.vertical_wall[y][x] == 1):
                 screen.blit(self.edgeList1[1], (576, -320))
@@ -2127,34 +5398,47 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
             elif (self.vertical_wall[y][x] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][x] == 4):
+                screen.blit(self.doorList1[1], (576, -320))
+            #one way door from right
+            elif (self.vertical_wall[y][x] == 6):
+                screen.blit(self.doorList1[1], (576, -320))
+            #one way door from left
+            elif (self.vertical_wall[y][x] == 7):
+                screen.blit(self.edgeList1[1], (576, -320))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][x] == 8):
+                screen.blit(self.doorList1[1], (576, -320))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][x] == 9):
+                screen.blit(self.edgeList1[1], (576, -320))
+            #switch on right side
+            elif (self.vertical_wall[y][x] == 12):
+                screen.blit(self.switchedgeList1[1], (576, -320)) 
+            #switch on left side
+            elif (self.vertical_wall[y][x] == 13):
+                screen.blit(self.edgeList1[1], (576, -320)) 
+
+
+ 
 
         #if the player is looking left
         elif (game_self.party.direction == 3):
 
-            if (self.ground[y][x] == 0 ):
-                screen.blit(self.ground_center1, (32, 448))
-
+            #draw ground below
+            draw_dungeon_ground( screen, self.ground[y][x], self.ground_center1, (32, 448))
             #draw ground left
-            if (self.ground[increment(y,1)][x] == 0 ):
-                screen.blit(self.ground_sideList1[0], (0, 448))
-
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][x], self.ground_sideList1[0], (0, 448))
             #draw ground right
-            if (self.ground[decrement(y,1)][x] == 0 ):
-                screen.blit(self.ground_sideList1[1], (576, 448))
-
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][x], self.ground_sideList1[1], (576, 448))
             #draw ground up left
-            if (self.ground[increment(y,1)][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[0], (0, 320))             
-
+            draw_dungeon_ground( screen, self.ground[increment(y,1)][decrement(x,1)], self.ground_sideList2[0], (0,320))
             #draw ground up right
-            if (self.ground[decrement(y,1)][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_sideList2[1], (448, 320))             
-            
+            draw_dungeon_ground( screen, self.ground[decrement(y,1)][decrement(x,1)], self.ground_sideList2[1], (448,320))             
             #draw ground up one
-            if (self.ground[y][decrement(x,1)] == 0 ):
-                screen.blit(self.ground_center2, (64, 320))
+            draw_dungeon_ground( screen, self.ground[y][decrement(x,1)], self.ground_center2, (64,320))
 
-        
             #draw straight one block wall
             if (self.vertical_wall[y][decrement(x,1)] == 1):
                 screen.blit(self.center2, (192, 64))
@@ -2162,6 +5446,56 @@ class Dungeon:
                 screen.blit(self.door2, (192, 64))
             elif (self.vertical_wall[y][decrement(x,1)] == 3):
                 screen.blit(self.door2, (192, 64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][decrement(x,1)] == 4):
+                screen.blit(self.door2, (192,64))
+            #one way door from right
+            elif (self.vertical_wall[y][decrement(x,1)] == 6):
+                screen.blit(self.door2, (192,64))
+            #one way door from left
+            elif (self.vertical_wall[y][decrement(x,1)] == 7):
+                screen.blit(self.center2, (192,64))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][decrement(x,1)] == 8):
+                screen.blit(self.door2, (192,64))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][decrement(x,1)] == 9):
+                screen.blit(self.center2, (192,64))
+            #switch on right side
+            elif (self.vertical_wall[y][decrement(x,1)] == 12):
+                screen.blit(self.switch2, (192,64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[y][decrement(x,1)] == 13):
+                screen.blit(self.center2, (192,64)) 
+
+            #draw straight one block wall right one
+            if (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 1):
+                screen.blit(self.center2, (448, 64))
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 2):
+                screen.blit(self.door2, (448,64))
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 3):
+                screen.blit(self.door2, (448,64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 4):
+                screen.blit(self.door2, (448,64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 6):
+                screen.blit(self.door2, (448,64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 7):
+                screen.blit(self.center2, (448,64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 8):
+                screen.blit(self.door2, (448,64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 9):
+                screen.blit(self.center2, (448,64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 12):
+                screen.blit(self.switch2, (448,64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 13):
+                screen.blit(self.center2, (448,64)) 
 
             #draw up one wall on left
             if (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 1):
@@ -2170,6 +5504,27 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (64, -64))
             elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 3):
                 screen.blit(self.doorList2[0], (64, -64))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 4):
+                screen.blit(self.doorList2[0], (64, -64))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 6):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 7):
+                screen.blit(self.doorList2[0], (64, -64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 8):
+                screen.blit(self.edgeList2[0], (64, -64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 9):
+                screen.blit(self.doorList2[0], (64, -64))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 12):
+                screen.blit(self.edgeList2[0], (64, -64)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 13):
+                screen.blit(self.switchedgeList2[0], (64, -64)) 
                 
             #draw up one wall on right
             if (self.horizontal_wall[y][decrement(x,1)] == 1):
@@ -2178,6 +5533,29 @@ class Dungeon:
                 screen.blit(self.doorList2[1], (448, -64))                
             elif (self.horizontal_wall[y][decrement(x,1)] == 3):
                 screen.blit(self.doorList2[1], (448, -64))                
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][decrement(x,1)] == 4):
+                screen.blit(self.doorList2[1],  (448, -64))
+            #one way door from right
+            elif (self.horizontal_wall[y][decrement(x,1)] == 6):
+                screen.blit(self.doorList2[1],  (448, -64))
+            #one way door from left
+            elif (self.horizontal_wall[y][decrement(x,1)] == 7):
+                screen.blit(self.edgeList2[1],  (448, -64))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][decrement(x,1)] == 8):
+                screen.blit(self.doorList2[1],  (448, -64))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][decrement(x,1)] == 9):
+                screen.blit(self.edgeList2[1],  (448, -64))
+            #switch on right side
+            elif (self.horizontal_wall[y][decrement(x,1)] == 12):
+                screen.blit(self.switchedgeList2[1],  (448, -64)) 
+            #switch on left side
+            elif (self.horizontal_wall[y][decrement(x,1)] == 13):
+                screen.blit(self.edgeList2[1],  (448, -64)) 
+
+
 
             #draw left one up wall
             if (self.vertical_wall[increment(y,1)][x] == 1):
@@ -2186,6 +5564,27 @@ class Dungeon:
                 screen.blit(self.door1, (-448,-64))
             elif (self.vertical_wall[increment(y,1)][x] == 3):
                 screen.blit(self.door1, (-448,-64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[increment(y,1)][x] == 4):
+                screen.blit(self.door1, (-448,-64))
+            #one way door from right
+            elif (self.vertical_wall[increment(y,1)][x] == 6):
+                screen.blit(self.door1, (-448,-64))
+            #one way door from left
+            elif (self.vertical_wall[increment(y,1)][x] == 7):
+                screen.blit(self.center1, (-448,-64))
+            #hidden one way door from right
+            elif (self.vertical_wall[increment(y,1)][x] == 8):
+                screen.blit(self.door1, (-448,-64))
+            #hidden one way door from left
+            elif (self.vertical_wall[increment(y,1)][x] == 9):
+                screen.blit(self.center1, (-448,-64))
+            #switch on right side
+            elif (self.vertical_wall[increment(y,1)][x] == 12):
+                screen.blit(self.switch1, (-448,-64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[increment(y,1)][x] == 13):
+                screen.blit(self.center1, (-448,-64)) 
 
             #draw right one up wall
             if (self.vertical_wall[decrement(y,1)][x] == 1):
@@ -2194,6 +5593,27 @@ class Dungeon:
                 screen.blit(self.door1, (576,-64))
             if (self.vertical_wall[decrement(y,1)][x] == 3):
                 screen.blit(self.door1, (576,-64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[decrement(y,1)][x] == 4):
+                screen.blit(self.door1, (576,-64))
+            #one way door from right
+            elif (self.vertical_wall[decrement(y,1)][x] == 6):
+                screen.blit(self.door1, (576,-64))
+            #one way door from left
+            elif (self.vertical_wall[decrement(y,1)][x] == 7):
+                screen.blit(self.center1, (576,-64))
+            #hidden one way door from right
+            elif (self.vertical_wall[decrement(y,1)][x] == 8):
+                screen.blit(self.door1, (576,-64))
+            #hidden one way door from left
+            elif (self.vertical_wall[decrement(y,1)][x] == 9):
+                screen.blit(self.center1, (576,-64))
+            #switch on right side
+            elif (self.vertical_wall[decrement(y,1)][x] == 12):
+                screen.blit(self.switch1, (576,-64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[decrement(y,1)][x] == 13):
+                screen.blit(self.center1, (576,-64)) 
 
             #draw just up wall
             if (self.vertical_wall[y][x] == 1):
@@ -2202,6 +5622,27 @@ class Dungeon:
                 screen.blit(self.door1, (64,-64))
             elif (self.vertical_wall[y][x] == 3):
                 screen.blit(self.door1, (64,-64))
+            #hidden door, with light it can see door
+            elif (self.vertical_wall[y][x] == 4):
+                screen.blit(self.door1, (64,-64))
+            #one way door from right
+            elif (self.vertical_wall[y][x] == 6):
+                screen.blit(self.door1, (64,-64))
+            #one way door from left
+            elif (self.vertical_wall[y][x] == 7):
+                screen.blit(self.center1, (64,-64))
+            #hidden one way door from right
+            elif (self.vertical_wall[y][x] == 8):
+                screen.blit(self.door1, (64,-64))
+            #hidden one way door from left
+            elif (self.vertical_wall[y][x] == 9):
+                screen.blit(self.center1, (64,-64))
+            #switch on right side
+            elif (self.vertical_wall[y][x] == 12):
+                screen.blit(self.switch1, (64,-64))                                                               
+            #switch on left side
+            elif (self.vertical_wall[y][x] == 13):
+                screen.blit(self.center1, (64,-64)) 
 
             #draw wall on left
             if (self.horizontal_wall[increment(y,1)][x] == 1):
@@ -2210,6 +5651,27 @@ class Dungeon:
                 screen.blit(self.doorList1[0], (-192, -320))
             elif (self.horizontal_wall[increment(y,1)][x] == 3):
                 screen.blit(self.doorList1[0], (-192, -320))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[increment(y,1)][x] == 4):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #one way door from right
+            elif (self.horizontal_wall[increment(y,1)][x] == 6):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #one way door from left
+            elif (self.horizontal_wall[increment(y,1)][x] == 7):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #hidden one way door from right
+            elif (self.horizontal_wall[increment(y,1)][x] == 8):
+                screen.blit(self.edgeList1[0], (-192, -320))
+            #hidden one way door from left
+            elif (self.horizontal_wall[increment(y,1)][x] == 9):
+                screen.blit(self.doorList1[0], (-192, -320))
+            #switch on right side
+            elif (self.horizontal_wall[increment(y,1)][x] == 12):
+                screen.blit(self.edgeList1[0], (-192, -320)) 
+            #switch on left side
+            elif (self.horizontal_wall[increment(y,1)][x] == 13):
+                screen.blit(self.switchedgeList1[0], (-192, -320)) 
 
             #draw wall on right
             if (self.horizontal_wall[y][x] == 1):
@@ -2218,9 +5680,29 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
             elif (self.horizontal_wall[y][x] == 3):
                 screen.blit(self.doorList1[1], (576, -320))
+            #hidden door, with light it can see door
+            elif (self.horizontal_wall[y][x] == 4):
+                screen.blit(self.doorList1[1],  (576, -320))
+            #one way door from right
+            elif (self.horizontal_wall[y][x] == 6):
+                screen.blit(self.doorList1[1],  (576, -320))
+            #one way door from left
+            elif (self.horizontal_wall[y][x] == 7):
+                screen.blit(self.edgeList1[1],  (576, -320))
+            #hidden one way door from right
+            elif (self.horizontal_wall[y][x] == 8):
+                screen.blit(self.doorList1[1],  (576, -320))
+            #hidden one way door from left
+            elif (self.horizontal_wall[y][x] == 9):
+                screen.blit(self.edgeList1[1],  (576, -320))
+            #switch on right side
+            elif (self.horizontal_wall[y][x] == 12):
+                screen.blit(self.switchedgeList1[1],  (576, -320)) 
+            #switch on left side
+            elif (self.horizontal_wall[y][x] == 13):
+                screen.blit(self.edgeList1[1],  (576, -320))
 
-
-
+                
 def decrement(variable, value):
     variable -= value
     if variable < 0:
@@ -2296,5 +5778,10 @@ def calculate_merchant_level(game_self):
         if merchant_level > max_merchant_level:
             max_merchant_level = merchant_level
     return max_merchant_level
+
+def draw_dungeon_ground( screen, picture_number , picture, draw_coordinate):
+    #0=normal ground, 4 = turn table, 16,17,18,19 = moving ground to up, down, left, right
+    if picture_number == 0 or picture_number == 4 or picture_number ==16 or picture_number ==17 or picture_number == 18 or picture_number == 19:
+        screen.blit( picture, draw_coordinate)
 
     

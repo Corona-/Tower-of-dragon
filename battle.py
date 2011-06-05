@@ -1360,57 +1360,18 @@ def select_enemy( enemy_data, floor ):
         for i in range(enemy_count):
             enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ] ) )
         enemy_front.append(enemy_group)
-
-        #debug
-##        enemy_count = 1
-##        enemy_group = []
-##
-##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-##        enemy_front.append(enemy_group)
-##        enemy_count = 1
-##        enemy_group = []
-##
-##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-##        enemy_front.append(enemy_group)
-##        enemy_count = 1
-##        enemy_group = []
-##
-##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-##        enemy_front.append(enemy_group)
-##        enemy_count = 1
-##        enemy_group = []
-##
-##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-##        enemy_back.append(enemy_group)
-##        enemy_count = 1
-##        enemy_group = []
-##
-##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-##        enemy_back.append(enemy_group)
-##        enemy_count = 1
-##        enemy_group = []
-##
-##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-##        enemy_back.append(enemy_group)
-##        enemy_count = 1
-##        enemy_group = []
-##
-##        enemy_group.append( enemy.Enemy(enemy_data[enemy_id]))
-##        enemy_back.append(enemy_group)
               
-
-
         enemy_total.append(enemy_front)
         enemy_total.append(enemy_back)
 
     if floor == 2:
 
-        
+        group_number = random.randint( 2, 3)
 
-        for group in range(1, 4):
+        for group in range(1, group_number):
             enemy_id = random.randint(6,10)
 
-            enemy_count = random.randint(1,6)
+            enemy_count = random.randint(1,4)
 
             enemy_group = []
 
@@ -1421,8 +1382,78 @@ def select_enemy( enemy_data, floor ):
 
         enemy_total.append(enemy_front)
         enemy_total.append(enemy_back)
-            
 
+    if floor == 3:
+
+        group_number = random.randint(2,3)
+    
+        for group in range(1,group_number):
+
+            enemy_id = random.randint(12,14)
+
+            enemy_count = random.randint(1,6)
+
+            enemy_group = []
+
+            for i in range(enemy_count):
+                enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ]))
+
+            enemy_front.append( enemy_group)
+
+        group_number = random.randint(2,2)
+        for group in range(1, group_number):
+            enemy_id = random.randint(12,14)
+
+            enemy_count = random.randint(1,4)
+
+            enemy_group = []
+
+            for i in range(enemy_count):
+                enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ]))
+
+            enemy_back.append( enemy_group)
+
+        enemy_total.append(enemy_front)
+        enemy_total.append(enemy_back)
+
+    if floor == 4:
+        group_number = random.randint(2,4) 
+    
+        for group in range(1,group_number):
+
+            enemy_id = random.randint(16,18)
+
+            enemy_count = random.randint(1,4)
+
+            enemy_group = []
+
+            for i in range(enemy_count):
+                enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ]))
+
+            enemy_front.append( enemy_group)
+
+        group_number = random.randint(2,3)
+        for group in range(1, group_number):
+            enemy_id = random.randint(16,18)
+
+            enemy_count = random.randint(1,3)
+
+            enemy_group = []
+
+            for i in range(enemy_count):
+                enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ]))
+
+            enemy_back.append( enemy_group)
+
+        enemy_total.append(enemy_front)
+        enemy_total.append(enemy_back)
+
+    if floor == 5:
+        #no encount
+
+        pass
+        
+        
 
     return enemy_total
             
