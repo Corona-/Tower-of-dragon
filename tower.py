@@ -87,8 +87,8 @@ def tower_handler(self, event):
         if self.tower.menu == Tower.GO:
             self.game_state = DUNGEON
             for character in self.party.member:
-                #character.coordinate = [9,19,1]
-                character.coordinate = [14,14,2]
+                character.coordinate = [9,19,1]
+                #character.coordinate = [0,9,5]
             self.dungeon = dungeon.Dungeon(character.coordinate[2])
             self.tower = None
         elif self.tower.menu == Tower.BACK:

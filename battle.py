@@ -72,7 +72,7 @@ class Battle:
 
         self.menu = self.FIGHT
 
-        self.enemy_data = enemy_data
+        self.enemy_data = enemy_data    
 
         #has all enemies in a group
         #stores until four groups and Back stores enemy in back row
@@ -83,6 +83,7 @@ class Battle:
         #store enemy for drop items
         self.enemy_drop_items = []
 
+        #if this is changed, event battle also needs change
         #take probability (drop% * number of enemy)
         #and if random value is less than that, add it to drop item
         for enemy_group in self.enemyList:
@@ -90,7 +91,7 @@ class Battle:
             probability = 0
             for item in enemy_group[0].drop_item:
                 if i%2==0:
-                    probability = item*len(enemy_group)*50
+                    probability = item*len(enemy_group)
                     i+= 1
                     continue
 
@@ -171,6 +172,9 @@ class Battle:
 
         #group selection of many groups
         self.group_selection = 0
+
+        #if event battle, party cannot escape
+        self.event_battle = 0
 
      
     def update(self):
@@ -511,7 +515,7 @@ class Battle:
 
                             self.damage_set = 1
 
-                            self.damage = random.randint(2, 14)
+                            self.damage = random.randint(2, 32)
                             self.damage = int(self.damage*math.floor(self.target_group[0].water_resistance/100.0))
 
                             probability = random.randint(1,100)
@@ -752,7 +756,7 @@ class Battle:
                     self.probability = random.randint(1, 100)
                     self.probability_set = 1
                 #TO-DO calculate escape probability
-                if self.probability < 10:
+                if self.probability < 10 and event_battle == 0:
                     self.escape_flag = 1
                 else:            
                     battle_font3 = u"しかし逃げられなかった"
@@ -1034,6 +1038,27 @@ class Battle:
                     self.target_font_set = 0
                     self.dead_set = 0
                     self.hit_set = 0
+
+                    #need to move back one space
+
+                    #not sure it is working correctly
+                    if game_self.party.direction == 0:
+                        for chara in game_self.party.member:
+                            if game_self.dungeon.horizontal_wall[chara.coordinate[1]+1][chara.coordinate[0]] == 0 or game_self.dungeon.horizontal_wall[chara.coordinate[1]+1][chara.coordinate[0]] == 2 or game_self.dungeon.horizontal_wall[chara.coordinate[1]+1][chara.coordinate[0]] == 4 or game_self.dungeon.horizontal_wall[chara.coordinate[1]+1][chara.coordinate[0]] == 7 or game_self.dungeon.horizontal_wall[chara.coordinate[1]+1][chara.coordinate[0]] == 9:
+                                chara.coordinate[1] += 1
+                    elif game_self.party.direction == 1:
+                        for chara in game_self.party.member:
+                            if game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 0 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 2 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 4 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 6 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 8:
+                                chara.coordinate[0] -= 1
+                    elif game_self.party.direction == 2:
+                        for chara in game_self.party.member:
+                            if game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 0 or game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 2 or game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 4 or game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 6 or game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 8:                        
+                                chara.coordinate[1] -= 1
+                    elif game_self.party.direction == 3:
+                        for chara in game_self.party.member:
+                            if game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 0 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 2 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 4 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 7 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 9:
+                                chara.coordinate[0] += 1
+                        
                     return
 
                 if self.group_access > 0:
@@ -1451,6 +1476,9 @@ def select_enemy( enemy_data, floor ):
     if floor == 5:
         #no encount
 
+        enemy_total.append(enemy_front)
+        enemy_total.append(enemy_back)
+
         pass
         
         
@@ -1734,3 +1762,41 @@ def character_attackable ( game_self, character ):
             return False
         else:
             return True
+
+def event_battle( game_self, enemyList, enemyListBack):
+    game_self.dungeon.battle.enemyList = enemyList
+    game_self.dungeon.battle.enemyListBack = enemyListBack
+
+    game_self.dungeon.battle.enemy_drop_items = []
+
+    #take probability (drop% * number of enemy)
+    #and if random value is less than that, add it to drop item
+    for enemy_group in enemyList:
+        i = 0
+        probability = 0
+        for item in enemy_group[0].drop_item:
+            if i%2==0:
+                probability = item*len(enemy_group)
+                i+= 1
+                continue
+
+            random_value = random.randint(1,100)
+            if random_value < probability:
+                game_self.dungeon.battle.enemy_drop_items.append(item)
+            i += 1
+
+    for enemy_group in enemyListBack:
+        i = 0
+        probability = 0
+        for item in enemy_group[0].drop_item:
+            if i%2==0:
+                probability = item*len(enemy_group)
+                i+=1
+                continue
+
+            random_value = random.randint(1,100)
+            if random_value < probability:
+                game_self.dungeon.battle.enemy_drop_items.append(item)
+            i += 1
+
+    game_self.dungeon.battle.event_battle = 1

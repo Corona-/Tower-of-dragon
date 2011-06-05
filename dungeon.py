@@ -12,6 +12,7 @@ import system_notify
 import city
 import menu
 import dungeon_message
+import tower
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 MENU=12
 
@@ -338,7 +339,7 @@ class Dungeon:
                 
             self.battle_encount( 5, game_self.party.member[0] )
 
-            self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
+            self.dungeon_message_window.set_coordinate( game_self, game_self.party.member[0].coordinate)
 
             
             
@@ -382,25 +383,24 @@ class Dungeon:
             walked = 0
             
             if game_self.party.direction == 0:
-                #normal door
-                if (self.horizontal_wall[y][x] == 2):
+                #normal door or hidden door or one way door up
+                if (self.horizontal_wall[y][x] == 2) or self.horizontal_wall[y][x] == 4 or  self.horizontal_wall[y][x] == 6:
                     self.door_se.play()
                     for character in game_self.party.member:
                         character.coordinate[1] = decrement(character.coordinate[1],1)
-                    self.battle_encount( 10, game_self.party.member[0] )
                     walked = 1
                 #locked door
                 elif (self.horizontal_wall[y][x] == 3):
                     self.dungeon_locked_window = system_notify.Donate_finish_window(Rect(150,160,300,50), system_notify.Donate_finish_window.DUNGEON_LOCKED)
                     self.dungeon_locked_window.is_visible = True
                     pass
+                    
 
             if game_self.party.direction == 1:
-                if self.vertical_wall[y][increment(x,1)] == 2:
+                if self.vertical_wall[y][increment(x,1)] == 2 or self.vertical_wall[y][increment(x,1)] == 4 or self.vertical_wall[y][increment(x,1)] == 7:
                     self.door_se.play()
                     for character in game_self.party.member:
                         character.coordinate[0] = increment(character.coordinate[0],1)
-                    self.battle_encount( 10, game_self.party.member[0] )
                     walked = 1
                 elif self.vertical_wall[y][increment(x,1)] == 3:
                     self.dungeon_locked_window = system_notify.Donate_finish_window(Rect(150,160,300,50), system_notify.Donate_finish_window.DUNGEON_LOCKED)
@@ -409,11 +409,10 @@ class Dungeon:
 
 
             if game_self.party.direction == 2:
-                if self.horizontal_wall[increment(y,1)][x] == 2:
+                if self.horizontal_wall[increment(y,1)][x] == 2 or self.horizontal_wall[increment(y,1)][x] == 4 or self.horizontal_wall[increment(y,1)][x] == 7:
                     self.door_se.play()
                     for character in game_self.party.member:
                         character.coordinate[1] = increment(character.coordinate[1],1)
-                    self.battle_encount( 10, game_self.party.member[0] )
                     walked = 1
                 elif self.horizontal_wall[increment(y,1)][x] == 3:
                     self.dungeon_locked_window = system_notify.Donate_finish_window(Rect(150,160,300,50), system_notify.Donate_finish_window.DUNGEON_LOCKED)
@@ -421,25 +420,27 @@ class Dungeon:
                     pass
                 
             if game_self.party.direction == 3:
-                if self.vertical_wall[y][x] == 2:
+                if self.vertical_wall[y][x] == 2 or self.vertical_wall[y][x] == 4 or self.vertical_wall[y][x] == 6:
                     self.door_se.play()
                     for character in game_self.party.member:
                         character.coordinate[0] = decrement(character.coordinate[0],1)
-                    self.battle_encount( 10, game_self.party.member[0] )
                     walked = 1
                 elif self.vertical_wall[y][x] == 3:
                     self.dungeon_locked_window = system_notify.Donate_finish_window(Rect(150,160,300,50), system_notify.Donate_finish_window.DUNGEON_LOCKED)
                     self.dungeon_locked_window.is_visible = True
                     pass
-                    
-            self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
 
-            if walked == 1:
+            self.dungeon_message_window.set_coordinate( game_self, game_self.party.member[0].coordinate)
+
+            if walked == 1 and self.dungeon_message_window.message == None:
                 #change direction randomly by turn table
                 if self.ground[character.coordinate[1]][character.coordinate[0]] == 4:
                     random_direction = random.randint(0, 3)
                     game_self.party.direction = random_direction
-                
+
+                self.battle_encount( 10, game_self.party.member[0] )
+
+
 
 
             #find event on the new place?
@@ -465,29 +466,54 @@ class Dungeon:
             if self.horizontal_wall[y][x] == 12 and game_self.party.direction == 0:
                 #show switch message
                 self.dungeon_message_window.key_press = True
-                self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
+                self.dungeon_message_window.set_coordinate( game_self, game_self.party.member[0].coordinate)
             if self.horizontal_wall[increment(y,1)][x] == 13 and game_self.party.direction == 2:
                 self.dungeon_message_window.key_press = True
-                self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
+                self.dungeon_message_window.set_coordinate( game_self, game_self.party.member[0].coordinate)
             if self.vertical_wall[y][x] == 12 and game_self.party.direction == 3:
                 self.dungeon_message_window.key_press = True
-                self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
+                self.dungeon_message_window.set_coordinate( game_self, game_self.party.member[0].coordinate)
             if self.vertical_wall[y][increment(x,1)] == 13 and game_self.party.direction == 1:
                 self.dungeon_message_window.key_press = True
-                self.dungeon_message_window.set_coordinate( game_self.party.member[0].coordinate)
+                self.dungeon_message_window.set_coordinate( game_self, game_self.party.member[0].coordinate)
 
 
 
  
-
+            #battle with room guard
             if self.object[y][x] == 15:
                 self.battle_encount( 80, game_self.party.member[0] )
                 self.object[y][x] = 0
 
-                
+        #warp on fourth floor
+        if self.object[y][x] == 17 and game_self.party.member[0].coordinate == [8, 19, 4]:
+            for chara in game_self.party.member:
+                chara.coordinate = [ 15, 15 , 4]
+
+        #move back to entrance
+        if self.ground[y][x] == 11:
+            game_self.game_state = TOWER
+            i = 0
+            for charcter in game_self.party.member:
+                game_self.party.member[i].coordinate = [-1,-1,-1]
+                i += 1
+            game_self.dungeon.battle = None
+            game_self.dungeon.battle_flag = 0
+            game_self.dungeon.music = 0
+            game_self.party.direction = 0
+            game_self.tower = tower.Tower()
+            game_self.dungeon = None
+
+            for character in game_self.party.member:
+                character.face_shield = 0
+                character.battle_ac = 0
+                character.permanant_ac = 0
 
 
-            
+
+
+
+
 
         #probability is out of 1 - 100
     def battle_encount( self, probability, character ):
@@ -541,8 +567,15 @@ class Dungeon:
                 rect_y = 97 + y*16+y
                 
                 if j > 0 and j >= 1:
-                    #only show floor
+                    #only show floor and stairs
                     pygame.draw.rect(screen, Color(126,197,119), Rect(rect_x,rect_y,16,16), 0)
+
+                    #downstairs
+                    if self.ground[y][x] == 2:
+                        pygame.draw.polygon(screen, (0,0,0), [(rect_x+3,rect_y+3), (rect_x+11, rect_y+3), (rect_x+7, rect_y+11)], 0)
+                    #upstairs
+                    if self.ground[y][x] == 1:
+                        pygame.draw.polygon(screen, (0,0,0), [(rect_x+3,rect_y+11), (rect_x+11, rect_y+11), (rect_x+7, rect_y+3)], 0)
 
                 #need to be before wall to be accurate
                 if j > 0 and j >= 3:
@@ -555,13 +588,13 @@ class Dungeon:
                     #additionaly show wall and door
 
                     #show wall
-                    if self.horizontal_wall[y][x] == 1 or self.horizontal_wall[y][x] == 2 or self.horizontal_wall[y][x] == 3 or self.horizontal_wall[y][x] == 13:
+                    if self.horizontal_wall[y][x] == 1 or self.horizontal_wall[y][x] == 2 or self.horizontal_wall[y][x] == 3 or self.horizontal_wall[y][x] == 4 or self.horizontal_wall[y][x] == 13:
                         pygame.draw.rect(screen, Color(0,0,0), Rect(rect_x,rect_y,16,2), 0)
-                    if self.horizontal_wall[increment(y,1)][x] == 1 or self.horizontal_wall[increment(y,1)][x] == 2 or self.horizontal_wall[increment(y,1)][x] == 3 or self.horizontal_wall[increment(y,1)][x] == 12:
+                    if self.horizontal_wall[increment(y,1)][x] == 1 or self.horizontal_wall[increment(y,1)][x] == 2 or self.horizontal_wall[increment(y,1)][x] == 3 or self.horizontal_wall[increment(y,1)][x] == 4 or self.horizontal_wall[increment(y,1)][x] == 12:
                         pygame.draw.rect(screen, Color(0,0,0), Rect(rect_x,rect_y+14,16,2), 0)
-                    if self.vertical_wall[y][x] == 1 or self.vertical_wall[y][x] == 2 or self.vertical_wall[y][x] == 3 or self.vertical_wall[y][x] == 13:
+                    if self.vertical_wall[y][x] == 1 or self.vertical_wall[y][x] == 2 or self.vertical_wall[y][x] == 3 or self.vertical_wall[y][x] == 4 or self.vertical_wall[y][x] == 13:
                         pygame.draw.rect(screen, Color(0,0,0), Rect(rect_x,rect_y,2,16), 0)
-                    if self.vertical_wall[y][increment(x,1)] == 1 or self.vertical_wall[y][increment(x,1)] == 2 or self.vertical_wall[y][increment(x,1)] == 3 or  self.vertical_wall[y][increment(x,1)] == 12:
+                    if self.vertical_wall[y][increment(x,1)] == 1 or self.vertical_wall[y][increment(x,1)] == 2 or self.vertical_wall[y][increment(x,1)] == 3 or self.vertical_wall[y][increment(x,1)] == 4 or  self.vertical_wall[y][increment(x,1)] == 12:
                         pygame.draw.rect(screen, Color(0,0,0), Rect(rect_x+14,rect_y,2,16), 0)
 
                     #show door                                 
@@ -611,6 +644,17 @@ class Dungeon:
 
                                       
                 if j > 0 and j >= 5:
+                    #additionaly show hidden door
+                    if self.horizontal_wall[y][x] == 4:
+                        pygame.draw.rect(screen, Color(255,255,0), Rect(rect_x+4,rect_y,8,2), 0)
+                    if self.horizontal_wall[increment(y,1)][x] == 4:
+                        pygame.draw.rect(screen, Color(255,255,0), Rect(rect_x+4,rect_y+14,8,2), 0)
+                    if self.vertical_wall[y][x] == 4:
+                        pygame.draw.rect(screen, Color(255,255,0), Rect(rect_x,rect_y+4,2,8), 0)
+                    if self.vertical_wall[y][increment(x,1)] == 4:
+                        pygame.draw.rect(screen, Color(255,255,0), Rect(rect_x+14,rect_y+4,2,8), 0)
+
+
                     #additionaly show trap
                     pass
                 if j > 0 and j >= 6:
@@ -4060,7 +4104,8 @@ class Dungeon:
             #switch on left side
             elif (self.vertical_wall[y][decrement(x,2)] == 13):
                 screen.blit(self.center3, (256,128)) 
-
+
+
             #draw straight two block wall right one
             if (self.vertical_wall[decrement(y,1)][decrement(x,2)] == 1):
                 screen.blit(self.center3, (384, 128))
@@ -4178,7 +4223,8 @@ class Dungeon:
             #switch on left side
             elif (self.horizontal_wall[increment(y,2)][decrement(x,2)] == 13):
                 screen.blit(self.switchedgeList3_2[0], (-64, 64)) 
-
+
+
             #draw up two wall on left
             if (self.horizontal_wall[increment(y,1)][decrement(x,2)] == 1):
                 screen.blit(self.edgeList3[0], (192, 64))
@@ -4633,7 +4679,7 @@ class Dungeon:
                 screen.blit(self.door2, (192,64))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[decrement(y,1)][x] == 4):
-                screen.blit(self.door2, (192,64))
+                screen.blit(self.center2, (192,64))
             #one way door from right
             elif (self.horizontal_wall[decrement(y,1)][x] == 6):
                 screen.blit(self.door2, (192,64))
@@ -4663,7 +4709,7 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (64, -64))
             #hidden door, with light it can see door
             elif (self.vertical_wall[decrement(y,1)][x] == 4):
-                screen.blit(self.doorList2[0], (64, -64))
+                screen.blit(self.edgeList2[0], (64, -64))
             #one way door from right
             elif (self.vertical_wall[decrement(y,1)][x] == 6):
                 screen.blit(self.doorList2[0], (64, -64))
@@ -4692,7 +4738,7 @@ class Dungeon:
                 screen.blit(self.doorList2[1], (448, -64))                
             #hidden door, with light it can see door
             elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 4):
-                screen.blit(self.doorList2[1], (448, -64))
+                screen.blit(self.edgeList2[1], (448, -64))
             #one way door from right
             elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 6):
                 screen.blit(self.edgeList2[1], (448, -64))
@@ -4721,7 +4767,7 @@ class Dungeon:
                 screen.blit(self.door1, (-448,-64))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[y][decrement(x,1)] == 4):
-                screen.blit(self.door1, (-448,-64))
+                screen.blit(self.center1, (-448,-64))
             #one way door from right
             elif (self.horizontal_wall[y][decrement(x,1)] == 6):
                 screen.blit(self.door1, (-448,-64))
@@ -4751,7 +4797,7 @@ class Dungeon:
                 screen.blit(self.door1, (576,-64))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[y][increment(x,1)] == 4):
-                screen.blit(self.door1, (576,-64))
+                screen.blit(self.center1, (576,-64))
             #one way door from right
             elif (self.horizontal_wall[y][increment(x,1)] == 6):
                 screen.blit(self.door1, (576,-64))
@@ -4781,7 +4827,7 @@ class Dungeon:
                 screen.blit(self.door1, (64,-64))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[y][x] == 4):
-                screen.blit(self.door1, (64,-64))
+                screen.blit(self.center1, (64,-64))
             #one way door from right
             elif (self.horizontal_wall[y][x] == 6):
                 screen.blit(self.door1, (64,-64))
@@ -4811,7 +4857,7 @@ class Dungeon:
                 screen.blit(self.doorList1[0], (-192, -320))
             #hidden door, with light it can see door
             elif (self.vertical_wall[y][x] == 4):
-                screen.blit(self.doorList1[0], (-192, -320))
+                screen.blit(self.edgeList1[0], (-192, -320))
             #one way door from right
             elif (self.vertical_wall[y][x] == 6):
                 screen.blit(self.doorList1[0], (-192, -320))
@@ -4840,7 +4886,7 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
             #hidden door, with light it can see door
             elif (self.vertical_wall[y][increment(x,1)] == 4):
-                screen.blit(self.doorList1[1], (576, -320))
+                screen.blit(self.edgeList1[1], (576, -320))
             #one way door from right
             elif (self.vertical_wall[y][increment(x,1)] == 6):
                 screen.blit(self.edgeList1[1], (576, -320))
@@ -4886,7 +4932,7 @@ class Dungeon:
                 screen.blit(self.door2, (192, 64))
             #hidden door, with light it can see door
             elif (self.vertical_wall[y][increment(x,2)] == 4):
-                screen.blit(self.door2, (192,64))
+                screen.blit(self.center2, (192,64))
             #one way door from right
             elif (self.vertical_wall[y][increment(x,2)] == 6):
                 screen.blit(self.center2, (192,64))
@@ -4915,7 +4961,7 @@ class Dungeon:
                 screen.blit(self.door2, (448,64))
             #hidden door, with light it can see door
             elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 4):
-                screen.blit(self.door2, (448,64))
+                screen.blit(self.center2, (448,64))
             #one way door from right
             elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 6):
                 screen.blit(self.center2, (448,64))
@@ -4945,7 +4991,7 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (64, -64))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[y][increment(x,1)] == 4):
-                screen.blit(self.doorList2[0], (64, -64))
+                screen.blit(self.edgeList2[0], (64, -64))
             #one way door from right
             elif (self.horizontal_wall[y][increment(x,1)] == 6):
                 screen.blit(self.doorList2[0], (64, -64))
@@ -4974,7 +5020,7 @@ class Dungeon:
                 screen.blit(self.doorList2[1], (448, -64))                
             #hidden door, with light it can see door
             elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 4):
-                screen.blit(self.doorList2[1],  (448, -64))
+                screen.blit(self.edgeList2[1],  (448, -64))
             #one way door from right
             elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 6):
                 screen.blit(self.edgeList2[1],  (448, -64))
@@ -5004,7 +5050,7 @@ class Dungeon:
                 screen.blit(self.door1, (-448,-64))
             #hidden door, with light it can see door
             elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 4):
-                screen.blit(self.door1, (-448,-64))
+                screen.blit(self.center1, (-448,-64))
             #one way door from right
             elif (self.vertical_wall[decrement(y,1)][increment(x,1)] == 6):
                 screen.blit(self.center1, (-448,-64))
@@ -5033,7 +5079,7 @@ class Dungeon:
                 screen.blit(self.door1, (576,-64))
             #hidden door, with light it can see door
             elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 4):
-                screen.blit(self.door1, (576,-64))
+                screen.blit(self.center1, (576,-64))
             #one way door from right
             elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 6):
                 screen.blit(self.center1, (576,-64))
@@ -5063,7 +5109,7 @@ class Dungeon:
                 screen.blit(self.door1, (64,-64))
             #hidden door, with light it can see door
             elif (self.vertical_wall[y][increment(x,1)] == 4):
-                screen.blit(self.door1, (64,-64))
+                screen.blit(self.center1, (64,-64))
             #one way door from right
             elif (self.vertical_wall[y][increment(x,1)] == 6):
                 screen.blit(self.center1, (64,-64))
@@ -5092,7 +5138,7 @@ class Dungeon:
                 screen.blit(self.doorList1[0], (-192, -320))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[y][x] == 4):
-                screen.blit(self.doorList1[0], (-192, -320))
+                screen.blit(self.edgeList1[0], (-192, -320))
             #one way door from right
             elif (self.horizontal_wall[y][x] == 6):
                 screen.blit(self.doorList1[0], (-192, -320))
@@ -5121,7 +5167,7 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[increment(y,1)][x] == 4):
-                screen.blit(self.doorList1[1],  (576, -320))
+                screen.blit(self.edgeList1[1],  (576, -320))
             #one way door from right
             elif (self.horizontal_wall[increment(y,1)][x] == 6):
                 screen.blit(self.edgeList1[1],  (576, -320))
@@ -5168,7 +5214,7 @@ class Dungeon:
                 screen.blit(self.door2, (192, 64))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[increment(y,2)][x] == 4):
-                screen.blit(self.door2, (192,64))
+                screen.blit(self.center2, (192,64))
             #one way door from right
             elif (self.horizontal_wall[increment(y,2)][x] == 6):
                 screen.blit(self.center2, (192,64))
@@ -5197,7 +5243,7 @@ class Dungeon:
                 screen.blit(self.door2, (448,64))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 4):
-                screen.blit(self.door2, (448,64))
+                screen.blit(self.center2, (448,64))
             #one way door from right
             elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 6):
                 screen.blit(self.center2, (448,64))
@@ -5226,7 +5272,7 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (64, -64))
             #hidden door, with light it can see door
             elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 4):
-                screen.blit(self.doorList2[0], (64, -64))
+                screen.blit(self.edgeList2[0], (64, -64))
             #one way door from right
             elif (self.vertical_wall[increment(y,1)][increment(x,1)] == 6):
                 screen.blit(self.edgeList2[0], (64, -64))
@@ -5255,7 +5301,7 @@ class Dungeon:
                 screen.blit(self.doorList2[1], (448, -64))                
             #hidden door, with light it can see door
             elif (self.vertical_wall[increment(y,1)][x] == 4):
-                screen.blit(self.doorList2[1], (448, -64))
+                screen.blit(self.edgeList2[1], (448, -64))
             #one way door from right
             elif (self.vertical_wall[increment(y,1)][x] == 6):
                 screen.blit(self.doorList2[1], (448, -64))
@@ -5284,7 +5330,7 @@ class Dungeon:
                 screen.blit(self.door1, (-448,-64))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 4):
-                screen.blit(self.door1, (-448,-64))
+                screen.blit(self.center1, (-448,-64))
             #one way door from right
             elif (self.horizontal_wall[increment(y,1)][increment(x,1)] == 6):
                 screen.blit(self.center1, (-448,-64))
@@ -5314,7 +5360,7 @@ class Dungeon:
                 screen.blit(self.door1, (576,-64))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 4):
-                screen.blit(self.door1, (576,-64))
+                screen.blit(self.center1, (576,-64))
             #one way door from right
             elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 6):
                 screen.blit(self.center1, (576,-64))
@@ -5342,7 +5388,7 @@ class Dungeon:
             elif (self.horizontal_wall[increment(y,1)][x] == 3):
                 screen.blit(self.door1, (64,-64))
             elif (self.horizontal_wall[increment(y,1)][x] == 4):
-                screen.blit(self.door1, (64,-64))
+                screen.blit(self.center1, (64,-64))
             #one way door from right
             elif (self.horizontal_wall[increment(y,1)][x] == 6):
                 screen.blit(self.center1, (64,-64))
@@ -5371,7 +5417,7 @@ class Dungeon:
                 screen.blit(self.doorList1[0], (-192, -320))
             #hidden door, with light it can see door
             elif (self.vertical_wall[y][increment(x,1)] == 4):
-                screen.blit(self.doorList1[0], (-192, -320))
+                screen.blit(self.edgeList1[0], (-192, -320))
             #one way door from right
             elif (self.vertical_wall[y][increment(x,1)] == 6):
                 screen.blit(self.edgeList1[0], (-192, -320))
@@ -5400,7 +5446,7 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
             #hidden door, with light it can see door
             elif (self.vertical_wall[y][x] == 4):
-                screen.blit(self.doorList1[1], (576, -320))
+                screen.blit(self.edgeList1[1], (576, -320))
             #one way door from right
             elif (self.vertical_wall[y][x] == 6):
                 screen.blit(self.doorList1[1], (576, -320))
@@ -5448,7 +5494,7 @@ class Dungeon:
                 screen.blit(self.door2, (192, 64))
             #hidden door, with light it can see door
             elif (self.vertical_wall[y][decrement(x,1)] == 4):
-                screen.blit(self.door2, (192,64))
+                screen.blit(self.center2, (192,64))
             #one way door from right
             elif (self.vertical_wall[y][decrement(x,1)] == 6):
                 screen.blit(self.door2, (192,64))
@@ -5477,7 +5523,7 @@ class Dungeon:
                 screen.blit(self.door2, (448,64))
             #hidden door, with light it can see door
             elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 4):
-                screen.blit(self.door2, (448,64))
+                screen.blit(self.center2, (448,64))
             #one way door from right
             elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 6):
                 screen.blit(self.door2, (448,64))
@@ -5506,7 +5552,7 @@ class Dungeon:
                 screen.blit(self.doorList2[0], (64, -64))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 4):
-                screen.blit(self.doorList2[0], (64, -64))
+                screen.blit(self.edgeList2[0], (64, -64))
             #one way door from right
             elif (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 6):
                 screen.blit(self.edgeList2[0], (64, -64))
@@ -5535,7 +5581,7 @@ class Dungeon:
                 screen.blit(self.doorList2[1], (448, -64))                
             #hidden door, with light it can see door
             elif (self.horizontal_wall[y][decrement(x,1)] == 4):
-                screen.blit(self.doorList2[1],  (448, -64))
+                screen.blit(self.edgeList2[1],  (448, -64))
             #one way door from right
             elif (self.horizontal_wall[y][decrement(x,1)] == 6):
                 screen.blit(self.doorList2[1],  (448, -64))
@@ -5566,7 +5612,7 @@ class Dungeon:
                 screen.blit(self.door1, (-448,-64))
             #hidden door, with light it can see door
             elif (self.vertical_wall[increment(y,1)][x] == 4):
-                screen.blit(self.door1, (-448,-64))
+                screen.blit(self.center1, (-448,-64))
             #one way door from right
             elif (self.vertical_wall[increment(y,1)][x] == 6):
                 screen.blit(self.door1, (-448,-64))
@@ -5595,7 +5641,7 @@ class Dungeon:
                 screen.blit(self.door1, (576,-64))
             #hidden door, with light it can see door
             elif (self.vertical_wall[decrement(y,1)][x] == 4):
-                screen.blit(self.door1, (576,-64))
+                screen.blit(self.center1, (576,-64))
             #one way door from right
             elif (self.vertical_wall[decrement(y,1)][x] == 6):
                 screen.blit(self.door1, (576,-64))
@@ -5624,7 +5670,7 @@ class Dungeon:
                 screen.blit(self.door1, (64,-64))
             #hidden door, with light it can see door
             elif (self.vertical_wall[y][x] == 4):
-                screen.blit(self.door1, (64,-64))
+                screen.blit(self.center1, (64,-64))
             #one way door from right
             elif (self.vertical_wall[y][x] == 6):
                 screen.blit(self.door1, (64,-64))
@@ -5653,7 +5699,7 @@ class Dungeon:
                 screen.blit(self.doorList1[0], (-192, -320))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[increment(y,1)][x] == 4):
-                screen.blit(self.doorList1[0], (-192, -320))
+                screen.blit(self.edgeList1[0], (-192, -320))
             #one way door from right
             elif (self.horizontal_wall[increment(y,1)][x] == 6):
                 screen.blit(self.edgeList1[0], (-192, -320))
@@ -5682,7 +5728,7 @@ class Dungeon:
                 screen.blit(self.doorList1[1], (576, -320))
             #hidden door, with light it can see door
             elif (self.horizontal_wall[y][x] == 4):
-                screen.blit(self.doorList1[1],  (576, -320))
+                screen.blit(self.edgeList1[1],  (576, -320))
             #one way door from right
             elif (self.horizontal_wall[y][x] == 6):
                 screen.blit(self.doorList1[1],  (576, -320))
