@@ -15,7 +15,9 @@ SCREEN_RECTANGLE = Rect(0,0,640,480)
 class Character:
 
     WARRIOR, FIGHTER, MAGICIAN, PRIEST,  THIEF, MERCHANT = 0, 1, 2, 3, 4, 5
- 
+
+    POISON, MUTE, AFRAID, ASLEEP, PALALYSIS, PETRIFIED, DEAD, ASHED, LOST = 0, 1, 2, 3, 4, 5, 6, 7, 8
+
     """stores information of characters"""
     def __init__(self, name, alignment, job,
                  strength, intelligence, piety, vitality, agility, luck,
@@ -60,7 +62,8 @@ class Character:
         #-1,-1, -1 is in the bar
         self.coordinate = [-1,-1,-1]
         #stores the status of the character
-        self.status = "OK"
+        #status has POISON, PALALYSIS, ASLEEP, MUTE, PETRIFIED, DEAD, ASHED, LOST, maybe AFRAID
+        self.status = [0,0,0,0,0,0,0,0,0]
 
         #create hp money, magics randomly
         probability = random.randint(1, 100)
@@ -109,6 +112,10 @@ class Character:
         self.battle_ac = 0
 
         self.face_shield = 0
+
+        self.breath_resist = 0
+
+        self.critical_flag = 0
  
         
     def load(self, name, level, alignment, job, ac,

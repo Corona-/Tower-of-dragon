@@ -54,10 +54,10 @@ class Temple_window(window.Window):
 
         if self.to_cure == []:
             for character in game_self.party.member:
-                if character.status != "OK":
+                if character.status != [0,0,0,0,0,0,0,0,0]:
                     self.to_cure.append(character)
             for character in game_self.characters:
-                if character.status != "OK":
+                if character.status != [0,0,0,0,0,0,0,0,0]:
                     self.to_cure.append(character)
 
         if self.to_cure != []:
@@ -70,19 +70,24 @@ class Temple_window(window.Window):
         for chara in self.to_cure[self.page*10:(self.page+1)*10]:
             character_font = self.menu_font.render(chara.name, True, COLOR_WHITE)
             screen.blit(character_font, (self.left+20, self.top+50+(i%10)*30))
-            status_font = self.menu_font.render( chara.status, True, COLOR_WHITE)
+
+            if chara.status[4] == 1:
+                cost_font = 100*chara.level
+                status_font = self.menu_font.render( "PALSY", True, COLOR_WHITE)
+            if chara.status[5] == 1:
+                status_font = self.menu_font.render( "PETRIF", True, COLOR_WHITE)
+                cost_font = 200*chara.level
+            if chara.status[6] == 1:
+                status_font = self.menu_font.render( "DEAD", True, COLOR_WHITE)
+                cost_font = 250*chara.level
+            if chara.status[7] == 1:
+                status_font = self.menu_font.render( "ASHED", True, COLOR_WHITE)
+                cost_font = 500*chara.level
+            if chara.status == [0,0,0,0,0,0,0,0,0]:
+                cost_font = 0
+
             screen.blit(status_font, (self.centerx-60, self.top+50+(i%10)*30))
 
-            if chara.status == "PALSY":
-                cost_font = 100*chara.level
-            elif chara.status == "STONE":
-                cost_font = 200*chara.level
-            elif chara.status == "DEAD":
-                cost_font = 250*chara.level
-            elif chara.status == "ASHED":
-                cost_font = 500*chara.level
-            elif chara.status == "OK":
-                cost_font = 0
 
             cost_font = self.menu_font.render( str(cost_font) + "TP", True, COLOR_WHITE)
             screen.blit(cost_font, (self.right-20-cost_font.get_width(), self.top+50+(i%10)*30))
@@ -125,16 +130,16 @@ class Temple_window(window.Window):
         elif  event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN):
             if len(self.to_cure) == 0: return
 
-            if self.to_cure[self.menu+self.page*10].status == "OK":
+            if self.to_cure[self.menu+self.page*10].status == [0,0,0,0,0,0,0,0,0]:
                 bad_status = random.randint(1,100)
                 if bad_status < 25:
-                    self.to_cure[self.menu+self.page*10].status = "PALSY"
+                    self.to_cure[self.menu+self.page*10].status[4] = 1
                 elif bad_status < 50:
-                    self.to_cure[self.menu+self.page*10].status = "STONE"
+                    self.to_cure[self.menu+self.page*10].status[5] = 1
                 elif bad_status < 75:
-                    self.to_cure[self.menu+self.page*10].status = "DEAD"
+                    self.to_cure[self.menu+self.page*10].status[6] = 1
                 else:
-                    self.to_cure[self.menu+self.page*10].status = "ASHED"
+                    self.to_cure[self.menu+self.page*10].status[7] = 1
 
 
             else:
@@ -193,7 +198,8 @@ class Curing_window(window.Window):
             if game_self.temple.temple_cure_window.cure_pay_window.cured == True:
                 screen.blit( self.success_font, (self.centerx - self.success_font.get_width()/2, self.top+240))
                 self.status_change = 0
-                if character.status == "DEAD":
+                #if character is dead
+                if character.status[6] == 1:
                     character_font = character.name + self.alive_font
                     character_font = self.menu_font.render(character_font, True, COLOR_WHITE)
                     screen.blit( character_font, (self.centerx - character_font.get_width()/2, self.top+280))
@@ -203,7 +209,8 @@ class Curing_window(window.Window):
                     screen.blit( character_font, (self.centerx - character_font.get_width()/2, self.top+280))
             else:
                 screen.blit( self.failed_font, (self.centerx - self.failed_font.get_width()/2, self.top+240))
-                if character.status == "DEAD":
+                #if character is dead
+                if character.status[6] == 1:
                     self.status_change = 1
                     character_font = character.name + self.ashed_font
                     character_font = self.menu_font.render(character_font, True, COLOR_WHITE)
@@ -229,15 +236,15 @@ class Curing_window(window.Window):
                 cure_window = game_self.temple.temple_cure_window
                 character = cure_window.to_cure[cure_window.menu+cure_window.page*10]
                 if self.status_change == 0:
-                    character.status = "OK"
+                    character.status = [0,0,0,0,0,0,0,0,0]
                     #it is OK now so remove from to_cure window
                     character.hp = character.max_hp
                     del cure_window.to_cure[cure_window.menu+cure_window.page*10]
 
                 if self.status_change == 1:
-                    character.status = "ASHED"
+                    character.status[7] = 1
                 if self.status_change == 2:
-                    character.status = "LOST"
+                    character.status[8] = 1
                     del game_self.temple.temple_cure_window.to_cure[cure_window.menu+cure_window.page*10]
                     #search for character and delete
                     i = 0

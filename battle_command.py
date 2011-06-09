@@ -26,6 +26,10 @@ class Battle_command:
         self.movement = movement
         self.target = target
 
+        #for enemy's extra attack,
+        #magic_target would be same as party
+        #magic_level would be name of the extra attack
+
         #string of target ex. "ENEMY_ONE"
         self.magic_target = magic_target
         #if level < 8 it is magician, and else priest?

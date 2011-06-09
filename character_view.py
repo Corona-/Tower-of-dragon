@@ -417,7 +417,32 @@ class Status_view_window(window.Window):
 
             character_hp_font = self.menu_font.render( str(character[self.menu].hp) + "/" + str(character[self.menu].max_hp), True, COLOR_WHITE)
 
-            character_status_font = self.menu_font.render( character[self.menu].status , True, COLOR_WHITE)
+            if character[self.menu].status == [0,0,0,0,0,0,0,0,0]:
+                character_status_font = self.menu_font.render( "OK" , True, COLOR_WHITE)
+            i = 0
+            for st in character[self.menu].status:
+                if i == 0 and st > 0:
+                    character_status_font = self.menu_font.render( "POISON", True, COLOR_WHITE)
+                if i == 1 and st > 0:
+                    character_status_font = self.menu_font.render( "MUTE", True, COLOR_WHITE)
+                if i == 2 and st > 0:
+                    character_status_font = self.menu_font.render( "AFRAID", True, COLOR_WHITE)
+                if i == 3 and st > 0:
+                    character_status_font = self.menu_font.render( "ASLEEP", True, COLOR_WHITE)
+                if i == 4 and st > 0:
+                    character_status_font = self.menu_font.render( "PALALY", True, COLOR_WHITE)
+                if i == 5 and st > 0:
+                    character_status_font = self.menu_font.render( "PETRIF", True, COLOR_WHITE)
+                if i == 6 and st > 0:
+                    character_status_font = self.menu_font.render( "DEAD", True, COLOR_WHITE)
+                if i == 7 and st > 0:
+                    character_status_font = self.menu_font.render( "ASHED", True, COLOR_WHITE)
+                if i == 8 and st > 0:
+                    character_status_font = self.menu_font.render( "LOST", True, COLOR_WHITE)
+                i+= 1
+
+
+
 
             strength_font = self.menu_font.render( u"力：", True, COLOR_WHITE)
             intelligence_font = self.menu_font.render( u"知恵：", True, COLOR_WHITE)

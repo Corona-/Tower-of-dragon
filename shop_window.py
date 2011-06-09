@@ -518,7 +518,7 @@ class Character_select_window(window.Window):
             category_item = game_self.shop.shop_window.buy_window.category_item
             item_menu = game_self.shop.shop_window.buy_window.menu
 
-            if game_self.party.member[self.menu].status != "OK":
+            if game_self.party.member[self.menu].status != [0,0,0,0,0,0,0,0,0]:
                 self.not_movable.is_visible = True
             
             elif game_self.party.member[self.menu].money > int(game_self.item_data[category_item[item_menu].id][2]) and len(game_self.party.member[self.menu].items) < 10:

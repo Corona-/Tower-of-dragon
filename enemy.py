@@ -38,7 +38,7 @@ class Enemy:
 
         self.ac = int(enemy[4])
 
-        self.status = "OK"
+        self.status = [0,0,0,0,0,0,0,0,0]
 
         self.strength = int(enemy[5])
         self.intelligence = int(enemy[6])
@@ -55,7 +55,9 @@ class Enemy:
         if int(enemy[11]) > 0:
             self.extra_attack.append(int(enemy[11]))
             self.extra_attack.append(int(enemy[12]))
-            self.extra_attack.append(int(enemy[13]))
+            target_name = enemy[13]
+            target_name = target_name.strip("\"")
+            self.extra_attack.append(target_name)
             attack_name = enemy[14]
             attack_name = attack_name.strip("\"")
             attack_name = unicode(attack_name, encoding="sjis")
@@ -66,7 +68,10 @@ class Enemy:
         if int(enemy[15]) > 0:
             self.extra_attack.append(int(enemy[15]))
             self.extra_attack.append(int(enemy[16]))
-            self.extra_attack.append(int(enemy[17]))
+            target_name = enemy[17]
+            target_name = target_name.strip("\"")
+            self.extra_attack.append(target_name)
+
             attack_name = enemy[18]
             attack_name = attack_name.strip("\"")
             attack_name = unicode(attack_name, encoding="sjis")
@@ -75,7 +80,10 @@ class Enemy:
         if int(enemy[19]) > 0:
             self.extra_attack.append(int(enemy[19]))
             self.extra_attack.append(int(enemy[20]))
-            self.extra_attack.append(int(enemy[21]))
+            target_name = enemy[21]
+            target_name = target_name.strip("\"")
+            self.extra_attack.append(target_name)
+
             attack_name = enemy[22]
             attack_name = attack_name.strip("\"")
             attack_name = unicode(attack_name, encoding="sjis")
@@ -84,7 +92,10 @@ class Enemy:
         if int(enemy[23]) > 0:
             self.extra_attack.append(int(enemy[23]))
             self.extra_attack.append(int(enemy[24]))
-            self.extra_attack.append(int(enemy[25]))
+            target_name = enemy[25]
+            target_name = target_name.strip("\"")
+            self.extra_attack.append(target_name)
+
             attack_name = enemy[26]
             attack_name = attack_name.strip("\"")
             attack_name = unicode(attack_name, encoding="sjis")

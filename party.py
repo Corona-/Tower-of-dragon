@@ -185,11 +185,31 @@ class Party:
                 character_ac_font = self.menu_font.render( "".join(str(character_ac)), True, COLOR_WHITE)
                 character_hits_font = self.menu_font.render( "".join(str(character.hp)), True, COLOR_WHITE)
 
-                if character.status == "OK":
+                if character.status == [0,0,0,0,0,0,0,0,0]:
                     character_status_font = self.menu_font.render( "".join(str(character.max_hp)), True, COLOR_WHITE)
                 else:
-                    character_status_font = self.menu_font.render( character.status , True, COLOR_WHITE)
-                 
+
+                    j = 0
+                    for st in character.status:
+                        if j == 0 and st > 0:
+                            character_status_font = self.menu_font.render( "POISON", True, COLOR_WHITE)
+                        if j == 1 and st > 0:
+                            character_status_font = self.menu_font.render( "MUTE", True, COLOR_WHITE)
+                        if j == 2 and st > 0:
+                            character_status_font = self.menu_font.render( "AFRAID", True, COLOR_WHITE)
+                        if j == 3 and st > 0:
+                            character_status_font = self.menu_font.render( "ASLEEP", True, COLOR_WHITE)
+                        if j == 4 and st > 0:
+                            character_status_font = self.menu_font.render( "PALALY", True, COLOR_WHITE)
+                        if j == 5 and st > 0:
+                            character_status_font = self.menu_font.render( "PETRIF", True, COLOR_WHITE)
+                        if j == 6 and st > 0:
+                            character_status_font = self.menu_font.render( "DEAD", True, COLOR_WHITE)
+                        if j == 7 and st > 0:
+                            character_status_font = self.menu_font.render( "ASHED", True, COLOR_WHITE)
+                        if j == 8 and st > 0:
+                            character_status_font = self.menu_font.render( "LOST", True, COLOR_WHITE)
+                        j+= 1
 
                 screen.blit(alignment_font, (SCREEN_RECTANGLE.width/2-130,SCREEN_RECTANGLE.height/2+100+i*20))
                 screen.blit(self.bar_font, (SCREEN_RECTANGLE.width/2-130+alignment_font.get_width(),SCREEN_RECTANGLE.height/2+100+i*20))

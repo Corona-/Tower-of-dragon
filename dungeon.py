@@ -4952,35 +4952,35 @@ class Dungeon:
             elif (self.vertical_wall[y][increment(x,2)] == 13):
                 screen.blit(self.switch2, (192,64)) 
 
-            #draw straight one block wall right one
-            if (self.vertical_wall[increment(y,1)][increment(x,2)] == 1):
-                screen.blit(self.center2, (448, 64))
-            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 2):
-                screen.blit(self.door2, (448,64))
-            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 3):
-                screen.blit(self.door2, (448,64))
-            #hidden door, with light it can see door
-            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 4):
-                screen.blit(self.center2, (448,64))
-            #one way door from right
-            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 6):
-                screen.blit(self.center2, (448,64))
-            #one way door from left
-            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 7):
-                screen.blit(self.door2, (448,64))
-            #hidden one way door from right
-            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 8):
-                screen.blit(self.center2, (448,64))
-            #hidden one way door from left
-            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 9):
-                screen.blit(self.door2, (448,64))
-            #switch on right side
-            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 12):
-                screen.blit(self.center2, (448,64))                                                               
-            #switch on left side
-            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 13):
-                screen.blit(self.switch2, (448,64)) 
-
+##            #draw straight one block wall right one
+##            if (self.vertical_wall[increment(y,1)][increment(x,2)] == 1):
+##                screen.blit(self.center2, (448, 64))
+##            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 2):
+##                screen.blit(self.door2, (448,64))
+##            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 3):
+##                screen.blit(self.door2, (448,64))
+##            #hidden door, with light it can see door
+##            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 4):
+##                screen.blit(self.center2, (448,64))
+##            #one way door from right
+##            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 6):
+##                screen.blit(self.center2, (448,64))
+##            #one way door from left
+##            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 7):
+##                screen.blit(self.door2, (448,64))
+##            #hidden one way door from right
+##            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 8):
+##                screen.blit(self.center2, (448,64))
+##            #hidden one way door from left
+##            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 9):
+##                screen.blit(self.door2, (448,64))
+##            #switch on right side
+##            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 12):
+##                screen.blit(self.center2, (448,64))                                                               
+##            #switch on left side
+##            elif (self.vertical_wall[increment(y,1)][increment(x,2)] == 13):
+##                screen.blit(self.switch2, (448,64)) 
+##
 
             #draw up one wall on left
             if (self.horizontal_wall[y][increment(x,1)] == 1):
@@ -5234,35 +5234,35 @@ class Dungeon:
             elif (self.horizontal_wall[increment(y,2)][x] == 13):
                 screen.blit(self.switch2, (192,64))
 
-            #draw straight one block wall right one
-            if (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 1):
-                screen.blit(self.center2, (448, 64))
-            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 2):
-                screen.blit(self.door2, (448,64))
-            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 3):
-                screen.blit(self.door2, (448,64))
-            #hidden door, with light it can see door
-            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 4):
-                screen.blit(self.center2, (448,64))
-            #one way door from right
-            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 6):
-                screen.blit(self.center2, (448,64))
-            #one way door from left
-            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 7):
-                screen.blit(self.door2, (448,64))
-            #hidden one way door from right
-            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 8):
-                screen.blit(self.center2, (448,64))
-            #hidden one way door from left
-            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 9):
-                screen.blit(self.door2, (448,64))
-            #switch on right side
-            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 12):
-                screen.blit(self.center2, (448,64))  
-            #switch on left side
-            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 13):
-                screen.blit(self.switch2, (448,64))
-
+##            #draw straight one block wall right one
+##            if (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 1):
+##                screen.blit(self.center2, (448, 64))
+##            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 2):
+##                screen.blit(self.door2, (448,64))
+##            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 3):
+##                screen.blit(self.door2, (448,64))
+##            #hidden door, with light it can see door
+##            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 4):
+##                screen.blit(self.center2, (448,64))
+##            #one way door from right
+##            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 6):
+##                screen.blit(self.center2, (448,64))
+##            #one way door from left
+##            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 7):
+##                screen.blit(self.door2, (448,64))
+##            #hidden one way door from right
+##            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 8):
+##                screen.blit(self.center2, (448,64))
+##            #hidden one way door from left
+##            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 9):
+##                screen.blit(self.door2, (448,64))
+##            #switch on right side
+##            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 12):
+##                screen.blit(self.center2, (448,64))  
+##            #switch on left side
+##            elif (self.horizontal_wall[increment(y,2)][decrement(x,1)] == 13):
+##                screen.blit(self.switch2, (448,64))
+##
             #draw up one wall on left
             if (self.vertical_wall[increment(y,1)][increment(x,1)] == 1):
                 screen.blit(self.edgeList2[0], (64, -64))
@@ -5514,34 +5514,34 @@ class Dungeon:
             elif (self.vertical_wall[y][decrement(x,1)] == 13):
                 screen.blit(self.center2, (192,64)) 
 
-            #draw straight one block wall right one
-            if (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 1):
-                screen.blit(self.center2, (448, 64))
-            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 2):
-                screen.blit(self.door2, (448,64))
-            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 3):
-                screen.blit(self.door2, (448,64))
-            #hidden door, with light it can see door
-            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 4):
-                screen.blit(self.center2, (448,64))
-            #one way door from right
-            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 6):
-                screen.blit(self.door2, (448,64))
-            #one way door from left
-            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 7):
-                screen.blit(self.center2, (448,64))
-            #hidden one way door from right
-            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 8):
-                screen.blit(self.door2, (448,64))
-            #hidden one way door from left
-            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 9):
-                screen.blit(self.center2, (448,64))
-            #switch on right side
-            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 12):
-                screen.blit(self.switch2, (448,64))                                                               
-            #switch on left side
-            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 13):
-                screen.blit(self.center2, (448,64)) 
+##            #draw straight one block wall right one
+##            if (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 1):
+##                screen.blit(self.center2, (448, 64))
+##            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 2):
+##                screen.blit(self.door2, (448,64))
+##            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 3):
+##                screen.blit(self.door2, (448,64))
+##            #hidden door, with light it can see door
+##            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 4):
+##                screen.blit(self.center2, (448,64))
+##            #one way door from right
+##            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 6):
+##                screen.blit(self.door2, (448,64))
+##            #one way door from left
+##            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 7):
+##                screen.blit(self.center2, (448,64))
+##            #hidden one way door from right
+##            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 8):
+##                screen.blit(self.door2, (448,64))
+##            #hidden one way door from left
+##            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 9):
+##                screen.blit(self.center2, (448,64))
+##            #switch on right side
+##            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 12):
+##                screen.blit(self.switch2, (448,64))                                                               
+##            #switch on left side
+##            elif (self.vertical_wall[decrement(y,1)][decrement(x,1)] == 13):
+##                screen.blit(self.center2, (448,64)) 
 
             #draw up one wall on left
             if (self.horizontal_wall[increment(y,1)][decrement(x,1)] == 1):

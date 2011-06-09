@@ -345,7 +345,7 @@ class System_notify_window(window.Window):
                     #else check exp points and rests
 
                     #if character is not movable cannot rest
-                    if game_self.party.member[self.menu].status != "OK":
+                    if game_self.party.member[self.menu].status != [0,0,0,0,0,0,0,0,0]:
                         self.inn_not_movable = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.TEMPLE_NOT_MOVABLE)
                         self.inn_not_movable.is_visible = True
                         return
@@ -393,7 +393,7 @@ class System_notify_window(window.Window):
                     #print change
 
                 elif self.instruction == self.SELL:
-                    if game_self.party.member[self.menu].status != "OK":
+                    if game_self.party.member[self.menu].status != [0,0,0,0,0,0,0,0,0]:
                         self.shop_not_movable = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.TEMPLE_NOT_MOVABLE)
                         self.shop_not_movable.is_visible = True
                     else:
@@ -438,17 +438,17 @@ class System_notify_window(window.Window):
                         game_self.menu.temp_party2 = []
 
                 elif self.instruction == self.TEMPLE_PAY:
-                    if game_self.party.member[self.menu].status == "OK":
+                    if game_self.party.member[self.menu].status == [0,0,0,0,0,0,0,0,0]:
                         temple_cure = game_self.temple.temple_cure_window
                         cure_character = temple_cure.to_cure[temple_cure.menu+temple_cure.page*10]
                         cost = 0
-                        if cure_character.status == "PALSY":
+                        if cure_character.status[4] == 1:
                             cost = 100*cure_character.level
-                        elif cure_character.status == "STONE":
+                        elif cure_character.status[5] == 1:
                             cost = 200*cure_character.level
-                        elif cure_character.status == "DEAD":
+                        elif cure_character.status[6] == 1:
                             cost = 250*cure_character.level
-                        elif cure_character.status == "ASHED":
+                        elif cure_character.status[7] == 1:
                             cost = 500*cure_character.level
 
                         
@@ -456,7 +456,7 @@ class System_notify_window(window.Window):
                             game_self.party.member[self.menu].money-=cost
 
                             self.cured = False
-                            if cure_character.status == "PALSY" or cure_character.status == "STONE":
+                            if cure_character.status[4] == 1 or cure_character.status[5] == 1:
                                 self.cured = True
                             else:
                                 probability = random.randint(1,100)
@@ -2359,6 +2359,8 @@ class Magic_use_target_select:
                             self.menu = front_length-1
                     else:
                         self.menu+=4
+                        if back_length == 0:
+                            self.menu -=4
 
                         if self.menu > back_length+4:
                             self.menu = back_length+4
@@ -2396,6 +2398,10 @@ class Magic_use_target_select:
 
                     else:
                         self.menu += 4
+
+                        if back_length == 0:
+                            self.menu -=4
+                            
                         
                         if self.menu > back_length+4:
                             self.menu = back_length+4
@@ -2461,8 +2467,8 @@ class Magic_use_target_select:
                     elif self.level == 8 and self.magic_number == 1:
 
                         for chara in game_self.party.member:
-                            if chara.status == "SLEEP":
-                                chara.status = "OK"
+                            if chara.status[3] == 1:
+                                chara.status[3] = 0
 
                         self.character.priest_mp[self.level-8] -= 1
 
@@ -2497,6 +2503,26 @@ class Magic_use_target_select:
                     #priest magic functionality here
                     pass
 
+            if game_self.dungeon != None:
+                #set next character's initial command
+                next_character = None
+                if game_self.dungeon.battle.selected >= len(game_self.party.member):
+                    next_character = game_self.party.member[0]
+                else:
+                    next_character = game_self.party.member[ game_self.dungeon.battle.selected ]
+
+                #if next character can attack the enemy set command to FIGHT, otherwise set it to DEFEND
+                check = battle.character_attackable ( game_self, next_character )
+
+                if check == True:
+                    game_self.dungeon.battle.menu = game_self.dungeon.battle.FIGHT
+                else:
+                    game_self.dungeon.battle.menu = game_self.dungeon.battle.DEFEND
+               
+      
+
+
+
             #if all command is set for party move to battle 
             if game_self.dungeon != None and game_self.dungeon.battle.selected == battle.player_count_movable(game_self.party.member):
                 game_self.dungeon.battle.state = battle.Battle.BATTLE
@@ -2512,22 +2538,7 @@ class Magic_use_target_select:
                 game_self.dungeon.battle.total_movement.sort(cmp=lambda x, y: cmp(x.speed,y.speed), reverse=True)                
 
 
-                #set next character's initial command
-                next_character = None
-                if game_self.dungeon.battle.selected >= len(game_self.party.member):
-                    next_character = game_self.party.member[0]
-                else:
-                    next_character = game_self.party.member[ game_self.dungeon.battle.selected ]
 
-                #if next character can attack the enemy set command to FIGHT, otherwise set it to DEFEND
-                check = battle.character_attackable ( game_self, next_character )
-
-                if check == True:
-                    game_self.dungeon.battle.menu = game_self.dungeon.battle.FIGHT
-                else:
-                    game_self.dungeon.battle.menu = game_self.dungeon.battle.DEFEND
-           
-      
 
       
 class Target_select(window.Window):
@@ -2616,11 +2627,11 @@ class Target_select(window.Window):
 
                 if use_item.status_cure > 0:
                     if use_item.status_cure == 1:
-                        if target.status == "POISON":
-                            target.status = "OK"
+                        if target.status[0] == 1:
+                            target.status[0] = 0
                     if use_item.status_cure == 2:
-                        if target.status == "PALSY":
-                            target.status = "OK"
+                        if target.status[4] == 1:
+                            target.status[4] = 0
 
                 del user.items[game_self.menu.item_window.item_view.menu]
 

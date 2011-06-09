@@ -122,10 +122,9 @@ def save_each_character( fp, character ):
     for i in character.coordinate:
         fp.write(struct.pack("i", i))  
 
-    #store length of the status
-    fp.write(struct.pack( "i", len(character.status)))
-    #store actual status
-    fp.write(struct.pack( str(len(character.status)) + "s", character.status))
+    #store length of the status should be 9
+    for i in character.status:
+        fp.write(struct.pack("i", i))
 
     #store hp and hp max
     fp.write(struct.pack( "2i", character.hp, character.max_hp))
@@ -233,9 +232,18 @@ def load_each_character( fp, game_self):
     z = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]        
     coordinate = [x,y,z]
 
-    status_length = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]
-    status = struct.unpack( str(status_length) + "s", fp.read(struct.calcsize("s")*status_length))[0]
-    
+    poison = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]
+    mute = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]
+    afraid = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]
+    asleep = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]
+    palalysis = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]
+    petrified = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]
+    dead = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]
+    ashed = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]
+    lost = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]
+
+    status = [poison,mute,afraid,asleep,palalysis,petrified, dead,ashed,lost]
+
     hp = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]        
     max_hp = struct.unpack( "i", fp.read(struct.calcsize("i")))[0]        
     
