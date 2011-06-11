@@ -65,6 +65,8 @@ class tower_of_dragon:
         self.characters = []
         self.dungeon_characters = []
 
+        self.lost_characters = []
+
         self.cursor_se = pygame.mixer.Sound("SE/decide.wav")
         self.select_se = pygame.mixer.Sound("SE/decide.wav")
         self.cancel_se = pygame.mixer.Sound("SE/se_sab07.wav")
@@ -166,7 +168,7 @@ class tower_of_dragon:
         elif self.game_state == CASTLE:
             self.castle.draw(self.screen, self, self.characters)
         elif self.game_state == TOWER:
-            self.tower.draw(self.screen)
+            self.tower.draw(self.screen, self)
         elif self.game_state == CHARACTER_MAKE:
             self.character_make.draw(self, self.screen)
         elif self.game_state == DUNGEON:

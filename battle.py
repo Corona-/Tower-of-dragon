@@ -41,6 +41,8 @@ class Battle:
         self.menu_font = pygame.font.Font("ipag.ttf", 20)
 
         self.battle_start_font = self.menu_font.render(u"何者かが現れた！", True, COLOR_WHITE)
+        self.enemy_start_font = self.menu_font.render(u"いきなり襲い掛かってきた！", True, COLOR_WHITE)
+        self.party_start_font = self.menu_font.render(u"まだこちらに気付いていない！", True, COLOR_WHITE)
 
         self.select_font = self.menu_font.render(u"行動：", True, COLOR_WHITE)
 
@@ -59,6 +61,7 @@ class Battle:
         self.not_escape_font = self.menu_font.render(u"逃げる", True, COLOR_GLAY)
 
         self.encount_window = window.Window(Rect(210, 120, 190, 60))
+        self.special_battle_window = window.Window(Rect(170, 120, 310, 60))
         self.command_window = window.Window(Rect(360, 120, 260, 170))
         self.enemy_window = window.Window(Rect(10, 10, 620, 100))
         self.message_window = window.Window(Rect(210, 120, 190, 60))
@@ -177,6 +180,18 @@ class Battle:
         #if event battle, party cannot escape
         self.event_battle = 0
 
+        self.first_attack = 0
+        self.extra_key = 0
+
+        probability = random.randint(1,100)
+        if probability <= 10:
+            #party attack first
+            self.first_attack = 1
+            self.extra_key = 2
+        elif probability > 90:
+            #enemy attack first
+            self.first_attack = -1
+            self.extra_key = 2
      
     def update(self):
         if self.state == self.COMMAND:
@@ -1146,8 +1161,12 @@ class Battle:
                                     if self.target_group[target] == command.character:
                                         del self.total_movement[i]
                                     i+=1
-                                    
-                            
+
+                                #move the person to end of party
+                                temp = self.target_group[target]  
+                                del self.target_group[target]
+                                self.target_group.append(temp)
+
                         battle_font2 += str(self.damage) + u"のダメージ"
 
                         if self.check == 1:
@@ -1203,7 +1222,7 @@ class Battle:
                                 self.check = 1
 
                             if self.check == 1:
-                                self.target_group[target].status[4] = 1
+                                self.target_group[target].status[0] = 1
                                     
                             
                         battle_font2 += str(self.damage) + u"のダメージ"
@@ -1278,6 +1297,7 @@ class Battle:
                     elif battle_command.magic_level == "MAXブレス":
                         battle_font1 = battle_command.character.name + u"は燃え盛る吐息を吐いた"
 
+                    
 
                     if self.check == 0:
                         self.group_access = player_count_alive(self.target_group)
@@ -1293,6 +1313,9 @@ class Battle:
                             self.damage = 0
                         elif battle_command.magic_level == "MAXブレス":
                             self.damage = battle_command.character.max_hp
+
+                        if self.target_group[player_count_alive(self.target_group)-self.group_access].breath_resist > 0:
+                            self.damage = self.damage - int(self.damage * (self.target_group[player_count_alive(self.target_group)-self.group_access].breath_resist*.20))
 
                                         
                         self.target_group[player_count_alive(self.target_group)-self.group_access].hp -= self.damage
@@ -1422,7 +1445,11 @@ class Battle:
             if self.selected == player_count_movable(game_self.party.member):
                 self.state = self.BATTLE
 
-                self.enemy_movement = enemy_movement( self.enemyList, self.enemyListBack, game_self)
+                if self.first_attack == 1:
+                    self.enemy_movement = []
+                    self.first_attack = 0
+                else:
+                    self.enemy_movement = enemy_movement( self.enemyList, self.enemyListBack, game_self)
 
                 for element in self.party_movement:
                     self.total_movement.append(element)
@@ -1437,6 +1464,17 @@ class Battle:
 
         if self.state == self.INIT:
             if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_z or event.key == K_RETURN or event.key == K_x):
+                if self.extra_key == 2:
+                    self.extra_key -= 1
+                    return
+
+                if self.extra_key == 1 and self.first_attack == -1:
+                    self.state = self.BATTLE
+                    self.selected = player_count_movable(game_self.party.member)
+                    self.total_movement = enemy_movement( self.enemyList, self.enemyListBack, game_self)
+                    self.total_movement.sort(cmp=lambda x, y: cmp(x.speed, y.speed), reverse=True)
+                    return
+
                 self.state = self.COMMAND
 
             return
@@ -1473,6 +1511,7 @@ class Battle:
                     
                 if self.menu == self.DEFEND:
                     self.party_movement.append( battle_command.Battle_command( character, self.DEFEND, 0, None, None, None, None))
+                    character.defend_ac -= 2
                     self.selected += 1
                 if self.menu == self.ITEM:
                     self.item_view = system_notify.Item_view(Rect(70, 50, 450, 360))
@@ -1485,8 +1524,11 @@ class Battle:
 
                     return
                 if self.menu == self.MAGIC:
-                    self.magic_window = system_notify.Magic_all_view(Rect(80, 50, 280 ,120))
-                    self.magic_window.is_visible = True
+                    if self.first_attack == 1:
+                        pass
+                    else:
+                        self.magic_window = system_notify.Magic_all_view(Rect(80, 50, 280 ,120))
+                        self.magic_window.is_visible = True
 
                     return
                 if self.menu == self.ESCAPE:
@@ -1497,7 +1539,11 @@ class Battle:
                 if self.selected == player_count_movable(game_self.party.member):
                     self.state = self.BATTLE
 
-                    self.enemy_movement = enemy_movement( self.enemyList, self.enemyListBack, game_self)
+                    if self.first_attack == 1:
+                        self.enemy_movement = []
+                        self.first_attack = 0
+                    else:
+                        self.enemy_movement = enemy_movement( self.enemyList, self.enemyListBack, game_self)
 
                     for element in self.party_movement:
                         self.total_movement.append(element)
@@ -1558,6 +1604,8 @@ class Battle:
                     self.selected -= 1
                     count = len(self.party_movement)
                     del (self.party_movement[count-1])
+                    game_self.party.member[ self.selected ].defend_ac = 0
+
                 else:
                     #to end battle
                     game_self.dungeon.battle_flag = 0
@@ -1638,6 +1686,28 @@ class Battle:
                         self.selected = 0
                         self.state = self.COMMAND
 
+                        for chara in game_self.party.member:
+                            chara.defend_ac = 0
+
+
+                        #deduct damage from poison
+                        for chara in game_self.party.member:
+                            if chara.status[0] == 1:
+                                chara.hp -= int(math.ceil(chara.max_hp/10.0))
+
+                        party_dead_poison(game_self.party.member)
+
+                        for enemy_group in self.enemyList:
+                            for enemy in enemy_group:
+                                if enemy.status[0] == 1:
+                                    enemy.hp -= int(math.ceil(enemy.max_hp/10.0))
+                        self.enemy_dead_poison(self.enemyList)
+                        for enemy_group in self.enemyListBack:
+                            for enemy in enemy_group:
+                                if enemy.status[0] == 1:
+                                    enemy.hp -= int(math.ceil(enemy.max_hp/10.0))
+                        self.enemy_dead_poison(self.enemyListBack)
+
                         #remove empty lists
                         #all of the command for empty lists are removed
                         #so it could wait for end of turn to remove empty lists?
@@ -1704,6 +1774,7 @@ class Battle:
                         game_self.dungeon_characters.append( character)
 
                     game_self.party.member = []
+                    game_self.party.alignment = 0
 
                     game_self.game_state = CITY
                     game_self.dungeon = None
@@ -1768,10 +1839,19 @@ class Battle:
             game_self.party.member.append(chara)
                 
 
+        if self.extra_key == 2 or self.extra_key == 0:
+            self.encount_window.draw(screen)
+            screen.blit(self.battle_start_font, (230, 140))
 
-        self.encount_window.draw(screen)
-        
-        screen.blit(self.battle_start_font, (230, 140))
+        if self.extra_key == 1 and self.first_attack == 1:
+            #player first
+            self.special_battle_window.draw(screen)
+            screen.blit(self.party_start_font, (190, 140))
+        elif self.extra_key == 1 and self.first_attack == -1:
+            #enemy first
+            self.special_battle_window.draw(screen)
+            screen.blit(self.enemy_start_font, (190, 140)) 
+
 
     #Used in battle COMMAND
     def draw_command_windows(self, game_self, screen):
@@ -1887,6 +1967,9 @@ class Battle:
             del self.target_group[target]
             self.target_group.append(temp)
 
+
+            
+
     def character_dead_group(self, offset):
         if self.target_group[offset].hp <= 0:
             self.target_group[offset].hp = 0
@@ -1920,7 +2003,6 @@ class Battle:
             #move the person to end of party
             del self.target_group[offset]
             self.target_group.append(temp)
-
             
     def enemy_dead(self, offset):
         battle_command = self.total_movement[0]
@@ -1962,7 +2044,48 @@ class Battle:
             self.dead_font = self.target_font
 
 
+    def enemy_dead_poison(self, enemyList):
 
+
+        for enemy_group in enemyList:
+            to_delete = []
+            i = 0
+            for enemy in enemy_group:
+                if enemy.hp <= 0:
+                    self.exp += enemy.exp
+                    self.gold += enemy.drop_gold
+                    to_delete.insert(0,i)
+
+            for i in to_delete:
+                del enemy_group[i]
+
+        
+def party_dead_poison(party):
+    
+    i = 0
+    for chara in party:
+        if chara.hp <= 0:
+            chara.hp = 0
+            chara.status[6] = 1
+            chara.rip+=1
+        i+= 1
+
+    #if there is dead character, move them to end
+    temp = []
+    temp_num = []
+    i = 0
+    for chara in party:
+        if chara.status[4] == 1 or chara.status[5] == 1 or chara.status[6] == 1 or chara.status[7] == 1 or chara.status[8] == 1:
+            temp.append(chara)
+            temp_num.insert(0,i)              
+        i += 1
+
+    for i in temp_num:
+        del party[i]
+
+    for chara in temp:
+        party.append(chara)
+        
 
 
 def count_movable( enemy_group ):
@@ -2241,30 +2364,64 @@ def enemy_movement( enemyList, enemyListBack, game_self):
 
                 movement = random.randint(1,100)                              
                 if len(enemy.extra_attack) > 8 and movement < enemy.extra_attack[8]:
-                    if enemy.extra_attack[10] == 1:
-                        if player_movable > 3:
-                            target = random.randint(0,2)
-                        else:
+
+                    if enemy.extra_attack[10] == "PARTY_ONE":
+
+                        if enemy.extra_attack[9] == 1:
+                            if player_movable > 3:
+                                target = random.randint(0, 2)
+                            else:
+                                target = random.randint(0, player_movable-1)
+                        elif enemy.extra_attack[9] == 2:
                             target = random.randint(0, player_movable-1)
-                    if enemy.extra_attack[10] == 2:
-                        target = random.randint(0, player_movable-1)                  
-                    if enemy.extra_attack[10] == 3:
-                        target = random.randint(0, player_movable-1)
-                    enemy_command.append( battle_command.Battle_command( enemy, 6, target, None, None, None, None))
+                    elif enemy.extra_attack[10] == "PARTY_LINE":
+                        pass
+                    elif enemy.extra_attack[10] == "PARTY_BOX":
+                        pass
+                    elif enemy.extra_attack[10] == "PARTY_ALL":
+                        target = 0               
+                    elif enemy.extra_attack[10] == "ENEMY_ONE":
+                        length = len(enemyList)+len(enemyListBack)
+                        target = random.randint(0,length-1)
+                        pass
+                        #target = random.randint(0, player_movable-1)
+                    elif enemy.extra_attack[10] == "ENEMY_ALL":
+                        pass
+                    elif enemy.extra_attack[10] == "CALL":
+                        pass
+
+                    enemy_command.append( battle_command.Battle_command( enemy, 6, target, enemy.extra_attack[10], enemy.extra_attack[11], None, None))
                     continue
 
                 movement = random.randint(1,100)                              
                 if len(enemy.extra_attack) > 12 and movement < enemy.extra_attack[12]:
-                    if enemy.extra_attack[14] == 1:
-                        if player_movable > 3:
-                            target = random.randint(0,2)
-                        else:
+
+                    if enemy.extra_attack[14] == "PARTY_ONE":
+
+                        if enemy.extra_attack[13] == 1:
+                            if player_movable > 3:
+                                target = random.randint(0, 2)
+                            else:
+                                target = random.randint(0, player_movable-1)
+                        elif enemy.extra_attack[13] == 2:
                             target = random.randint(0, player_movable-1)
-                    if enemy.extra_attack[14] == 2:
-                        target = random.randint(0, player_movable-1)                  
-                    if enemy.extra_attack[14] == 3:
-                        target = random.randint(0, player_movable-1)
-                    enemy_command.append( battle_command.Battle_command( enemy, 9, target, None, None, None, None))
+                    elif enemy.extra_attack[14] == "PARTY_LINE":
+                        pass
+                    elif enemy.extra_attack[14] == "PARTY_BOX":
+                        pass
+                    elif enemy.extra_attack[14] == "PARTY_ALL":
+                        target = 0               
+                    elif enemy.extra_attack[14] == "ENEMY_ONE":
+                        length = len(enemyList)+len(enemyListBack)
+                        target = random.randint(0,length-1)
+                        pass
+                        #target = random.randint(0, player_movable-1)
+                    elif enemy.extra_attack[14] == "ENEMY_ALL":
+                        pass
+                    elif enemy.extra_attack[14] == "CALL":
+                        pass
+
+                    enemy_command.append( battle_command.Battle_command( enemy, 6, target, enemy.extra_attack[14], enemy.extra_attack[15], None, None))
                     continue
 
                 if enemy.attack_range == 0:
@@ -2280,62 +2437,140 @@ def enemy_movement( enemyList, enemyListBack, game_self):
                 movement = random.randint(1,100)
                 player_movable = player_count_movable(game_self.party.member)
 
-##                if enemy.extra_attack != []:
-##                    if movement < enemy.extra_attack[0]:
-##                        if enemy.extra_attack[2] == 1:
-##                            if player_movable > 3:
-##                                target = random.randint(0, 2)
-##                            else:
-##                                target = random.randint(0, player_movable-1)
-##                        if enemy.extra_attack[2] == 2:
-##                            target = random.randint(0, player_movable-1)                  
-##                        if enemy.extra_attack[2] == 3:
-##                            target = random.randint(0, player_movable-1)
-##                        
-##                        enemy_command.append( battle_command.Battle_command( enemy, 0, target, None, None, None, None))
-##                    elif movement < enemy.extra_attack[4]:
-##                        if enemy.extra_attack[6] == 1:
-##                            if player_movable > 3:
-##                                target = random.randint(0,2)
-##                            else:
-##                                target = random.randint(0, player_movable-1)
-##                        if enemy.extra_attack[6] == 2:
-##                            target = random.randint(0, player_movable-1)                  
-##                        if enemy.extra_attack[6] == 3:
-##                            target = random.randint(0, player_movable-1)
-##                        enemy_command.append( battle_command.Battle_command( enemy, 3, target, None, None, None, None))
-##                    elif movement < enemy.extra_attack[8]:
-##                        if enemy.extra_attack[10] == 1:
-##                            if player_movable > 3:
-##                                target = random.randint(0,2)
-##                            else:
-##                                target = random.randint(0, player_movable-1)
-##                        if enemy.extra_attack[10] == 2:
-##                            target = random.randint(0, player_movable-1)                  
-##                        if enemy.extra_attack[10] == 3:
-##                            target = random.randint(0, player_movable-1)
-##                        enemy_command.append( battle_command.Battle_command( enemy, 6, target, None, None, None, None))
-##                    elif movement < enemy.extra_attack[12]:
-##                        if enemy.extra_attack[14] == 1:
-##                            if player_movable > 3:
-##                                target = random.randint(0,2)
-##                            else:
-##                                target = random.randint(0, player_movable-1)
-##                        if enemy.extra_attack[14] == 2:
-##                            target = random.randint(0, player_movable-1)                  
-##                        if enemy.extra_attack[14] == 3:
-##                            target = random.randint(0, player_movable-1)
-##                        enemy_command.append( battle_command.Battle_command( enemy, 9, target, None, None, None, None))
-##                else:
-##                    pass
-                    #if range is 0, it cannot reach character so do not yet.
-                    #if enemy.attack_range == 0:
-                    #    if len(game_self.party.member) > 3:
-                    #        target = random.randint(0,2)
-                    #    else:
-                    #        target = random.randint(0, len(game_self.party.member)-1)
-                    #enemy_command.append( battle_command.Battle_command( enemy, 10, target))
+                if len(enemy.extra_attack) > 0 and movement < enemy.extra_attack[0]:
+                    if enemy.extra_attack[2] == "PARTY_ONE":
 
+                        if enemy.extra_attack[1] == 1:
+                            #not reachable
+                            continue
+                        elif enemy.extra_attack[1] == 2:
+                            target = random.randint(0, player_movable-1)
+                    elif enemy.extra_attack[2] == "PARTY_LINE":
+                        pass
+                    elif enemy.extra_attack[2] == "PARTY_BOX":
+                        pass
+                    elif enemy.extra_attack[2] == "PARTY_ALL":
+                        target = 0               
+                    elif enemy.extra_attack[2] == "ENEMY_ONE":
+                        length = len(enemyList)+len(enemyListBack)
+                        target = random.randint(0,length-1)
+                        pass
+                        #target = random.randint(0, player_movable-1)
+                    elif enemy.extra_attack[2] == "ENEMY_ALL":
+                        pass
+                    elif enemy.extra_attack[2] == "CALL":
+                        pass
+                    
+                    enemy_command.append( battle_command.Battle_command( enemy, 6, target, enemy.extra_attack[2], enemy.extra_attack[3], None, None))
+                    continue
+
+                movement = random.randint(1,100)              
+                if len(enemy.extra_attack) > 4 and movement < enemy.extra_attack[4]:
+
+                    if enemy.extra_attack[6] == "PARTY_ONE":
+
+                        if enemy.extra_attack[5] == 1:
+                            continue
+                        elif enemy.extra_attack[5] == 2:
+                            target = random.randint(0, player_movable-1)
+                    elif enemy.extra_attack[6] == "PARTY_LINE":
+                        pass
+                    elif enemy.extra_attack[6] == "PARTY_BOX":
+                        pass
+                    elif enemy.extra_attack[6] == "PARTY_ALL":
+                        target = 0               
+                    elif enemy.extra_attack[6] == "ENEMY_ONE":
+                        length = len(enemyList)+len(enemyListBack)
+                        target = random.randint(0,length-1)
+                        pass
+                        #target = random.randint(0, player_movable-1)
+                    elif enemy.extra_attack[6] == "ENEMY_ALL":
+                        pass
+                    elif enemy.extra_attack[6] == "CALL":
+                        pass
+
+                    enemy_command.append( battle_command.Battle_command( enemy, 6, target, enemy.extra_attack[6], enemy.extra_attack[7], None, None))
+                    continue
+
+                movement = random.randint(1,100)                              
+                if len(enemy.extra_attack) > 8 and movement < enemy.extra_attack[8]:
+
+                    if enemy.extra_attack[10] == "PARTY_ONE":
+
+                        if enemy.extra_attack[9] == 1:
+                            continue
+                        elif enemy.extra_attack[9] == 2:
+                            target = random.randint(0, player_movable-1)
+                    elif enemy.extra_attack[10] == "PARTY_LINE":
+                        pass
+                    elif enemy.extra_attack[10] == "PARTY_BOX":
+                        pass
+                    elif enemy.extra_attack[10] == "PARTY_ALL":
+                        target = 0               
+                    elif enemy.extra_attack[10] == "ENEMY_ONE":
+                        length = len(enemyList)+len(enemyListBack)
+                        target = random.randint(0,length-1)
+                        pass
+                        #target = random.randint(0, player_movable-1)
+                    elif enemy.extra_attack[10] == "ENEMY_ALL":
+                        pass
+                    elif enemy.extra_attack[10] == "CALL":
+                        pass
+
+                    enemy_command.append( battle_command.Battle_command( enemy, 6, target, enemy.extra_attack[10], enemy.extra_attack[11], None, None))
+                    continue
+
+                movement = random.randint(1,100)                              
+                if len(enemy.extra_attack) > 12 and movement < enemy.extra_attack[12]:
+
+                    if enemy.extra_attack[14] == "PARTY_ONE":
+
+                        if enemy.extra_attack[13] == 1:
+                            continue
+                        elif enemy.extra_attack[13] == 2:
+                            target = random.randint(0, player_movable-1)
+                    elif enemy.extra_attack[14] == "PARTY_LINE":
+                        pass
+                    elif enemy.extra_attack[14] == "PARTY_BOX":
+                        pass
+                    elif enemy.extra_attack[14] == "PARTY_ALL":
+                        target = 0               
+                    elif enemy.extra_attack[14] == "ENEMY_ONE":
+                        length = len(enemyList)+len(enemyListBack)
+                        target = random.randint(0,length-1)
+                        pass
+                        #target = random.randint(0, player_movable-1)
+                    elif enemy.extra_attack[14] == "ENEMY_ALL":
+                        pass
+                    elif enemy.extra_attack[14] == "CALL":
+                        pass
+
+                    enemy_command.append( battle_command.Battle_command( enemy, 6, target, enemy.extra_attack[14], enemy.extra_attack[15], None, None))
+                    continue
+
+                #if range is 0, it cannot reach character so do not yet.
+                if enemy.attack_range > 0:
+                    #if len(game_self.party.member) > 3:
+                    #    target = random.randint(0,2)
+                    #else:
+                    target = random.randint(0, len(game_self.party.member)-1)
+                    
+                    enemy_command.append( battle_command.Battle_command( enemy, 0, target, None, None, None, None))
+
+    if game_self.dungeon.battle.first_attack == -1:
+
+        to_delete = []
+
+        i = 0
+        for command in enemy_command:
+            if command.magic_level == "ヒール" or command.magic_level == "エナジーアロー":
+                to_delete.insert(0,i)
+            i+=1    
+
+        for i in to_delete:
+            del enemy_command[i]
+        
+        game_self.dungeon.battle.first_attack = 0 
                 
     return enemy_command
 
@@ -2392,7 +2627,7 @@ def calculate_equip_str(character):
     total = 0
     for equip in character.equip:
         if isinstance( equip, item.Item):
-            total += equip.strength
+            total += equip.bonus
 
     return total
 

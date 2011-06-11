@@ -134,10 +134,8 @@ class City:
             
         screen.blit(self.castle_font, ((MENU_CENTER-self.castle_font.get_width())/2, 160 + house_diff))
 
-        if len(game_self.party.member) == 0:
-            screen.blit(self.no_tower_font, ((MENU_CENTER-self.no_tower_font.get_width())/2, 190 + house_diff))
-        else:    
-            screen.blit(self.tower_font, ((MENU_CENTER-self.tower_font.get_width())/2, 190 + house_diff))   
+
+        screen.blit(self.tower_font, ((MENU_CENTER-self.tower_font.get_width())/2, 190 + house_diff))   
 
 
 
@@ -201,12 +199,10 @@ def city_handler(self, event):
             self.city = None
             self.castle = castle.Castle()
         elif self.city.menu == City.TOWER:
-            if len(self.party.member) == 0:
-                self.city.music = 1
-            else:
-                self.game_state = TOWER
-                self.city = None
-                self.tower = tower.Tower()
+
+            self.game_state = TOWER
+            self.city = None
+            self.tower = tower.Tower()
 
 
     elif event.type == KEYDOWN and event.key == K_x:

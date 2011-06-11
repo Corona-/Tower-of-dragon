@@ -234,6 +234,7 @@ def calculate_ac(character):
     #calculate ac from magic
     ac += character.permanant_ac
     ac += character.battle_ac
+    ac += character.defend_ac
 
     return ac
 

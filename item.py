@@ -22,7 +22,6 @@ class Item:
         self.defense = int(item[4])
 
         #how much it evades enemy attack
-        #on weapon, how much it hits enemy
         self.evade = int(item[5])
 
         #where it use when equipped
@@ -53,8 +52,8 @@ class Item:
         self.alignment = int(item[14])
 
         #strength and weaknesses
-        self.weakness = int(item[15])
-        self.strength = int(item[16])
+        #self.weakness = int(item[15])
+        #self.strength = int(item[16])
 
         #if the item is cursed or not
         self.curse = int(item[17])
@@ -78,6 +77,9 @@ class Item:
 
         self.attack_extra = int(item[25])
         self.attack_extra_percent = int(item[26])
+
+        #max hit probability
+        self.attack_probability = int(item[27])
 
         
 

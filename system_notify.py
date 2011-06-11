@@ -16,6 +16,7 @@ import dungeon
 import string
 import battle
 import battle_command
+import item_view
 
 COLOR_WHITE = (255,255,255)
 COLOR_GLAY = (128,128,128)
@@ -417,8 +418,9 @@ class System_notify_window(window.Window):
                     self.item_view = Item_view(Rect(70, 50, 450, 360))
                     self.item_view.is_visible = True
                 elif self.instruction == self.USE_MAGIC:
-                    self.magic_all_view = Magic_all_view(Rect(80, 50, 280 ,120))
-                    self.magic_all_view.is_visible = True
+                    if game_self.party.member[self.menu].status[3] != 1 and game_self.party.member[self.menu].status[4] != 1 and game_self.party.member[self.menu].status[5] != 1 and game_self.party.member[self.menu].status[6] != 1 and game_self.party.member[self.menu].status[7] != 1 and game_self.party.member[self.menu].status[8] != 1:
+                        self.magic_all_view = Magic_all_view(Rect(80, 50, 280 ,120))
+                        self.magic_all_view.is_visible = True
                 elif self.instruction == self.VIEW_STATUS:
                     self.status_view = character_view.Status_view_window(Rect(20, 20, 600, 440))
                     self.status_view.menu = self.menu
@@ -710,6 +712,7 @@ class Donate_finish_window(window.Window):
     TEMPLE_NOT_MOVABLE = 9
     DUNGEON_LOCKED = 10
     KEY_UNLOCK = 11
+    NO_ONE = 12
     
     def __init__(self, rectangle, instruction):
         window.Window.__init__(self, rectangle)
@@ -769,7 +772,10 @@ class Donate_finish_window(window.Window):
             elif self.instruction == self.KEY_UNLOCK:
                 enough_font = self.menu_font.render( u"鍵が開いた!", True, COLOR_WHITE)
                 screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
-                   
+            elif self.instruction == self.NO_ONE:
+                enough_font = self.menu_font.render( u"誰も見つかりませんでした", True, COLOR_WHITE)
+                screen.blit(enough_font, (self.centerx - enough_font.get_width()/2, self.top+15))
+                       
 
 
     def donate_finish_window_handler(self, event, game_self):
@@ -819,10 +825,14 @@ class Donate_finish_window(window.Window):
                 self.is_visible = False
                 if game_self.shop.shop_window.buy_window.character_select.no_more == 1:
                     game_self.shop.shop_window.buy_window.character_select.is_visible = False
-        elif self.instruction == self.TEMPLE_NOT_ENOUGH or self.instruction == self.TEMPLE_NOT_MOVABLE or self.instruction == self.DUNGEON_LOCKED or self.instruction == self.KEY_UNLOCK:
+        elif self.instruction == self.TEMPLE_NOT_ENOUGH or self.instruction == self.TEMPLE_NOT_MOVABLE or self.instruction == self.DUNGEON_LOCKED or self.instruction == self.KEY_UNLOCK :
             if event.type == KEYDOWN and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
                 self.is_visible = False
             
+        elif self.instruction == self.NO_ONE :
+            if event.type == KEYDOWN and (event.key == K_z or event.key == K_x or event.key == K_SPACE or event.key == K_RETURN):
+                self.is_visible = False
+                game_self.dungeon.dungeon_search_window.search_window = None
 
  
 class Rest_window(window.Window):
@@ -1636,6 +1646,7 @@ class Item_view(window.Window):
 
         self.item_todo_window = Item_menu_select(Rect(170, 80, 300, 180))
 
+
     def update(self):
         pass
     def draw(self, screen, game_self):
@@ -1690,17 +1701,19 @@ class Item_view(window.Window):
             i+= 1
 
         self.item_todo_window.draw(screen, game_self)
-        
-    def item_view_handler(self, event, game_self):
 
-        if self.item_todo_window.is_visible == True:
-            self.item_todo_window.item_menu_select_handler(event, game_self)
-            return
+      
+    def item_view_handler(self, event, game_self):
 
         if game_self.game_state == MENU:
             character = game_self.party.member[game_self.menu.item_window.menu]
         if game_self.game_state == DUNGEON:
             character = game_self.party.member[game_self.dungeon.battle.selected]
+
+        if self.item_todo_window.is_visible == True:
+            self.item_todo_window.item_menu_select_handler(event, game_self)
+            return
+
 
         #moves back to shop
         if event.type == KEYDOWN and event.key == K_x:
@@ -2481,6 +2494,41 @@ class Magic_use_target_select:
 
                         self.character.priest_mp[1] -= 1
 
+                    elif self.level == 9 and self.magic_number == 3:
+                        
+                        if game_self.party.member[self.menu].status[0] == 1:
+                            game_self.party.member[self.menu].status[0] = 0
+
+                        self.character.priest_mp[1] -= 1
+                        
+
+                    elif self.level == 10 and self.magic_number == 0:
+                        
+                        if game_self.party.member[self.menu].status[4] == 1:
+                            game_self.party.member[self.menu].status[4] = 0
+
+                        self.character.priest_mp[2] -= 1
+
+                    elif self.level == 10 and self.magic_number == 2:
+
+                        for chara in game_self.party.member:
+                            heal = random.randint(2,16)
+                            chara.hp += heal
+                            if chara.hp > chara.max_hp:
+                                chara.hp = chara.max_hp
+
+                        self.character.priest_mp[2] -= 1
+                        
+                    elif self.level == 10 and self.magic_number == 3:
+
+                        heal = random.randint(8,32)
+                        game_self.party.member[self.menu].hp += heal
+                        if game_self.party.member[self.menu].hp > game_self.party.member[self.menu].max_hp:
+                            game_self.party.member[self.menu].hp = game_self.party.member[self.menu].max_hp
+                        self.character.priest_mp[2] -= 1
+                        
+                        pass
+
                     if self.level >= 7:
                         self.level -=1
                     pass
@@ -2701,6 +2749,8 @@ class Item_menu_select(window.Window):
 
         self.key_unlocked_window = None
 
+        self.item_description_window = None
+        
     def update(self):
         pass
     def draw(self, screen, game_self):
@@ -2726,9 +2776,16 @@ class Item_menu_select(window.Window):
 
         if self.key_unlocked_window != None:
             self.key_unlocked_window.draw(screen)
-        
+
+        if self.item_description_window != None:
+            character = game_self.party.member[game_self.menu.item_window.menu]
+            self.item_description_window.draw(screen, game_self, character)
+         
 
     def item_menu_select_handler(self, event, game_self):
+
+        character = game_self.party.member[game_self.menu.item_window.menu]
+
 
         if self.use_target_window.is_visible == True:
             self.use_target_window.target_select_handler( event, game_self)
@@ -2739,6 +2796,10 @@ class Item_menu_select(window.Window):
         elif self.key_unlocked_window != None and self.key_unlocked_window.is_visible == True:
             self.key_unlocked_window.donate_finish_window_handler(event, game_self)
             return
+        elif self.item_description_window != None and self.item_description_window.is_visible == True:
+            self.item_description_window.item_view_window_handler(game_self,event, character)
+            return
+    
         
         if event.type == KEYDOWN and event.key == K_x:
             game_self.cancel_se.play()
@@ -2907,6 +2968,8 @@ class Item_menu_select(window.Window):
                 self.menu = 0
                 
             if self.menu == self.LOOK_ITEM:
+                self.item_description_window = item_view.Item_view(Rect(Rect(20, 20, 600, 440)))
+                self.item_description_window.is_visible = True
                 pass
             if self.menu == self.PASS_ITEM:
                 self.pass_target_window.is_visible = True

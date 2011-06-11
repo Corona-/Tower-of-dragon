@@ -13,6 +13,8 @@ import city
 import menu
 import dungeon_message
 import tower
+import dungeon_search
+import math
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 MENU=12
 
@@ -216,6 +218,9 @@ class Dungeon:
 
         self.dungeon_message_window = dungeon_message.Dungeon_message( Rect(10, 10, 620, 200))
 
+        self.dungeon_search_window = None #menu_window = window.Window(Rect(160,80,320,200))
+       # menu_window.draw(screen)
+
     def update(self):
 
         if self.battle_flag == 1:
@@ -258,6 +263,11 @@ class Dungeon:
         if self.dungeon_locked_window != None:
             self.dungeon_locked_window.draw(screen)
 
+        if self.dungeon_search_window != None:
+            self.dungeon_search_window.draw(screen, game_self)
+        #menu_window = window.Window(Rect(160,80,320,200))
+       # menu_window.draw(screen)
+
     def dungeon_handler(self, game_self, event):
         """event handler for dungeon"""
 
@@ -273,10 +283,20 @@ class Dungeon:
         elif self.dungeon_locked_window != None and self.dungeon_locked_window.is_visible == True:
             self.dungeon_locked_window.donate_finish_window_handler(event, game_self)
             return
+        elif self.dungeon_search_window != None and self.dungeon_search_window.is_visible == True:
+            self.dungeon_search_window.dungeon_search_window_handler(event, game_self)
+            return
+
         
         if self.battle_flag == 1:
             self.battle.battle_handler(game_self, event)
             return
+
+        if event.type == KEYDOWN and event.key == K_s:
+            self.dungeon_search_window = dungeon_search.Dungeon_search_window(Rect(160,80,320, 120))
+            self.dungeon_search_window.is_visible = True
+
+
 
         if event.type == KEYDOWN and (event.key ==K_m):
             self.show_map = not self.show_map
@@ -335,6 +355,12 @@ class Dungeon:
                 if self.ground[character.coordinate[1]][character.coordinate[0]] == 4:
                     random_direction = random.randint(0, 3)
                     game_self.party.direction = random_direction
+
+                for chara in game_self.party.member:
+                    if chara.status[0] == 1:
+                        chara.hp -= int(math.ceil(chara.max_hp/20.0))
+
+                battle.party_dead_poison(game_self.party.member)
                     
                 
             self.battle_encount( 5, game_self.party.member[0] )
@@ -440,6 +466,11 @@ class Dungeon:
 
                 self.battle_encount( 10, game_self.party.member[0] )
 
+                for chara in game_self.party.member:
+                    if chara.status[0] == 1:
+                        chara.hp -= int(math.ceil(chara.max_hp/10.0))
+
+                battle.party_dead_poison(game_self.party.member)
 
 
 
@@ -578,13 +609,13 @@ class Dungeon:
                         pygame.draw.polygon(screen, (0,0,0), [(rect_x+3,rect_y+11), (rect_x+11, rect_y+11), (rect_x+7, rect_y+3)], 0)
 
                 #need to be before wall to be accurate
-                if j > 0 and j >= 3:
+                if j > 0 and j >= 2:
                     #additionaly show dark zone
                     if self.space[y][x] == 1:
                         pygame.draw.rect(screen, Color(255,0,255), Rect(rect_x,rect_y,16,16), 0)
           
 
-                if j > 0 and j >= 2:
+                if j > 0 and j >= 1:
                     #additionaly show wall and door
 
                     #show wall
@@ -610,7 +641,7 @@ class Dungeon:
                     pass
           
                     pass
-                if j > 0 and j >= 4:
+                if j > 0 and j >= 3:
                     #additionaly show locked door
                     if self.horizontal_wall[y][x] == 3:
                         pygame.draw.rect(screen, Color(255,0,0), Rect(rect_x+4,rect_y,8,2), 0)
@@ -643,7 +674,7 @@ class Dungeon:
                         pygame.draw.rect(screen, Color(0,0,255), Rect(rect_x+14,rect_y,2,16), 0)
 
                                       
-                if j > 0 and j >= 5:
+                if j > 0 and j >= 4:
                     #additionaly show hidden door
                     if self.horizontal_wall[y][x] == 4:
                         pygame.draw.rect(screen, Color(255,255,0), Rect(rect_x+4,rect_y,8,2), 0)
@@ -657,7 +688,7 @@ class Dungeon:
 
                     #additionaly show trap
                     pass
-                if j > 0 and j >= 6:
+                if j > 0 and j >= 5:
                     #additionaly show each trap
                     pass
                     
@@ -5792,6 +5823,10 @@ def calculate_thief_level(game_self):
 
     for character in game_self.party.member:
         theif_level = 0
+
+        if character.status[3] == 1 or character.status[4] == 1 or character.status[5] == 1 or character.status[6] == 1 or character.status[7] == 1 or character.status[8] == 1:
+            continue
+        
         #thiefs
         if character.job == 4 or character.job == 22 or character.job == 23 or character.job == 24:
             theif_level = int(character.level/3)+1
@@ -5812,6 +5847,9 @@ def calculate_merchant_level(game_self):
 
     for character in game_self.party.member:
         merchant_level = 0
+
+        if character.status[3] == 1 or character.status[4] == 1 or character.status[5] == 1 or character.status[6] == 1 or character.status[7] == 1 or character.status[8] == 1:
+            continue
 
         #merchants
         if character.job == 5 or character.job == 25 or character.job == 26 or character.job == 27:

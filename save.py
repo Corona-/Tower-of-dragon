@@ -22,6 +22,10 @@ def save( self, game_self ):
 
     save_dungeon_data(game_self)
 
+    save_dungeon_characters(game_self)
+
+    save_lost_characters(game_self)
+    
     try:
         file = "Save/shop_item_temp.dat"
         fp = open( file, "rb")
@@ -55,6 +59,10 @@ def load(self, game_self):
     load_stored_item(game_self)
 
     load_dungeon_data(game_self)
+
+    load_dungeon_characters(game_self)
+
+    load_lost_characters(game_self)
 
 
 def save_character(game_self):
@@ -644,3 +652,70 @@ def load_dungeon_data(game_self):
 
 
 
+def save_dungeon_characters(game_self):
+
+    file = "Save/dungeon_character.dat"
+    fp = open(file, "wb")
+    fp.seek(0)
+
+    #first save characters in dungeon
+    number_of_characters = len(game_self.dungeon_characters)
+    #first store number of characters
+    fp.write(struct.pack("i", number_of_characters))
+
+    for chara in game_self.dungeon_characters:
+        save_each_character( fp, chara)
+ 
+    #cut remaining space
+    fp.truncate()
+    fp.close()
+
+def load_dungeon_characters(game_self):
+
+    file = "Save/dungeon_character.dat"
+    fp = open(file, "rb")
+    fp.seek(0)
+
+    game_self.dungeon_characters = []
+
+    #first load number of characters
+    number_of_characters = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
+
+    for chara in range(number_of_characters):
+        game_self.dungeon_characters.append(load_each_character( fp, game_self))
+
+    fp.close()
+
+def save_lost_characters(game_self):
+
+    file = "Save/lost_character.dat"
+    fp = open(file, "wb")
+    fp.seek(0)
+
+    #first save characters in dungeon
+    number_of_characters = len(game_self.lost_characters)
+    #first store number of characters
+    fp.write(struct.pack("i", number_of_characters))
+
+    for chara in game_self.lost_characters:
+        save_each_character( fp, chara)
+ 
+    #cut remaining space
+    fp.truncate()
+    fp.close()
+
+def load_lost_characters(game_self):
+
+    file = "Save/lost_character.dat"
+    fp = open(file, "rb")
+    fp.seek(0)
+
+    game_self.lost_characters = []
+
+    #first load number of characters
+    number_of_characters = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
+
+    for chara in range(number_of_characters):
+        game_self.lost_characters.append(load_each_character( fp, game_self))
+
+    fp.close()

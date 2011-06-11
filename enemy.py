@@ -33,70 +33,73 @@ class Enemy:
 
         self.alignment = int(enemy[2])
 
-        self.hp = int(enemy[3])
-        self.max_hp = int(enemy[3])
+        self.min_hp = int(enemy[3])
+        self.hp = int(enemy[4])
 
-        self.ac = int(enemy[4])
+        self.hp = random.randint(self.min_hp, self.hp)
+        self.max_hp = int(enemy[4])
+
+        self.ac = int(enemy[5])
 
         self.status = [0,0,0,0,0,0,0,0,0]
 
-        self.strength = int(enemy[5])
-        self.intelligence = int(enemy[6])
-        self.piety = int(enemy[7])
-        self.vitality = int(enemy[8])
-        self.agility = int(enemy[9])
-        self.luck = int(enemy[10])
+        self.strength = int(enemy[6])
+        self.intelligence = int(enemy[7])
+        self.piety = int(enemy[8])
+        self.vitality = int(enemy[9])
+        self.agility = int(enemy[10])
+        self.luck = int(enemy[11])
 
         #it stores: probability of attack
         #           strength of the attack
         #           and the string of the attack
         self.extra_attack = []
 
-        if int(enemy[11]) > 0:
-            self.extra_attack.append(int(enemy[11]))
+        if int(enemy[12]) > 0:
             self.extra_attack.append(int(enemy[12]))
-            target_name = enemy[13]
+            self.extra_attack.append(int(enemy[13]))
+            target_name = enemy[14]
             target_name = target_name.strip("\"")
             self.extra_attack.append(target_name)
-            attack_name = enemy[14]
+            attack_name = enemy[15]
             attack_name = attack_name.strip("\"")
             attack_name = unicode(attack_name, encoding="sjis")
             self.extra_attack.append(attack_name)
 
 
 
-        if int(enemy[15]) > 0:
-            self.extra_attack.append(int(enemy[15]))
+        if int(enemy[16]) > 0:
             self.extra_attack.append(int(enemy[16]))
-            target_name = enemy[17]
+            self.extra_attack.append(int(enemy[17]))
+            target_name = enemy[18]
             target_name = target_name.strip("\"")
             self.extra_attack.append(target_name)
 
-            attack_name = enemy[18]
+            attack_name = enemy[19]
             attack_name = attack_name.strip("\"")
             attack_name = unicode(attack_name, encoding="sjis")
             self.extra_attack.append(attack_name)
 
-        if int(enemy[19]) > 0:
-            self.extra_attack.append(int(enemy[19]))
+        if int(enemy[20]) > 0:
             self.extra_attack.append(int(enemy[20]))
-            target_name = enemy[21]
+            self.extra_attack.append(int(enemy[21]))
+            target_name = enemy[22]
             target_name = target_name.strip("\"")
             self.extra_attack.append(target_name)
 
-            attack_name = enemy[22]
+            attack_name = enemy[23]
             attack_name = attack_name.strip("\"")
             attack_name = unicode(attack_name, encoding="sjis")
             self.extra_attack.append(attack_name)
 
-        if int(enemy[23]) > 0:
-            self.extra_attack.append(int(enemy[23]))
+        if int(enemy[24]) > 0:
             self.extra_attack.append(int(enemy[24]))
-            target_name = enemy[25]
+            self.extra_attack.append(int(enemy[25]))
+            target_name = enemy[26]
             target_name = target_name.strip("\"")
             self.extra_attack.append(target_name)
 
-            attack_name = enemy[26]
+            attack_name = enemy[27]
             attack_name = attack_name.strip("\"")
             attack_name = unicode(attack_name, encoding="sjis")
             self.extra_attack.append(attack_name)
@@ -105,57 +108,57 @@ class Enemy:
         #           and the name of the item
         self.drop_item = []
 
-        if int(enemy[27]) > 0:
-            self.drop_item.append(int(enemy[27]))
+        if int(enemy[28]) > 0:
             self.drop_item.append(int(enemy[28]))
+            self.drop_item.append(int(enemy[29]))
             #item_name = enemy[28]
             #item_name = item_name.strip("\"")
             #item_name = unicode(item_name, encoding="sjis")
             #self.drop_item.append(item_name)
  
-        if int(enemy[29]) > 0:
-            self.drop_item.append(int(enemy[29]))
+        if int(enemy[30]) > 0:
             self.drop_item.append(int(enemy[30]))
+            self.drop_item.append(int(enemy[31]))
             #item_name = enemy[30]
             #item_name = item_name.strip("\"")
             #item_name = unicode(item_name, encoding="sjis")
             #self.drop_item.append(item_name)
 
-        if int(enemy[31]) > 0:
-            self.drop_item.append(int(enemy[31]))
+        if int(enemy[32]) > 0:
             self.drop_item.append(int(enemy[32]))
+            self.drop_item.append(int(enemy[33]))
             #item_name = enemy[32]
             #item_name = item_name.strip("\"")
             #item_name = unicode(item_name, encoding="sjis")
             #self.drop_item.append(item_name)
          
-        self.drop_gold = int(enemy[33])
-        self.exp = int(enemy[34])
+        self.drop_gold = int(enemy[34])
+        self.exp = int(enemy[35])
 
-        self.magic_resistance = int(enemy[35])
+        self.magic_resistance = int(enemy[36])
 
-        self.wood_resistance = int(enemy[36])
-        self.fire_resistance = int(enemy[37])
-        self.earth_resistance = int(enemy[38])
-        self.metal_resistance = int(enemy[39])
-        self.water_resistance = int(enemy[40])
-        self.light_resistance = int(enemy[41])
-        self.dark_resistance = int(enemy[42])
-        self.none_resistance = int(enemy[43])
+        self.wood_resistance = int(enemy[37])
+        self.fire_resistance = int(enemy[38])
+        self.earth_resistance = int(enemy[39])
+        self.metal_resistance = int(enemy[40])
+        self.water_resistance = int(enemy[41])
+        self.light_resistance = int(enemy[42])
+        self.dark_resistance = int(enemy[43])
+        self.none_resistance = int(enemy[44])
 
-        self.attack_range = int(enemy[44])
+        self.attack_range = int(enemy[45])
 
-        self.sleep_resistance = int(enemy[45])
-        self.silent_resistance = int(enemy[46])
-        self.poison_resistance = int(enemy[47])
-        self.dead_resistance = int(enemy[48])
-        self.paralysis_resistance = int(enemy[49])
-        self.confuse_resistance = int(enemy[50])
-        self.blind_resistance = int(enemy[51])
+        self.sleep_resistance = int(enemy[46])
+        self.silent_resistance = int(enemy[47])
+        self.poison_resistance = int(enemy[48])
+        self.dead_resistance = int(enemy[49])
+        self.paralysis_resistance = int(enemy[50])
+        self.confuse_resistance = int(enemy[51])
+        self.blind_resistance = int(enemy[52])
         
-        self.level = int(enemy[52])
+        self.level = int(enemy[53])
 
-        self.attack_times = int(enemy[53])
+        self.attack_times = int(enemy[54])
         
 
         

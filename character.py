@@ -110,6 +110,7 @@ class Character:
         self.permanant_ac = 0
         #ac change from battle
         self.battle_ac = 0
+        self.defend_ac = 0
 
         self.face_shield = 0
 

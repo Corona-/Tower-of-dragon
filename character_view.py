@@ -6,10 +6,13 @@ import easygui
 import string
 import window
 import item
+import dungeon
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 CHARACTER_MAKE = 10
+DUNGEON = 100
+
 
 MENU = 12
 
@@ -39,6 +42,9 @@ class Character_view(window.Window):
     ADD, REMOVE, CHECK = 2, 3, 4
     #from shop
     CURSE = 5
+
+    CONTINUE_DUNGEON = 6
+    
     MENU_MAX = 9
 
     def __init__(self, rectangle, instruction):
@@ -83,6 +89,11 @@ class Character_view(window.Window):
                 screen.blit(instruction_font, ( 35 , 35))
             elif self.instruction == self.REMOVE:
                 instruction_font = self.menu_font.render( u"誰をパーティから外しますか？", True, COLOR_WHITE)      
+                instruction_window = window.Window(Rect(20,20, 30+instruction_font.get_width(), 50))
+                instruction_window.draw(screen)
+                screen.blit(instruction_font, ( 35 , 35))
+            elif self.instruction == self.CONTINUE_DUNGEON:
+                instruction_font = self.menu_font.render( u"調査を再開", True, COLOR_WHITE)      
                 instruction_window = window.Window(Rect(20,20, 30+instruction_font.get_width(), 50))
                 instruction_window.draw(screen)
                 screen.blit(instruction_font, ( 35 , 35))
@@ -216,16 +227,17 @@ class Character_view(window.Window):
          
             elif self.instruction == self.ADD:
                 if len(game_self.party.member) < 6:
-                    game_self.party.member.append(game_self.characters[game_self.bar.party_add.menu + game_self.bar.party_add.page*10])
-                    game_self.party.alignment += game_self.characters[game_self.bar.party_add.menu + game_self.bar.party_add.page*10].alignment
-                    print game_self.party.alignment
-                    del game_self.characters[game_self.bar.party_add.menu + game_self.bar.party_add.page*10]
-                    if (game_self.bar.party_add.menu + game_self.bar.party_add.page*10)+1 > len(character):
-                        game_self.bar.party_add.menu -=1
-                        #if that page has no more, go back to previous page and set cursor to bottom
-                        if game_self.bar.party_add.menu < 0:
-                            game_self.bar.party_add.menu = 9
-                            game_self.bar.party_add.page -= 1
+                    if (game_self.party.alignment >= 0 and game_self.characters[game_self.bar.party_add.menu+game_self.bar.party_add.page*10].alignment > 0) or (game_self.party.alignment <= 0 and game_self.characters[game_self.bar.party_add.menu+game_self.bar.party_add.page*10].alignment < 0) or game_self.characters[game_self.bar.party_add.menu+game_self.bar.party_add.page*10].alignment == 0 :
+                        game_self.party.member.append(game_self.characters[game_self.bar.party_add.menu + game_self.bar.party_add.page*10])
+                        game_self.party.alignment += game_self.characters[game_self.bar.party_add.menu + game_self.bar.party_add.page*10].alignment
+                        print game_self.party.alignment
+                        del game_self.characters[game_self.bar.party_add.menu + game_self.bar.party_add.page*10]
+                        if (game_self.bar.party_add.menu + game_self.bar.party_add.page*10)+1 > len(character):
+                            game_self.bar.party_add.menu -=1
+                            #if that page has no more, go back to previous page and set cursor to bottom
+                            if game_self.bar.party_add.menu < 0:
+                                game_self.bar.party_add.menu = 9
+                                game_self.bar.party_add.page -= 1
             elif self.instruction == self.REMOVE:
                 if len(game_self.party.member) > 0:
                     game_self.characters.append(game_self.party.member[game_self.bar.party_remove.menu + game_self.bar.party_remove.page*10])
@@ -236,7 +248,31 @@ class Character_view(window.Window):
             elif self.instruction == self.CHECK:
                 game_self.bar.status_view.is_visible = True
                 game_self.bar.status_view.menu = self.menu
-                    
+
+            elif self.instruction == self.CONTINUE_DUNGEON:
+                #store current party in bar
+                for chara in game_self.party.member:
+                    game_self.characters.append(chara)
+    
+                game_self.party.member = []
+                game_self.party.alignment = 0
+
+                game_self.party.member.append( game_self.tower.dungeon_alive_characters[self.menu + self.page*10])
+
+                game_self.party.alignment += game_self.party.member[0].alignment
+
+                i = 0
+                for chara in game_self.dungeon_characters:
+                    if chara == game_self.party.member[0]:
+                        del game_self.dungeon_characters[i]
+                    i+= 1
+
+                #initialize dungeon                
+                game_self.game_state = DUNGEON
+                game_self.dungeon = dungeon.Dungeon(game_self.party.member[0].coordinate[2])
+                game_self.tower = None
+
+                
 
 
 class Delete_confirm_window(window.Window):
