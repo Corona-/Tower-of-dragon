@@ -466,7 +466,7 @@ class Status_view_window(window.Window):
                 if i == 3 and st > 0:
                     character_status_font = self.menu_font.render( "ASLEEP", True, COLOR_WHITE)
                 if i == 4 and st > 0:
-                    character_status_font = self.menu_font.render( "PALALY", True, COLOR_WHITE)
+                    character_status_font = self.menu_font.render( "PARALY", True, COLOR_WHITE)
                 if i == 5 and st > 0:
                     character_status_font = self.menu_font.render( "PETRIF", True, COLOR_WHITE)
                 if i == 6 and st > 0:

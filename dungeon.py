@@ -210,6 +210,22 @@ class Dungeon:
            self.temp = []
 
 
+        #add other parties in self.object
+        count = 0
+        row_num = 0
+        for row in self.object:
+            column_num = 0
+            for column in row:
+                if column == 0:
+                    probability = random.randint(1,1000)
+                    if probability <= 10:
+                        self.object[row_num][column_num] = 99
+                        count+=1
+                column_num += 1
+            row_num+=1     
+        print count
+    
+
         #draw extra window
         self.downstairs_window = None #system_notify.Confirm_window( Rect(160, 150, 380, 110) , system_notify.Confirm_window.DOWNSTAIRS)
         self.upstairs_window = None

@@ -306,6 +306,9 @@ class Battle:
                             accuracy_decision = 0
 
                         accuracy_total = int( (19- accuracy_decision)*5)
+
+                        if accuracy_total > battle_command.character.equip[0].attack_probability:
+                            accuracy_total = battle_command.character.equip[0].attack_probability
                         
                         hit_times = calculate_hit_time(battle_command.character)
 
@@ -2263,13 +2266,16 @@ def calculate_hit_time( character ):
 def calculate_damage( chara, hit_times):
 
     damage = 0
+    min_damage = 0
 
     if isinstance( chara, character.Character):
         damage = 0
         if isinstance( chara.equip[0], item.Item):
             damage += chara.equip[0].power
+            min_damage += chara.equip[0].min_damage
         if isinstance( chara.equip[1], item.Item):
             damage += chara.equip[1].power
+            min_damage += chara.equip[1].min_damage
 
         if damage == 0:
             damage = 4
@@ -2277,15 +2283,19 @@ def calculate_damage( chara, hit_times):
         if chara.strength >= 16:
             damage += chara.strength-15
 
-    if isinstance( chara,enemy.Enemy):
+    elif isinstance( chara,enemy.Enemy):
         damage = chara.strength
 
     max_damage = damage
-
     total_damage = 0
-    for i in range(hit_times):
-        damage = random.randint(1, max_damage)
-        total_damage += damage
+    if isinstance( chara, character.Character):
+        for i in range(hit_times):
+            damage = random.randint(min_damage, max_damage)
+            total_damage += damage
+    else:
+        for i in range(hit_times):
+            damage = random.randint(1, max_damage)
+            total_damage += damage
 
     
     return total_damage
@@ -2627,7 +2637,7 @@ def calculate_equip_str(character):
     total = 0
     for equip in character.equip:
         if isinstance( equip, item.Item):
-            total += equip.bonus
+            total += equip.extra_strength
 
     return total
 

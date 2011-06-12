@@ -56,6 +56,11 @@ def rest(self, game_self, rest_level, inn):
             game_self.party.member[self.menu].priest_mp[i] = magic_times
             i+= 1
 
+##        print game_self.party.member[self.menu].max_magician_mp
+##        print game_self.party.member[self.menu].magician_mp
+##        print game_self.party.member[self.menu].max_priest_mp
+##        print game_self.party.member[self.menu].priest_mp
+
         if rest_level > 0 and cure == 0:
             cure = 1
         game_self.party.member[self.menu].hp += cure
@@ -181,17 +186,19 @@ def level_up(self, character, rest_level, lv_change):
             i = 0
             j = 0
             learn = 0
+            learned = False
             for a in character.magic:
                 for b in character.magic[i]:
                     if b == 0 and character.magician_mp[i] > 0:
                         learn = random.randint(1, 3)
                         if learn == 3:
                             character.magic[i][j] = 1
+                            learned = True
                     j += 1
                 i += 1
                 j = 0
 
-            if learn == 3:
+            if learned == True:
                 lv_change[7] = 1
             
 
@@ -224,18 +231,20 @@ def level_up(self, character, rest_level, lv_change):
             i = 0
             j = 0
             learn = 0
+            learned = False
             for a in character.priest_magic:
                 for b in character.priest_magic[i]:
                     if b == 0 and character.priest_mp[i] > 0:
                         learn = random.randint(1, 3)
                         if learn == 3:
                             character.priest_magic[i][j] = 1
+                            learned = True
                     j += 1
                 i += 1
                 j = 0
 
             
-            if learn == 3:
+            if learned == True:
                 lv_change[7] = 1
 
 #strength,intelligence,piety,vitality,agility,luck = 0,1,2,3,4,5

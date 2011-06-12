@@ -154,7 +154,7 @@ class Enemy:
         self.dead_resistance = int(enemy[49])
         self.paralysis_resistance = int(enemy[50])
         self.confuse_resistance = int(enemy[51])
-        self.blind_resistance = int(enemy[52])
+        self.stone_resistance = int(enemy[52])
         
         self.level = int(enemy[53])
 
