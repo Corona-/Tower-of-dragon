@@ -15,6 +15,7 @@ import dungeon_message
 import tower
 import dungeon_search
 import math
+import encount_party
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 MENU=12
 
@@ -211,19 +212,19 @@ class Dungeon:
 
 
         #add other parties in self.object
-        count = 0
-        row_num = 0
-        for row in self.object:
-            column_num = 0
-            for column in row:
-                if column == 0:
-                    probability = random.randint(1,1000)
-                    if probability <= 10:
-                        self.object[row_num][column_num] = 99
-                        count+=1
-                column_num += 1
-            row_num+=1     
-        print count
+        if floor != 5:
+            count = 0
+            row_num = 0
+            for row in self.object:
+                column_num = 0
+                for column in row:
+                    if column == 0:
+                        probability = random.randint(1,1000)
+                        if probability <= 10:
+                            self.object[row_num][column_num] = 99
+                            count+=1
+                    column_num += 1
+                row_num+=1     
     
 
         #draw extra window
@@ -234,7 +235,10 @@ class Dungeon:
 
         self.dungeon_message_window = dungeon_message.Dungeon_message( Rect(10, 10, 620, 200))
 
-        self.dungeon_search_window = None #menu_window = window.Window(Rect(160,80,320,200))
+        self.dungeon_search_window = None
+        #menu_window = window.Window(Rect(160,80,320,200))
+
+        self.party_encounter_window = None
        # menu_window.draw(screen)
 
     def update(self):
@@ -284,6 +288,10 @@ class Dungeon:
         #menu_window = window.Window(Rect(160,80,320,200))
        # menu_window.draw(screen)
 
+        if self.party_encounter_window != None:
+            self.party_encounter_window.draw(screen, game_self)
+           
+
     def dungeon_handler(self, game_self, event):
         """event handler for dungeon"""
 
@@ -301,6 +309,9 @@ class Dungeon:
             return
         elif self.dungeon_search_window != None and self.dungeon_search_window.is_visible == True:
             self.dungeon_search_window.dungeon_search_window_handler(event, game_self)
+            return
+        elif self.party_encounter_window != None and self.party_encounter_window.is_visible == True:
+            self.party_encounter_window.encount_party_handler( event, game_self)
             return
 
         
@@ -375,6 +386,14 @@ class Dungeon:
                 for chara in game_self.party.member:
                     if chara.status[0] == 1:
                         chara.hp -= int(math.ceil(chara.max_hp/20.0))
+
+                coordinate = game_self.party.member[0].coordinate
+                x = coordinate[0]
+                y = coordinate[1]
+
+                if self.object[y][x] == 99:
+                    self.party_encounter_window = encount_party.Encount_party( Rect(130,80,380, 240), coordinate[2], game_self)
+                    self.party_encounter_window.is_visible = True
 
                 battle.party_dead_poison(game_self.party.member)
                     
@@ -531,6 +550,7 @@ class Dungeon:
             if self.object[y][x] == 15:
                 self.battle_encount( 80, game_self.party.member[0] )
                 self.object[y][x] = 0
+                self.add_item_to_battle( game_self.party.member)
 
         #warp on fourth floor
         if self.object[y][x] == 17 and game_self.party.member[0].coordinate == [8, 19, 4]:
@@ -570,6 +590,90 @@ class Dungeon:
         if character.coordinate[2] != 5 and encount < probability:
             self.battle = battle.Battle(self.enemy_data, character.coordinate[2])
             self.battle_flag = 1
+
+        
+
+    def add_item_to_battle( self, members):
+
+        floor = members[0].coordinate[2]
+
+        if self.battle == None:
+            return
+
+        if floor == 1:
+            items = [1, 6, 100, 150, 200, 215, 250, 300, 350, 351, 400, 426, 500, 550]
+            rare_items = [101, 151, 201, 251, 301, 401, 427, 501, 551, 600]
+
+            max_percent = 20
+            rare_percent = 5
+
+            percent = random.randint(1,100)
+            if percent <= max_percent:
+                item_number = random.randint( 0, len(items)-1)
+                self.battle.enemy_drop_items.append( items[item_number])
+
+            percent = random.randint(1,100)
+            if percent <= rare_percent:
+                item_number = random.randint( 0, len(rare_items)-1)
+                self.battle.enemy_drop_items.append( rare_items[item_number])
+
+        elif floor == 2:
+
+            items = [1, 6, 100, 150, 200, 215, 250, 300, 350, 351, 400, 426, 500, 550, 101, 151, 201, 251, 301, 401, 427, 501, 551, 600]
+            rare_items = [102, 152, 202, 216, 252, 302, 352, 402, 502, 552]
+
+            max_percent = 25
+            rare_percent = 5
+            
+            percent = random.randint(1,100)
+            if percent <= max_percent:
+                item_number = random.randint( 0, len(items)-1)
+                self.battle.enemy_drop_items.append( items[item_number])
+
+            percent = random.randint(1,100)
+            if percent <= rare_percent:
+                item_number = random.randint( 0, len(rare_items)-1)
+                self.battle.enemy_drop_items.append( rare_items[item_number])
+
+        elif floor == 3:
+            items = [1,4,5,6,600,601,602,603,604,605,606]
+
+            max_percent = 8
+            
+            percent = random.randint(1,100)
+            if percent <= max_percent:
+                item_number = random.randint( 0, len(items)-1)
+                self.battle.enemy_drop_items.append( items[item_number])
+
+        elif floor == 4:
+            items = [1,2,4,5,6, 102, 152,202,216,252,302,352,402,502,552]
+            rare_items = [103, 153, 203, 253, 303, 353, 403, 503, 553]
+
+            max_percent = 20
+            rare_percent = 5
+
+            percent = random.randint(1,100)
+            if percent <= max_percent:
+                item_number = random.randint( 0, len(items)-1)
+                self.battle.enemy_drop_items.append( items[item_number])
+
+            percent = random.randint(1,100)
+            if percent <= rare_percent:
+                item_number = random.randint( 0, len(rare_items)-1)
+                self.battle.enemy_drop_items.append( rare_items[item_number])
+            
+        elif floor == 5:
+            items = [600,601,602,603,604,605,606,504,428,404,355,304,254,219,204,154,104]
+
+            max_percent = 30
+
+            percent = random.randint(1,100)
+            if percent <= max_percent:
+                item_number = random.randint( 0, len(items)-1)
+                self.battle.enemy_drop_items.append( items[item_number])
+
+        
+        pass
 
     def draw_dungeon_map(self, game_self, screen):
 
@@ -5883,5 +5987,82 @@ def draw_dungeon_ground( screen, picture_number , picture, draw_coordinate):
     #0=normal ground, 4 = turn table, 16,17,18,19 = moving ground to up, down, left, right
     if picture_number == 0 or picture_number == 4 or picture_number ==16 or picture_number ==17 or picture_number == 18 or picture_number == 19:
         screen.blit( picture, draw_coordinate)
+
+#return item and price at end
+def party_encount_item( give, floor ):
+
+    to_do_item = []
+    price = 0
+
+    if give == True:
+
+        if floor == 1:
+            items = [1, 6, 100, 150, 200, 215, 250, 300, 350, 351, 400, 426, 500, 550]
+
+            item_number = random.randint( 0, len(items)-1)
+            to_do_item.append( items[item_number])
+
+        elif floor == 2:
+
+            items = [1, 6, 100, 150, 200, 215, 250, 300, 350, 351, 400, 426, 500, 550, 101, 151, 201, 251, 301, 401, 427, 501, 551, 600]
+
+            item_number = random.randint( 0, len(items)-1)
+            to_do_item.append( items[item_number])
+            
+        elif floor == 3:
+            items = [1,4,5,6,600,601,602,603,604,605,606]
+
+            item_number = random.randint( 0, len(items)-1)
+            to_do_item.append( items[item_number])
+
+        elif floor == 4:
+            items = [1,2,4,5,6, 102, 152,202,216,252,302,352,402,502,552]
+
+            item_number = random.randint( 0, len(items)-1)
+            to_do_item.append( items[item_number])
+
+        elif floor == 5:
+            pass
+
+    else:
+
+        if floor == 1:
+            items = [1, 6, 100, 150, 200, 215, 250, 300, 350, 351, 400, 426, 500, 550, 101, 151, 201, 251, 301, 401, 427, 501, 551, 600]
+
+            item_number = random.randint( 0, len(items)-1)
+            to_do_item.append( items[item_number])
+            price = 1500
+
+        elif floor == 2:
+
+            items = [1, 6, 100, 150, 200, 215, 250, 300, 350, 351, 400, 426, 500, 550, 101, 151, 201, 251, 301, 401, 427, 501, 551, 600, 102, 152, 202, 216, 252, 302, 352, 402, 502, 552]
+
+            item_number = random.randint( 0, len(items)-1)
+            to_do_item.append( items[item_number])
+
+            price = 2000
+
+        elif floor == 3:
+            items = [1, 4,5,6,600,601,602,603,604,605,606]
+
+            item_number = random.randint( 0, len(items)-1)
+            to_do_item.append( items[item_number])
+
+            price = 4000
+
+        elif floor == 4:
+            items = [1,2, 4,5,6, 102, 152,202,216,252,302,352,402,502,552, 103, 153, 203, 253, 303, 353, 403, 503, 553]
+
+            price = 2500
+
+            item_number = random.randint( 0, len(items)-1)
+            to_do_item.append( items[item_number])
+
+        elif floor == 5:
+            pass
+
+    to_do_item.append(price)
+
+    return to_do_item
 
     

@@ -300,14 +300,18 @@ class Battle:
                         self.offset = 0 #random.randint(0, len(self.target_group)-1)
                     
 
-                        accuracy_decision = 19 + battle_command.target - self.target_group[self.offset].ac - accuracy
+                        accuracy_decision = 29 + battle_command.target - self.target_group[self.offset].ac - accuracy
 
                         if accuracy_decision < 0:
                             accuracy_decision = 0
 
+                        
+
                         accuracy_total = int( (19- accuracy_decision)*5)
 
-                        if accuracy_total > battle_command.character.equip[0].attack_probability:
+                        print accuracy_total
+
+                        if isinstance(battle_command.character.equip[0], item.Item) and accuracy_total > battle_command.character.equip[0].attack_probability:
                             accuracy_total = battle_command.character.equip[0].attack_probability
                         
                         hit_times = calculate_hit_time(battle_command.character)
@@ -319,13 +323,15 @@ class Battle:
                                 
                     else:
 
-                        accuracy1 = 19 - party.calculate_ac(self.target_group[target]) - battle_command.character.level
+                        accuracy1 = 29 - party.calculate_ac(self.target_group[target]) - battle_command.character.level
                         accuracy2 = accuracy1 - battle_command.character.ac
 
                         if accuracy1 < 0:
                             accuracy1 = 0
 
                         accuracy_total = int( (19-accuracy1)*5)
+
+                        print accuracy_total
 
                         for attack in range(battle_command.character.attack_times):
                             accuracy_probability = random.randint(1,100)
@@ -1400,6 +1406,8 @@ class Battle:
                     exp_font = u"生き残ったメンバーは " + str(int(math.ceil(self.exp/count))) + "EXPを得た"
                     gold_font = u"生き残ったメンバーは " + str(int(math.ceil(self.gold/count))) + "TPを手に入れた"
 
+
+
                     exp_font = self.menu_font.render( exp_font, True, COLOR_WHITE)
                     gold_font = self.menu_font.render( gold_font, True, COLOR_WHITE)
                 
@@ -1952,15 +1960,20 @@ class Battle:
                         del self.total_movement[i]
                 i+=1
 
-
+            #delete command of enemy targeted at that person
+            #also delete command of party targeted at that person
             i = 0
             to_delete = []
             for command in self.total_movement:
                 if isinstance(command.character, enemy.Enemy):
                     if target == command.target:
                         if i!= 0:
-                            to_delete.insert(0,i)                                        
-                    i+=1
+                            to_delete.insert(0,i)
+                if isinstance(command.character, character.Character):
+                    if target == command.target:
+                        if i != 0:
+                            to_delete.insert(0,i)
+                i+=1
                 
             for i in to_delete:
                 del self.total_movement[i]
@@ -1997,7 +2010,11 @@ class Battle:
                     if offset == command.target:
                         if i!= 0:
                             to_delete.insert(0,i)                                        
-                    i+=1
+                if isinstance(command.character, character.Character):
+                    if target == command.target and command.magic_target == "PARTY_ONE":
+                        if i != 0:
+                            to_delete.insert(0,i)
+                i+=1
                 
             for i in to_delete:
                 del self.total_movement[i]
@@ -2035,7 +2052,11 @@ class Battle:
                         if target == command.target:
                             #first one would be deleted at end of command so ignore
                             if i != 0:
-                                to_delete.insert(0,i)                                            
+                                to_delete.insert(0,i)
+                    if isinstance(command.character, enemy.Enemy):
+                        if target == command.target and command.magic_target == "ENEMY_ONE":
+                            if i != 0:
+                                to_delete.insert(0,i)
                     i+=1
                 
                 for i in to_delete:
@@ -2606,10 +2627,10 @@ def calculate_str_bonus(character):
 def calculate_level_bonus(character):
 
     if character.job == 0 or character.job == 3:
-        return int(character.level/3) + 1
+        return int(character.level/3)
 
     elif character.job == 1:
-        return int(character.level/3) + 2
+        return int(character.level/3) + 1
 
     elif character.job == 2 or character.job == 4 or character.job == 5:
         return int(character.level/5)

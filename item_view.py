@@ -185,6 +185,8 @@ class Item_view(window.Window):
             item_guild_font = self.menu_font.render( u"GUI" , True, COLOR_WHITE)
             item_armed_font = self.menu_font.render( u"ARM" , True, COLOR_WHITE)
             item_money_font = self.menu_font.render( u"MON" , True, COLOR_WHITE)
+        else:
+            pass
 
         item_good_font = self.menu_font.render( u"善" , True, COLOR_GLAY)
         item_neutral_font = self.menu_font.render( u"中立" , True, COLOR_GLAY)
@@ -197,10 +199,12 @@ class Item_view(window.Window):
         elif items[self.menu].person == self.EVIL:
             item_evil_font = self.menu_font.render( u"悪" , True, COLOR_WHITE)
 
-        else:
+        elif items[self.menu].person == 100:
             item_good_font = self.menu_font.render( u"善" , True, COLOR_WHITE)
             item_neutral_font = self.menu_font.render( u"中立" , True, COLOR_WHITE)
             item_evil_font = self.menu_font.render( u"悪" , True, COLOR_WHITE)
+        else:
+            pass
 
 ##        #item.curse
 ##        #need to change to fit in, cut by some amount of words

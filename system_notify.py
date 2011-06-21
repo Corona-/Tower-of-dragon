@@ -899,6 +899,8 @@ class Confirm_window(window.Window):
     SEARCH = 32
     PRESS = 33
 
+    BUY_ITEM = 35
+
 
     YES, NO = 0, 1
     MENU_MAX = 1
@@ -952,6 +954,8 @@ class Confirm_window(window.Window):
              confirm_font = self.menu_font.render( u"探しますか？", True, COLOR_WHITE)
          elif self.instruction == self.PRESS:
              confirm_font = self.menu_font.render( u"押しますか？", True, COLOR_WHITE)
+         elif self.instruction == self.BUY_ITEM:
+             confirm_font = self.menu_font.render( u"買いますか？", True, COLOR_WHITE)
                
 
          yes_font = self.menu_font.render( u"はい", True, COLOR_WHITE) 
@@ -1236,7 +1240,51 @@ class Confirm_window(window.Window):
                     game_self.dungeon.dungeon_message_window.is_visible = False
                     game_self.dungeon.dungeon_message_window.message = None
                     game_self.dungeon.dungeon_message_window.coordinate = None
-                    game_self.dungeon.dungeon_message_window.key_press = False                    
+                    game_self.dungeon.dungeon_message_window.key_press = False
+
+            elif self.instruction == self.BUY_ITEM:
+                if self.menu == self.YES:
+
+                    total_money = 0
+                    for chara in game_self.party.member:
+                        total_money += chara.money
+
+
+                    #if not enough money
+                    if total_money < game_self.dungeon.party_encounter_window.message_window.price:
+                        game_self.dungeon.party_encounter_window.message_window.message.append( "")
+                        game_self.dungeon.party_encounter_window.message_window.message.append( u"だがお金が足りない！")
+
+                        self.is_visible = False
+                    else:
+
+                        
+                        for chara in game_self.party.member:
+                            if len(chara.items) < chara.item_max:
+                                chara.items.append( game_self.dungeon.party_encounter_window.message_window.get_item)
+                                break
+
+                        price = game_self.dungeon.party_encounter_window.message_window.price
+
+                        for chara in game_self.party.member:
+                            if price > chara.money:
+                                price -= chara.money
+                                chara.money = 0
+                            else:
+                                chara.money -= price
+                                price = 0
+                                
+
+                        self.is_visible = False
+                        game_self.dungeon.party_encounter_window.message_window.message.append( u"冒険者達は"+ game_self.dungeon.party_encounter_window.message_window.get_item.name+ u"を買った！")
+
+                    
+                else:
+                    self.is_visible = False
+                    game_self.dungeon.party_encounter_window.message_window = None
+                pass
+            #need x key too
+            
 
 
                 pass

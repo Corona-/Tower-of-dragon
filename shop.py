@@ -66,17 +66,17 @@ class Shop:
             except IOError, (errno, msg):
                 #it stores, item id, number left, ...
                 self.stock = []
-                sword_stock = [Shop_item(100,6), Shop_item(101, 3)]
-                katana_stock = [Shop_item(150, 6), Shop_item(151, 3)]
-                blunt_stock = [Shop_item(200, 6), Shop_item(201, 3)]
-                gun_stock = [Shop_item(250, 6), Shop_item(251, 3)]
-                throw_stock = [Shop_item(300, 6), Shop_item(301, 3)]
-                shield_stock = [Shop_item(350, 6)]
-                armor_stock = [Shop_item(400, 6), Shop_item(401, 3), Shop_item(402, 1), Shop_item(403, 6), Shop_item(405, 3)]
-                helmet_stock = [Shop_item(450, 1)]
-                gauntlet_stock = []
-                accessory_stock = [Shop_item(550,1),Shop_item(551,1),Shop_item(552,1)]
-                item_stock = [Shop_item(1,-1),Shop_item(4,5),Shop_item(5,5), Shop_item(6,-1)]
+                sword_stock = [Shop_item(100,-1), Shop_item(109, 6), Shop_item(119, 1)]
+                katana_stock = [Shop_item(150, -1), Shop_item(155, 6), Shop_item(164, 1)]
+                blunt_stock = [Shop_item(200, -1), Shop_item(207, 6), Shop_item(212, 1), Shop_item(215, -1), Shop_item(218, 6), Shop_item(225,1)]
+                gun_stock = [Shop_item(250, -1), Shop_item(258, 6), Shop_item(264, 1)]
+                throw_stock = [Shop_item(300, -1), Shop_item(308, 6), Shop_item(316, 1)]
+                shield_stock = [Shop_item(350, -1), Shop_item(354, 6), Shop_item(359, 1)]
+                armor_stock = [Shop_item(400, -1), Shop_item(403, 6), Shop_item(408, 1), Shop_item(426, -1), Shop_item(428, 6)]
+                helmet_stock = [Shop_item(500, -1), Shop_item(504, 6), Shop_item(508, 1)]
+                gauntlet_stock = [Shop_item(550, -1), Shop_item(556, 6), Shop_item(563,1)]
+                accessory_stock = [Shop_item(600,-1), Shop_item(601,1), Shop_item(602,1), Shop_item(603,1), Shop_item(604,1), Shop_item(605,1), Shop_item(606,1)]
+                item_stock = [Shop_item(1,-1), Shop_item(2, 6), Shop_item(4,-1),Shop_item(5,-1), Shop_item(6,-1)]
                 
                 self.stock.append(sword_stock)
                 self.stock.append(katana_stock)

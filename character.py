@@ -28,7 +28,7 @@ class Character:
         self.alignment = alignment
         self.job = job
         
-        self.ac = 10
+        self.ac = 20
         
         self.strength = strength
         self.intelligence = intelligence
