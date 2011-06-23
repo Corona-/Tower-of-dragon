@@ -62,7 +62,7 @@ class Character:
         #-1,-1, -1 is in the bar
         self.coordinate = [-1,-1,-1]
         #stores the status of the character
-        #status has POISON, PALALYSIS, ASLEEP, MUTE, PETRIFIED, DEAD, ASHED, LOST, maybe AFRAID
+        #status has POISON, PALALYSIS, MUTE, ASLEEP, PETRIFIED, DEAD, ASHED, LOST, maybe AFRAID
         self.status = [0,0,0,0,0,0,0,0,0]
 
         #create hp money, magics randomly
@@ -81,21 +81,25 @@ class Character:
             self.hp = random.randint(1, 8+self.vitality/2)
         elif self.job == self.MAGICIAN:
             self.hp = random.randint(1, 4+self.vitality/2)
-            self.magician_mp = [random.randint(0, 4), 0,0,0,0,0,0]
+#            self.magician_mp = [random.randint(0, 4), 0,0,0,0,0,0]
             #each array is magic lv, if it is 1, it means character can use that magic
-            self.magic = [[random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1)], [0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
+            self.magician_mp = [1,0,0,0,0,0,0]
+#            self.magic = [[random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1)], [0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
+            self.magic = [[1,0,0,0,0,0], [0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
         elif self.job == self.PRIEST:
             self.hp = random.randint(1, 8+self.vitality/2)
-            self.priest_mp = [random.randint(0, 4), 0,0,0,0,0,0]
-            self.priest_magic = [[random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1)], [0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
+#            self.priest_mp = [random.randint(0, 4), 0,0,0,0,0,0]
+#            self.priest_magic = [[random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1), random.randint(0,1)], [0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
+            self.priest_mp = [1, 0,0,0,0,0,0]
+            self.priest_magic = [[1, 0, 0, 0, 0, 0], [0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
         elif self.job == self.THIEF:
             self.hp = random.randint(1, 6+self.vitality/2)
         elif self.job == self.MERCHANT:
             self.hp = random.randint(1, 6+self.vitality/2)
 
         self.max_hp = self.hp
-        self.max_priest_mp = self.priest_mp
-        self.max_magician_mp = self.magician_mp
+        self.max_priest_mp = self.priest_mp[:]
+        self.max_magician_mp = self.magician_mp[:]
 
 
         probability = random.randint(1, 200)

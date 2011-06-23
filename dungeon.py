@@ -550,7 +550,7 @@ class Dungeon:
             if self.object[y][x] == 15:
                 self.battle_encount( 80, game_self.party.member[0] )
                 self.object[y][x] = 0
-                self.add_item_to_battle( game_self.party.member)
+                self.add_item_to_battle( game_self.party.member, game_self)
 
         #warp on fourth floor
         if self.object[y][x] == 17 and game_self.party.member[0].coordinate == [8, 19, 4]:
@@ -593,7 +593,7 @@ class Dungeon:
 
         
 
-    def add_item_to_battle( self, members):
+    def add_item_to_battle( self, members, game_self):
 
         floor = members[0].coordinate[2]
 
@@ -604,8 +604,11 @@ class Dungeon:
             items = [1, 6, 100, 150, 200, 215, 250, 300, 350, 351, 400, 426, 500, 550]
             rare_items = [101, 151, 201, 251, 301, 401, 427, 501, 551, 600]
 
-            max_percent = 20
-            rare_percent = 5
+            max_percent = int(math.ceil(12 + 2*calculate_thief_level(game_self)))
+
+            rare_percent = int(math.ceil(3 + 0.5*calculate_thief_level(game_self)))
+
+            
 
             percent = random.randint(1,100)
             if percent <= max_percent:
@@ -622,8 +625,8 @@ class Dungeon:
             items = [1, 6, 100, 150, 200, 215, 250, 300, 350, 351, 400, 426, 500, 550, 101, 151, 201, 251, 301, 401, 427, 501, 551, 600]
             rare_items = [102, 152, 202, 216, 252, 302, 352, 402, 502, 552]
 
-            max_percent = 25
-            rare_percent = 5
+            max_percent = int(math.ceil(12 + 2*calculate_thief_level(game_self)))
+            rare_percent = int(math.ceil(3 + 0.5*calculate_thief_level(game_self)))
             
             percent = random.randint(1,100)
             if percent <= max_percent:
@@ -638,7 +641,8 @@ class Dungeon:
         elif floor == 3:
             items = [1,4,5,6,600,601,602,603,604,605,606]
 
-            max_percent = 8
+            max_percent = int(math.ceil(5 + 0.5*calculate_thief_level(game_self)))
+            
             
             percent = random.randint(1,100)
             if percent <= max_percent:
@@ -649,8 +653,8 @@ class Dungeon:
             items = [1,2,4,5,6, 102, 152,202,216,252,302,352,402,502,552]
             rare_items = [103, 153, 203, 253, 303, 353, 403, 503, 553]
 
-            max_percent = 20
-            rare_percent = 5
+            max_percent = int(math.ceil(10 + 2*calculate_thief_level(game_self)))
+            rare_percent = int(math.ceil(3 + 0.5*calculate_thief_level(game_self)))
 
             percent = random.randint(1,100)
             if percent <= max_percent:
@@ -665,7 +669,7 @@ class Dungeon:
         elif floor == 5:
             items = [600,601,602,603,604,605,606,504,428,404,355,304,254,219,204,154,104]
 
-            max_percent = 30
+            max_percent = int(math.ceil(18 + 2*calculate_thief_level(game_self)))
 
             percent = random.randint(1,100)
             if percent <= max_percent:
@@ -5939,27 +5943,30 @@ def load_side_images( file_name , size_x, size_y, invisible1_x, invisible1_y, in
 
 def calculate_thief_level(game_self):
 
-    max_theif_level = 0
+    max_thief_level = 0
 
     for character in game_self.party.member:
-        theif_level = 0
+        thief_level = 0
 
         if character.status[3] == 1 or character.status[4] == 1 or character.status[5] == 1 or character.status[6] == 1 or character.status[7] == 1 or character.status[8] == 1:
             continue
         
         #thiefs
         if character.job == 4 or character.job == 22 or character.job == 23 or character.job == 24:
-            theif_level = int(character.level/3)+1
+            thief_level = int(character.level/3)+1
         #merchants
         elif character.job == 5 or character.job == 25 or character.job == 26 or character.job == 27:
-            theif_level = int(character.level/4)
+            thief_level = int(character.level/4)
         else:
-            theif_level = int(character.level/15)
+            thief_level = int(character.level/15)
 
-        if theif_level > max_theif_level:
-            max_theif_level = theif_level
+        if thief_level > max_thief_level:
+            max_thief_level = thief_level
 
-    return max_theif_level
+    if max_thief_level > 9:
+        max_thief_level = 9
+
+    return max_thief_level
 
 def calculate_merchant_level(game_self):
 
@@ -5981,6 +5988,10 @@ def calculate_merchant_level(game_self):
 
         if merchant_level > max_merchant_level:
             max_merchant_level = merchant_level
+
+    if max_merchant_level > 9:
+        max_merchant_level = 9
+
     return max_merchant_level
 
 def draw_dungeon_ground( screen, picture_number , picture, draw_coordinate):

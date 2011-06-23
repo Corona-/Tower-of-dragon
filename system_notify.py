@@ -17,6 +17,7 @@ import string
 import battle
 import battle_command
 import item_view
+import math
 
 COLOR_WHITE = (255,255,255)
 COLOR_GLAY = (128,128,128)
@@ -2182,7 +2183,7 @@ class Magic_level(window.Window):
                         
                         if level == 9 and self.menu == 2:
                             #light the dungeon
-                            game_self.party.torch += 30
+                            game_self.party.torch += 30+int(math.ceil(character.level/6.0))
                             character.priest_mp[level-8] -= 1
                             
                         level -= 1
@@ -2519,7 +2520,8 @@ class Magic_use_target_select:
                         self.level += 1
 
                     if self.level == 8 and self.magic_number == 0:
-                        heal = random.randint(1,8)
+                        heal = random.randint(1+self.character.level, 8+int(math.ceil(self.character.intelligence/4.0))+self.character.level)
+
                         game_self.party.member[self.menu].hp += heal
                         if game_self.party.member[self.menu].hp > game_self.party.member[self.menu].max_hp:
                             game_self.party.member[self.menu].hp = game_self.party.member[self.menu].max_hp
@@ -2537,7 +2539,7 @@ class Magic_use_target_select:
 
                         for chara in game_self.party.member:
                             if chara.face_shield == 0:
-                                chara.permanant_ac -= 2
+                                chara.permanant_ac -= 2+int(math.ceil(self.character.level/12.0))
                                 chara.face_shield = 1
 
                         self.character.priest_mp[1] -= 1
@@ -2560,7 +2562,8 @@ class Magic_use_target_select:
                     elif self.level == 10 and self.magic_number == 2:
 
                         for chara in game_self.party.member:
-                            heal = random.randint(2,16)
+                            heal = random.randint(6+int(math.ceil(self.character.level*1.25)), 32+int(math.ceil(self.character.intelligence/3.33))+int(math.ceil(self.character.level*1.25)))
+            
                             chara.hp += heal
                             if chara.hp > chara.max_hp:
                                 chara.hp = chara.max_hp
@@ -2569,7 +2572,8 @@ class Magic_use_target_select:
                         
                     elif self.level == 10 and self.magic_number == 3:
 
-                        heal = random.randint(8,32)
+                        heal = random.randint(12+int(math.ceil(self.character.level*1.25)), 40+int(math.ceil(self.character.intelligence/3.33))+int(math.ceil(self.character.level*1.25)))
+
                         game_self.party.member[self.menu].hp += heal
                         if game_self.party.member[self.menu].hp > game_self.party.member[self.menu].max_hp:
                             game_self.party.member[self.menu].hp = game_self.party.member[self.menu].max_hp

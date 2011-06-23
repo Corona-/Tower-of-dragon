@@ -182,10 +182,7 @@ def level_up(self, character, rest_level, lv_change):
                             magic_lv_up = 1
                 i += 1
 
-            i = 0
-            for mp in character.max_magician_mp:
-                character.magician_mp[i] = mp
-                i += 1
+            character.magician_mp = character.max_magician_mp[:]
 
             #learn new magic
             i = 0
@@ -195,8 +192,8 @@ def level_up(self, character, rest_level, lv_change):
             for a in character.magic:
                 for b in character.magic[i]:
                     if b == 0 and character.max_magician_mp[i] > 0:
-                        learn = random.randint(1, 6)
-                        if learn == 4:
+                        learn = random.randint(1, character.intelligence_max+60)
+                        if learn < character.intelligence:
                             character.magic[i][j] = 1
                             learned = True
                     j += 1
@@ -226,10 +223,7 @@ def level_up(self, character, rest_level, lv_change):
                             magic_lv_up = 1
                 i += 1
 
-            i = 0
-            for mp in character.max_priest_mp:
-                character.priest_mp[i] = mp
-                i+=1
+            character.priest_mp = character.max_priest_mp[:]
 
             #learn new magic
 
@@ -240,8 +234,8 @@ def level_up(self, character, rest_level, lv_change):
             for a in character.priest_magic:
                 for b in character.priest_magic[i]:
                     if b == 0 and character.max_priest_mp[i] > 0:
-                        learn = random.randint(1, 6)
-                        if learn == 3:
+                        learn = random.randint(1, character.intelligence_max+60)
+                        if learn < character.intelligence:
                             character.priest_magic[i][j] = 1
                             learned = True
                     j += 1

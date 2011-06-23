@@ -160,8 +160,12 @@ class Party_encount_message(window.Window):
                 self.heal_percent = game_self.dungeon.party_encounter_window.use_points*5
 
             for chara in game_self.party.member:
+
+                if chara.status[5] == 1 or chara.status[6] == 1 or chara.status[7] == 1:
+                    continue
+
                 
-                chara.hp += random.randint(0, int(self.heal_percent/100*chara.max_hp))
+                chara.hp += random.randint(0, int(math.ceil((self.heal_percent/100.0)*chara.max_hp)))
 
                 if chara.hp > chara.max_hp:
                     chara.hp = chara.max_hp

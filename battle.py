@@ -14,6 +14,7 @@ import city
 import system_notify
 import party
 import string
+import dungeon
 
 import battle_window
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
@@ -350,7 +351,7 @@ class Battle:
                         self.damage = calculate_damage(battle_command.character, self.hit)
                         self.damage_set = 1
 
-                        if self.target_group[0].status[3] == 1 or self.target_group[0].status[4] == 1 or self.target_group[0].status[5] == 1:
+                        if self.target_group[0].status[1] == 1 or self.target_group[0].status[3] == 1 or self.target_group[0].status[4] == 1 or self.target_group[0].status[5] == 1:
                             self.damage*=2
 
                         #subtract damage and if hp < 0, remove that character
@@ -451,7 +452,7 @@ class Battle:
 
                         if self.damage_set == 0:
                             
-                            self.damage = random.randint(1, 8)
+                            self.damage = random.randint(1+battle_command.character.level, 8+int(math.ceil(battle_command.character.intelligence/4.0))+battle_command.character.level)
                             self.damage = int(self.damage*math.floor(self.target_group[0].none_resistance/100.0))
 
                             probability = random.randint(1,100)
@@ -501,7 +502,7 @@ class Battle:
                             if probability < self.target_group[len(self.target_group)-self.group_access].magic_resistance:
                                 self.damage = 0
 
-                            probability = random.randint(1,100)
+                            probability = random.randint(1+int(math.ceil(battle_command.character.intelligence/4.0)),100)
                             if probability < self.target_group[len(self.target_group)-self.group_access].sleep_resistance:
                                 self.damage = -1
 
@@ -535,7 +536,7 @@ class Battle:
 
                         if self.damage_set == 0:
 
-                            battle_command.character.battle_ac -= 2
+                            battle_command.character.battle_ac -= 2+int(math.ceil(battle_command.character.level/6.0))
                             self.damage_set = 1
                             battle_command.character.magician_mp[0] -= 1   
 
@@ -565,10 +566,10 @@ class Battle:
 
                             for enemy_group in self.enemyList:
                                 for enemies in enemy_group:
-                                    enemies.ac += 2
+                                    enemies.ac += 2+int(math.ceil(battle_command.character.level/5.5))
                             for enemy_group in self.enemyListBack:
                                 for enemies in enemy_group:
-                                    enemies.ac += 2
+                                    enemies.ac += 2+int(math.ceil(battle_command.character.level/5.5))
 
                             battle_command.character.magician_mp[1] -= 1
 
@@ -588,7 +589,7 @@ class Battle:
                         
                         if self.damage_set == 0:
                             
-                            self.damage = random.randint(3, 18)
+                            self.damage = random.randint(8+int(math.ceil(battle_command.character.level*1.33)), 18+int(math.ceil(battle_command.character.intelligence/3.75))+int(math.ceil(battle_command.character.level*1.33)))
                             self.damage = int(self.damage*math.floor(self.target_group[0].none_resistance/100.0))
 
                             probability = random.randint(1,100)
@@ -634,7 +635,7 @@ class Battle:
 
                             self.damage_set = 1
 
-                            self.damage = random.randint(2, 32)
+                            self.damage = random.randint(1+int(math.ceil(battle_command.character.level*1.33)), 15+int(math.ceil(battle_command.character.intelligence/3.5))+int(math.ceil(battle_command.character.level*1.33)))
                             self.damage = int(self.damage*math.floor(self.target_group[0].water_resistance/100.0))
 
                             probability = random.randint(1,100)
@@ -685,7 +686,7 @@ class Battle:
                                 self.damage = 0
 
 
-                            probability = random.randint(1,100)
+                            probability = random.randint(1+int(math.ceil(battle_command.character.intelligence/3.5)),100)
                             if probability < self.target_group[len(self.target_group)-self.group_access].poison_resistance:
                                 self.damage = -1
                                 
@@ -706,7 +707,7 @@ class Battle:
                         
                         if self.damage_set == 0:
                             
-                            self.damage = random.randint(8, 52)
+                            self.damage = random.randint(12+int(math.ceil(battle_command.character.level*1.25)), 52+int(math.ceil(battle_command.character.intelligence/3.33))+int(math.ceil(battle_command.character.level*1.25)))
                             self.damage = int(self.damage*math.floor(self.target_group[0].dark_resistance/100.0))
 
                             probability = random.randint(1,100)
@@ -752,7 +753,10 @@ class Battle:
 
                             self.damage_set = 1
 
-                            self.damage = random.randint(16, 64)
+                            self.damage = random.randint(12+int(math.ceil(battle_command.character.level*1.25)), 52+int(math.ceil(battle_command.character.intelligence/3.33))+int(math.ceil(battle_command.character.level*1.25)))
+
+
+                            self.damage = random.randint(4+int(math.ceil(battle_command.character.level*1.25)), 48+int(math.ceil(battle_command.character.intelligence/3.33))+int(math.ceil(battle_command.character.level*1.25)))
                             self.damage = int(self.damage*math.floor(self.target_group[0].fire_resistance/100.0))
 
                             probability = random.randint(1,100)
@@ -808,8 +812,8 @@ class Battle:
                         battle_font1 = battle_command.character.name + u"はヒールを唱えた"
 
                         if self.damage_set == 0:
-                            
-                            self.damage = random.randint(1, 8)
+
+                            self.damage = random.randint(1+battle_command.character.level, 8+int(math.ceil(battle_command.character.intelligence/4.0))+battle_command.character.level)                        
 
                             self.damage_set = 1
 
@@ -859,8 +863,9 @@ class Battle:
                         battle_font1 = battle_command.character.name + u"はライトアローを唱えた"
 
                         if self.damage_set == 0:
-                            
-                            self.damage = random.randint(1, 6)
+
+                            self.damage = random.randint(1+battle_command.character.level, 6+int(math.ceil(battle_command.character.intelligence/4.0))+battle_command.character.level)                        
+
                             self.damage = int(self.damage*math.floor(self.target_group[0].light_resistance/100.0))
 
                             probability = random.randint(1,100)
@@ -900,7 +905,7 @@ class Battle:
 
                         if self.damage_set == 0:
 
-                            battle_command.character.battle_ac -= 3
+                            battle_command.character.battle_ac -= 3+int(math.ceil(battle_command.character.level/6.0))
                             self.damage_set = 1
                             battle_command.character.priest_mp[0] -= 1   
 
@@ -916,19 +921,29 @@ class Battle:
                             battle_command.character.priest_mp[1] -= 1
                             self.check = 1
 
+                        if self.damage_set == 0:
 
-                        
-                        if self.probability_set == 0:
-                            self.probability = random.randint(1,100)
-                            self.probability_set = 1
+                            self.damage_set = 1
 
-                        if self.probability < self.target_group[0].silent_resistance:
-                            battle_font2 = self.target_font + u"の魔法は封じられた"                            
+                            self.damage = 1
+                            
+                            probability = random.randint(1,100)
+                            if probability < self.target_group[len(self.target_group)-self.group_access].magic_resistance:
+                                self.damage = 0
+
+                            probability = random.randint(1+int(math.ceil(battle_command.character.intelligence/4.0)),100)
+                            if probability < self.target_group[len(self.target_group)-self.group_access].silent_resistance:
+                                self.damage = -1
+
+                            if self.damage == 1:
+                                self.target_group[len(self.target_group)-self.group_access].status[2] = 1
+
+                        if self.damage == 1:
+                            battle_font2 = self.target_font + u"の魔法は封じられた！"
+                        elif self.damage == 0:
+                            battle_font2 = self.target_font + u"は呪文を妨害した！"
                         else:
-                            battle_font2 = self.target_font+ u"は影響無い"                            
-                     
-      
-                        pass
+                            battle_font2 = self.target_font + u"は影響ない！"
                     
                     elif battle_command.magic_number == 1:
                         battle_font1 = battle_command.character.name + u"はフェイスシールドを唱えた"
@@ -937,7 +952,7 @@ class Battle:
                         if self.damage_set == 0:
                             for chara in game_self.party.member:
                                 if chara.face_shield == 0:
-                                    chara.permanant_ac -= 2
+                                    chara.permanant_ac -= 2+int(math.ceil(battle_command.character.level/12.0))
                                     chara.face_shield = 1
 
                             battle_command.character.priest_mp[1] -= 1
@@ -948,7 +963,7 @@ class Battle:
                         battle_font2 = u"冒険者たちは光で照らされた"
 
                         if self.damage_set == 0:
-                            game_self.party.torch += 30
+                            game_self.party.torch += 30+int(math.ceil(battle_command.character.level/6.0))
                             battle_command.character.priest_mp[1] -= 1
                             self.damage_set = 1
 
@@ -1017,7 +1032,7 @@ class Battle:
 
                         if self.damage_set == 0:
                             for chara in game_self.party.member:
-                                    chara.battle_ac -= 3
+                                    chara.battle_ac -= 3+int(math.ceil(battle_command.character.level/9.0))
 
                             battle_command.character.priest_mp[2] -= 1
                             self.damage_set = 1                            
@@ -1034,8 +1049,7 @@ class Battle:
 
                             self.damage_set = 1
 
-                            self.damage = random.randint(2, 16)
-
+                            self.damage = random.randint(6+int(math.ceil(battle_command.character.level*1.25)), 32+int(math.ceil(battle_command.character.intelligence/3.33))+int(math.ceil(battle_command.character.level*1.25)))
 
                             #subtract damage and if hp < 0, remove that character
                             if self.damage > 0 and isinstance( self.target_group[0], character.Character):
@@ -1065,8 +1079,8 @@ class Battle:
                         battle_font1 = battle_command.character.name + u"はサルヴを唱えた"
 
                         if self.damage_set == 0:
-                            
-                            self.damage = random.randint(8, 32)
+
+                            self.damage = random.randint(12+int(math.ceil(battle_command.character.level*1.25)), 40+int(math.ceil(battle_command.character.intelligence/3.33))+int(math.ceil(battle_command.character.level*1.25)))
 
                             self.damage_set = 1
 
@@ -1111,7 +1125,7 @@ class Battle:
                     self.probability = random.randint(1, 100)
                     self.probability_set = 1
                 #TO-DO calculate escape probability
-                if self.probability < 10 and event_battle == 0:
+                if self.probability < 30 and self.event_battle == 0:
                     self.escape_flag = 1
                 else:            
                     battle_font3 = u"しかし逃げられなかった"
@@ -1150,7 +1164,7 @@ class Battle:
                             self.damage = calculate_damage(battle_command.character, self.hit)
                             self.damage_set = 1
 
-                            if self.target_group[0].status[3] == 1 or self.target_group[0].status[4] == 1 or self.target_group[0].status[5] == 1:
+                            if self.target_group[0].status[1] == 1 or self.target_group[0].status[3] == 1 or self.target_group[0].status[4] == 1 or self.target_group[0].status[5] == 1:
                                 self.damage*=2
 
                             self.target_group[target].hp -= self.damage
@@ -1219,7 +1233,7 @@ class Battle:
                             self.damage = calculate_damage(battle_command.character, self.hit)
                             self.damage_set = 1
 
-                            if self.target_group[0].status[3] == 1 or self.target_group[0].status[4] == 1 or self.target_group[0].status[5] == 1:
+                            if self.target_group[0].status[1] == 1 or self.target_group[0].status[3] == 1 or self.target_group[0].status[4] == 1 or self.target_group[0].status[5] == 1:
                                 self.damage*=2
 
                             self.target_group[target].hp -= self.damage
@@ -1258,6 +1272,10 @@ class Battle:
 
                         self.damage_set = 1
 
+                        #is silent
+                        if battle_command.character.status[2] == 1:
+                            self.damage = 0
+
 
                         self.target_group[self.offset].hp += self.damage
 
@@ -1266,8 +1284,10 @@ class Battle:
                             self.damage = -1
 
 
-                    if self.damage != -1:
+                    if self.damage > 0:
                         battle_font2 = self.target_font + u"は" + str(self.damage) + u"回復した"
+                    elif self.damage == 0:
+                        battle_font2 = u"しかし魔法は封じられている！"
                     else:
                         battle_font2 = self.target_font + u"は完治した！"
 
@@ -1281,13 +1301,19 @@ class Battle:
 
                         self.damage_set = 1
 
+                        #is silent
+                        if battle_command.character.status[2] == 1:
+                            self.damage = 0
+
                         self.target_group[target].hp -= self.damage
 
                         self.character_dead()
                                 
 
-                    if self.damage != -1:
+                    if self.damage > 0:
                         battle_font2 = self.target_font + u"に" + str(self.damage) + u"のダメージ"
+                    elif self.damage == 0:
+                        battle_font2 = u"しかし魔法は封じられている！"                        
                     else:
                         battle_font2 = self.target_font + u"は呪文を妨害した！"
 
@@ -1396,11 +1422,17 @@ class Battle:
                 battle_window = window.Window(Rect(10, 10, 620, 150))
                 battle_window.draw(screen)
 
-                if self.drop_item_key == int(math.ceil(len(self.enemy_drop_items)/4.0)):
-                    count = 0
+                if self.drop_item_key == 0: #self.drop_item_key == int(math.ceil(len(self.enemy_drop_items)/4.0)):
+                    count = 0.0
                     for member in game_self.party.member:
                         if member.status == [0,0,0,0,0,0,0,0,0] or (member.status[4] != 1 and member.status[5] != 1 and member.status[6] != 1 and member.status[7] != 1 and member.status[8] != 1):
-                            count+= 1
+                            count+= 1.0
+
+
+                    if self.check == 0:
+                        self.check = 1
+                        self.gold = int(math.ceil( (dungeon.calculate_merchant_level(game_self)+1)/10.0))
+                        print self.gold
 
 
                     exp_font = u"生き残ったメンバーは " + str(int(math.ceil(self.exp/count))) + "EXPを得た"
@@ -1799,10 +1831,10 @@ class Battle:
                         game_self.dungeon.battle = None
                         game_self.dungeon.music = 0
 
-                        count = 0
+                        count = 0.0
                         for character in game_self.party.member:
                             if character.status == [0,0,0,0,0,0,0,0,0] or (character.status[4] != 1 and character.status[5] != 1 and character.status[6] != 1 and character.status[7] != 1 and character.status[8] != 1):
-                                count+= 1
+                                count+= 1.0
 
 
                         for character in game_self.party.member:
@@ -2116,7 +2148,7 @@ def count_movable( enemy_group ):
 
     movable_count = 0
     for enemy_status in enemy_group:
-        if enemy_status.status == [0,0,0,0,0,0,0,0,0] or (enemy_status.status[3] != 1 and enemy_status.status[4] != 1 and enemy_status.status[5] != 1 and enemy_status.status[6] != 1 and enemy_status.status[7] != 1 and enemy_status.status[8] != 1):
+        if enemy_status.status == [0,0,0,0,0,0,0,0,0] or (enemy_status.status[1] != 1 and enemy_status.status[3] != 1 and enemy_status.status[4] != 1 and enemy_status.status[5] != 1 and enemy_status.status[6] != 1 and enemy_status.status[7] != 1 and enemy_status.status[8] != 1):
             movable_count += 1
     return movable_count
 
@@ -2124,14 +2156,14 @@ def count_movable( enemy_group ):
 def player_count_movable ( player_group):
     movable_count = 0
     for player in player_group:
-        if player.status == [0,0,0,0,0,0,0,0,0] or (player.status[4] != 1 and player.status[5] != 1 and player.status[6] != 1 and player.status[7] != 1 and player.status[8] != 1):
+        if player.status == [0,0,0,0,0,0,0,0,0] or (player.status[1] != 1 and player.status[4] != 1 and player.status[5] != 1 and player.status[6] != 1 and player.status[7] != 1 and player.status[8] != 1):
             movable_count += 1
     return movable_count
 
 def player_count_alive ( player_group):
     alive_count = 0
     for player in player_group:
-        if player.status[6] != 1 and player.status[7] != 1 and player.status[8] != 1:
+        if player.status[1] != 1 and player.status[5] != 1 and player.status[6] != 1 and player.status[7] != 1 and player.status[8] != 1:
             alive_count+=1
     return alive_count
 
@@ -2328,7 +2360,7 @@ def enemy_movement( enemyList, enemyListBack, game_self):
 
     for group in enemyList:
         for enemy in group:
-            if enemy.status == [0,0,0,0,0,0,0,0,0] or (enemy.status[3] != 1 and enemy.status[4] != 1 and enemy.status[5] != 1 and enemy.status[6] != 1 and enemy.status[7] != 1 and enemy.status[8] != 1):
+            if enemy.status == [0,0,0,0,0,0,0,0,0] or (enemy.status[1] != 1 and enemy.status[3] != 1 and enemy.status[4] != 1 and enemy.status[5] != 1 and enemy.status[6] != 1 and enemy.status[7] != 1 and enemy.status[8] != 1):
                 movement = random.randint(1,100)
                 player_movable = player_count_movable(game_self.party.member)
 
@@ -2464,7 +2496,7 @@ def enemy_movement( enemyList, enemyListBack, game_self):
 
     for group in enemyListBack:
         for enemy in group:
-            if enemy.status == [0,0,0,0,0,0,0,0,0] or (enemy.status[3] != 1 and enemy.status[4] != 1 and enemy.status[5] != 1 and enemy.status[6] != 1 and enemy.status[7] != 1 and enemy.status[8] != 1):
+            if enemy.status == [0,0,0,0,0,0,0,0,0] or (enemy.status[1] != 1 and enemy.status[3] != 1 and enemy.status[4] != 1 and enemy.status[5] != 1 and enemy.status[6] != 1 and enemy.status[7] != 1 and enemy.status[8] != 1):
                 movement = random.randint(1,100)
                 player_movable = player_count_movable(game_self.party.member)
 
