@@ -64,6 +64,15 @@ def load(self, game_self):
 
     load_lost_characters(game_self)
 
+    try:
+        file = "Save/shop_item_temp.dat"
+        fp = open( file, "rb")
+    except IOError, (errno, msg):
+        pass
+
+    else:
+        fp.close()
+        os.remove( "Save/shop_item_temp.dat")                
 
 def save_character(game_self):
 
@@ -585,24 +594,28 @@ def save_shop_item(game_self, path):
     fp.close()
 
 def load_shop_item(self, path):
-    
-    file = path
-    fp = open(file, "rb")
-    fp.seek(0)
 
-    self.stock = []
+    try:
+        file = path
+        fp = open(file, "rb")
+    except IOError, (errno, msg):
+        pass
+    else:
+        
+        fp.seek(0)
 
-    for category in range(11):
-        number_of_item = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
-        item_list= []
-        for items in range(number_of_item):
-            item_id = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
-            stock = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
-            item_list.append( shop.Shop_item( item_id, stock))
-        self.stock.append( item_list)
+        self.stock = []
 
-      
-    fp.close()
+        for category in range(11):
+            number_of_item = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
+            item_list= []
+            for items in range(number_of_item):
+                item_id = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
+                stock = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
+                item_list.append( shop.Shop_item( item_id, stock))
+            self.stock.append( item_list)
+            
+        fp.close()
 
 
 def save_dungeon_data(game_self):

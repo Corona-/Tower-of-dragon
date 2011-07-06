@@ -72,7 +72,7 @@ class Temple_window(window.Window):
             screen.blit(character_font, (self.left+20, self.top+50+(i%10)*30))
 
             if chara.status[4] == 1:
-                cost_font = 100*chara.level
+                cost_font = 25*chara.level
                 status_font = self.menu_font.render( "PALSY", True, COLOR_WHITE)
             if chara.status[5] == 1:
                 status_font = self.menu_font.render( "PETRIF", True, COLOR_WHITE)

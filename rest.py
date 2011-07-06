@@ -76,7 +76,7 @@ def rest(self, game_self, rest_level, inn):
 #calculate the exp needed
 #need to find better way to calculate exp
 def calc_exp_needed(self, character):
-    necessary_exp = int(100*1.75 ** character.level)  
+    necessary_exp = int(100*1.6 ** character.level)  
     character.next = necessary_exp - character.exp
 
 
@@ -167,9 +167,17 @@ def level_up(self, character, rest_level, lv_change):
             i = 0
 
             for mp in character.max_magician_mp:
+
+                if character.job == 2 and i == 7:
+                    break
+
                 #if that level magic is learned add mp
                 if mp > 0:
                     magic_change = random.randint(0, 1)
+
+                    if character.magic[i][0] == 1 and character.magic[i][1] == 1 and character.magic[i][2] == 1 and character.magic[i][3] == 1:
+                        magic_change = 1
+                                    
                     character.max_magician_mp[i] += magic_change
                     if character.max_magician_mp[i] > 9:
                         character.max_magician_mp[i] = 9
@@ -177,9 +185,29 @@ def level_up(self, character, rest_level, lv_change):
                     #learn new magic lv
                     if magic_lv_up == 0:
                         if character.job == 2:
-                            learn = random.randint(0,1)
-                            character.max_magician_mp[i] += learn
-                            magic_lv_up = 1
+                            if character.intelligence >= 10:
+                                learn = random.randint(1, character.intelligence_max+100)
+
+                                if i > 0 and character.magic[i-1][0] == 1 and character.magic[i-1][1] == 1 and character.magic[i-1][2] == 1 and character.magic[i-1][3] == 1:
+                                    learn = 0
+
+
+                                    
+                                if learn < character.intelligence:
+                                    character.max_magician_mp[i] += 1
+                                    magic_lv_up = 1
+                            else:
+                                learn = random.randint(1, 100)
+
+                                if i > 0 and character.magic[i-1][0] == 1 and character.magic[i-1][1] == 1 and character.magic[i-1][2] == 1 and character.magic[i-1][3] == 1:
+                                    learn = 0
+
+                                if learn <= 7:
+                                    character.max_magician_mp[i] += 1
+                                    magic_lv_up = 1
+                        magic_lv_up = 1
+
+
                 i += 1
 
             character.magician_mp = character.max_magician_mp[:]
@@ -191,17 +219,47 @@ def level_up(self, character, rest_level, lv_change):
             learned = False
             for a in character.magic:
                 for b in character.magic[i]:
+                    if character.job == 2 and j == 4:
+                        break
+                    
                     if b == 0 and character.max_magician_mp[i] > 0:
-                        learn = random.randint(1, character.intelligence_max+60)
-                        if learn < character.intelligence:
-                            character.magic[i][j] = 1
-                            learned = True
+                        if character.intelligence >= 10:
+                            learn = random.randint(1, character.intelligence_max+45)
+                            if learn < character.intelligence:
+                                character.magic[i][j] = 1
+                                learned = True
+                        else:
+                            learn = random.randint(1, 100)
+                            if learn <= 15:
+                                character.magic[i][j] = 1
+                                learned = True                            
                     j += 1
+
+                    if learned == True:
+                        break
+                if learned == True:
+                    break
                 i += 1
                 j = 0
 
             if learned == True:
                 lv_change[7] = 1
+
+            #if no magic in that level, make mp = 0
+            i = 0
+            for magic_level in character.magic:
+                count = 0
+                for each_magic in character.magic[i]:
+                    if each_magic == 1:
+                        count +=1
+
+                if count == 0:
+                    character.max_magician_mp[i] = 0
+
+                i+=1
+
+            character.magician_mp = character.max_magician_mp[:]
+                    
             
 
         #PRIEST
@@ -209,8 +267,17 @@ def level_up(self, character, rest_level, lv_change):
             magic_lv_up = 0
             i = 0
             for mp in character.max_priest_mp:
+
+                if character.job == 3 and i == 7:
+                    break
+                
                 if mp > 0:
                     priest_change = random.randint(0, 1)
+
+                    if character.priest_magic[i][0] == 1 and character.priest_magic[i][1] == 1 and character.priest_magic[i][2] == 1 and character.priest_magic[i][3] == 1:
+                        priest_change = 1
+
+
                     character.max_priest_mp[i] += priest_change
                     if character.max_priest_mp[i] > 9:
                         character.max_priest_mp[i] = 9
@@ -218,9 +285,26 @@ def level_up(self, character, rest_level, lv_change):
                     #learn new magic lv
                     if magic_lv_up == 0:
                         if character.job == 3:
-                            learn = random.randint(0,1)
-                            character.max_priest_mp[i] += learn
-                            magic_lv_up = 1
+                            if character.piety >= 10:
+                                learn = random.randint(1, character.intelligence_max+100)
+
+                                if i > 0 and character.priest_magic[i-1][0] == 1 and character.priest_magic[i-1][1] == 1 and character.priest_magic[i-1][2] == 1 and character.priest_magic[i-1][3] == 1:
+                                    learn = 0
+
+                                if learn < character.piety:
+                                    character.max_priest_mp[i] += 1
+                                    magic_lv_up = 1
+                            else:
+                                learn = random.randint(1, 100)
+
+                                if i > 0 and character.priest_magic[i-1][0] == 1 and character.priest_magic[i-1][1] == 1 and character.priest_magic[i-1][2] == 1 and character.priest_magic[i-1][3] == 1:
+                                    learn = 0
+                                
+                                if learn <= 7:
+                                    character.max_priest_mp[i] += 1
+                                    magic_lv_up = 1
+                        magic_lv_up = 1
+
                 i += 1
 
             character.priest_mp = character.max_priest_mp[:]
@@ -233,18 +317,53 @@ def level_up(self, character, rest_level, lv_change):
             learned = False
             for a in character.priest_magic:
                 for b in character.priest_magic[i]:
+
+                    if character.job == 3 and j == 4:
+                        break
+                    
+                    
                     if b == 0 and character.max_priest_mp[i] > 0:
-                        learn = random.randint(1, character.intelligence_max+60)
-                        if learn < character.intelligence:
-                            character.priest_magic[i][j] = 1
-                            learned = True
+
+                        if character.piety >= 10:
+                            learn = random.randint(1, character.piety_max+45)
+                            if learn < character.piety:
+                                character.priest_magic[i][j] = 1
+                                learned = True
+                        else:
+                            learn = random.randint(1, 100)
+                            if learn <= 15:
+                                character.priest_magic[i][j] = 1
+                                learned = True
+                    if learned == True:
+                        break
                     j += 1
+                    
+                if learned == True:
+                    break
                 i += 1
                 j = 0
 
             
             if learned == True:
                 lv_change[7] = 1
+
+            #if no magic in that level, make mp = 0
+            i = 0
+            for magic_level in character.priest_magic:
+                count = 0
+                for each_magic in character.priest_magic[i]:
+                    if each_magic == 1:
+                        count +=1
+
+                if count == 0:
+                    character.max_priest_mp[i] = 0
+
+                i+=1
+
+            character.priest_mp = character.max_priest_mp[:]
+                    
+
+
 
 #strength,intelligence,piety,vitality,agility,luck = 0,1,2,3,4,5
 #change stores which status changed,
@@ -255,7 +374,7 @@ def status_change( self, change, down, stay, character, instruction, lv_change):
         if change < down:
             character.strength -= 1
             if character.strength < 1:
-                charcter.strength = 1
+                character.strength = 1
             else:
                 lv_change[0] = -1
         if change < stay:
@@ -342,4 +461,38 @@ def status_change( self, change, down, stay, character, instruction, lv_change):
             else:
                 lv_change[5] = 1
 
+    
+#if magician == 1 , then check magician_magic else check priest
+
+def check_magic_mastered( character, magic_level, magician):
+
+    if magic_level < 0:
+        return 1
+
+    if magician == 1:
+
+        count = 0
+
+        for magic in character.magic[magic_level]:
+            if magic == 1:
+                count += 1
+
+        if count == 6:
+            return 1
+        else:
+            return 0
+
+    else:
+
+
+        count = 0
+
+        for magic in character.priest_magic[magic_level]:
+            if magic == 1:
+                count += 1
+
+        if count == 6:
+            return 1
+        else:
+            return 0
     

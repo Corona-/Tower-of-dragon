@@ -211,6 +211,13 @@ class Party_encount_message(window.Window):
                 self.more_message = False
                 return
 
+            if self.instruction == self.ITEM:
+                for chara in game_self.party.member:
+                    if len(chara.items) < chara.item_max:
+                        chara.items.append( self.get_item)
+                        break            
+
+
         
             #need to close the message
             self.is_visible = False

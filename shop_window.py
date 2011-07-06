@@ -288,7 +288,7 @@ class Buy_window(window.Window):
                 self.menu = 0
 
 
-        #moves the cursor down
+        #select item
         elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):
             if len(self.category_item) > 0:
                 game_self.select_se.play()
@@ -561,10 +561,12 @@ def shop_item_change( item_id, game_self, i ):
                         return 1
             else:
                 if item.id == item_id:
+                    if item.stock == -1:
+                        return found
                     item.stock += 1
                     found = 101
-                    if item.stock > 9:
-                        item.stock = 9
+                    if item.stock > 99:
+                        item.stock = 99
             k += 1
         j += 1
         k = 0

@@ -446,7 +446,7 @@ class System_notify_window(window.Window):
                         cure_character = temple_cure.to_cure[temple_cure.menu+temple_cure.page*10]
                         cost = 0
                         if cure_character.status[4] == 1:
-                            cost = 100*cure_character.level
+                            cost = 25*cure_character.level
                         elif cure_character.status[5] == 1:
                             cost = 200*cure_character.level
                         elif cure_character.status[6] == 1:
@@ -899,6 +899,7 @@ class Confirm_window(window.Window):
 
     SEARCH = 32
     PRESS = 33
+    SWIM = 34
 
     BUY_ITEM = 35
 
@@ -955,6 +956,8 @@ class Confirm_window(window.Window):
              confirm_font = self.menu_font.render( u"探しますか？", True, COLOR_WHITE)
          elif self.instruction == self.PRESS:
              confirm_font = self.menu_font.render( u"押しますか？", True, COLOR_WHITE)
+         elif self.instruction == self.SWIM:
+             confirm_font = self.menu_font.render( u"浸かりますか？", True, COLOR_WHITE)
          elif self.instruction == self.BUY_ITEM:
              confirm_font = self.menu_font.render( u"買いますか？", True, COLOR_WHITE)
                
@@ -1142,11 +1145,13 @@ class Confirm_window(window.Window):
                         game_self.party.direction = 0
                         game_self.tower = tower.Tower()
                         game_self.dungeon = None
+                        game_self.party.torch = 0 
 
                         for character in game_self.party.member:
                             character.face_shield = 0
                             character.battle_ac = 0
                             character.permanant_ac = 0
+                            character.status[0] = 0
 
                         self.is_visible = False
                         self = None
@@ -1206,6 +1211,7 @@ class Confirm_window(window.Window):
                         
                 else:
                     self.is_visible = False
+                    game_self.dungeon.dungeon_message_window.swim_window = None
                     game_self.dungeon.dungeon_message_window.press_window = None
                     game_self.dungeon.dungeon_message_window.search_window = None
                     game_self.dungeon.dungeon_message_window.is_visible = False
@@ -1236,12 +1242,44 @@ class Confirm_window(window.Window):
                     pass
                 else:
                     self.is_visible = False
+                    game_self.dungeon.dungeon_message_window.swim_window = None
                     game_self.dungeon.dungeon_message_window.press_window = None
                     game_self.dungeon.dungeon_message_window.search_window = None
                     game_self.dungeon.dungeon_message_window.is_visible = False
                     game_self.dungeon.dungeon_message_window.message = None
                     game_self.dungeon.dungeon_message_window.coordinate = None
                     game_self.dungeon.dungeon_message_window.key_press = False
+
+            elif self.instruction == self.SWIM:
+                if self.menu == self.YES:
+                    if game_self.dungeon.dungeon_message_window.coordinate == [7,0,2]:
+
+                        game_self.dungeon.dungeon_message_window.message.append( "" )
+                        game_self.dungeon.dungeon_message_window.message.append( u"冒険者達の体力が回復した！" )
+
+                        #heal hp
+                        for chara in game_self.party.member:
+                            if chara.status[5] != 1 and chara.status[6] != 1 and chara.status[7] != 1 and chara.status[8] != 1:
+                                chara.hp += random.randint(1,8)
+                                if chara.hp > chara.max_hp:
+                                    chara.hp = chara.max_hp
+                        
+                    self.is_visible = False
+                    game_self.dungeon.dungeon_message_window.swim_window = None
+                    game_self.dungeon.dungeon_message_window.key_press = False                    
+
+
+                    pass
+                else:
+                    self.is_visible = False
+                    game_self.dungeon.dungeon_message_window.swim_window = None
+                    game_self.dungeon.dungeon_message_window.press_window = None
+                    game_self.dungeon.dungeon_message_window.search_window = None
+                    game_self.dungeon.dungeon_message_window.is_visible = False
+                    game_self.dungeon.dungeon_message_window.message = None
+                    game_self.dungeon.dungeon_message_window.coordinate = None
+                    game_self.dungeon.dungeon_message_window.key_press = False
+
 
             elif self.instruction == self.BUY_ITEM:
                 if self.menu == self.YES:
@@ -2894,13 +2932,13 @@ class Item_menu_select(window.Window):
 
                 #keys
                 elif use_item.category == 250:
-                    if game_self.party.member[0].coordinate == [ 9, 10 ,1] or game_self.party.member[0].coordinate == [ 9, 9, 1]:
+                    if (game_self.party.member[0].coordinate == [ 9, 10 ,1] or game_self.party.member[0].coordinate == [ 9, 9, 1]) and use_item.id == 900:
                         #dungeon is None in menu so change in temp of game_Self
                         game_self.horizontal_wall_temp[10][9] = 2
                         #need to show that key matched
                         self.key_unlocked_window = Donate_finish_window(Rect(150,160,300,50), Donate_finish_window.KEY_UNLOCK)
                         self.key_unlocked_window.is_visible = True
-                    if game_self.party.member[0].coordinate == [ 7, 1 ,2] or game_self.party.member[0].coordinate == [ 7, 0, 2]:
+                    if (game_self.party.member[0].coordinate == [ 7, 1 ,2] or game_self.party.member[0].coordinate == [ 7, 0, 2]) and use_item.id == 901:
                         #dungeon is None in menu so change in temp of game_Self
                         game_self.horizontal_wall_temp[1][7] = 2
                         #need to show that key matched
@@ -2968,12 +3006,13 @@ class Item_menu_select(window.Window):
 
                 #shield
                 if use_item.category == 30:
-                    if isinstance(character.equip[1], item.Item):
-                        character.items.append(character.equip[1])
-                        character.equip[1] = use_item
-                    else:
-                        character.equip[1] = use_item
-                    del character.items[game_self.menu.item_window.item_view.menu]
+                    if character.job == 0:
+                        if isinstance(character.equip[1], item.Item):
+                            character.items.append(character.equip[1])
+                            character.equip[1] = use_item
+                        else:
+                            character.equip[1] = use_item
+                        del character.items[game_self.menu.item_window.item_view.menu]
 
                 #armor
                 if use_item.category == 60:

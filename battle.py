@@ -229,6 +229,9 @@ class Battle:
             battle_window = window.Window(Rect(10, 10, 620, 150))
             battle_window.draw(screen)
 
+            if self.total_movement == []:
+                return
+
             battle_command = self.total_movement[0]
     
 
@@ -1280,7 +1283,7 @@ class Battle:
                         self.target_group[self.offset].hp += self.damage
 
                         if self.target_group[self.offset].hp > self.target_group[self.offset].max_hp:
-                            self.target_group[target].hp = self.target_group[target].max_hp
+                            self.target_group[self.offset].hp = self.target_group[self.offset].max_hp
                             self.damage = -1
 
 
@@ -1347,7 +1350,7 @@ class Battle:
                         elif battle_command.magic_level == "0ブレス":
                             self.damage = 0
                         elif battle_command.magic_level == "MAXブレス":
-                            self.damage = battle_command.character.max_hp
+                            self.damage = battle_command.character.max_hp/2
 
                         if self.target_group[player_count_alive(self.target_group)-self.group_access].breath_resist > 0:
                             self.damage = self.damage - int(self.damage * (self.target_group[player_count_alive(self.target_group)-self.group_access].breath_resist*.20))
@@ -1689,11 +1692,11 @@ class Battle:
                                 chara.coordinate[1] += 1
                     elif game_self.party.direction == 1:
                         for chara in game_self.party.member:
-                            if game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 0 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 2 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 4 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 6 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 8:
+                            if game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]] == 0 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 2 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 4 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]] == 6 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]] == 8:
                                 chara.coordinate[0] -= 1
                     elif game_self.party.direction == 2:
                         for chara in game_self.party.member:
-                            if game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 0 or game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 2 or game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 4 or game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 6 or game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 8:                        
+                            if game_self.dungeon.horizontal_wall[chara.coordinate[1]][chara.coordinate[0]] == 0 or game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 2 or game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 4 or game_self.dungeon.horizontal_wall[chara.coordinate[1]][chara.coordinate[0]] == 6 or game_self.dungeon.horizontal_wall[chara.coordinate[1]][chara.coordinate[0]] == 8:                        
                                 chara.coordinate[1] -= 1
                     elif game_self.party.direction == 3:
                         for chara in game_self.party.member:
@@ -1818,6 +1821,7 @@ class Battle:
 
                     game_self.party.member = []
                     game_self.party.alignment = 0
+                    game_self.party.torch = 0
 
                     game_self.game_state = CITY
                     game_self.dungeon = None
@@ -2043,7 +2047,7 @@ class Battle:
                         if i!= 0:
                             to_delete.insert(0,i)                                        
                 if isinstance(command.character, character.Character):
-                    if target == command.target and command.magic_target == "PARTY_ONE":
+                    if offset == command.target and command.magic_target == "PARTY_ONE":
                         if i != 0:
                             to_delete.insert(0,i)
                 i+=1
@@ -2080,7 +2084,7 @@ class Battle:
 
                 to_delete = []
                 for command in self.total_movement:
-                    if isinstance(command.character, character.Character):
+                    if isinstance(command.character, character.Character) and command.magic_target != "PARTY_ONE":
                         if target == command.target:
                             #first one would be deleted at end of command so ignore
                             if i != 0:
@@ -2120,9 +2124,10 @@ def party_dead_poison(party):
     
     i = 0
     for chara in party:
-        if chara.hp <= 0:
+        if chara.hp <= 0 and chara.status[0] == 1:
             chara.hp = 0
             chara.status[6] = 1
+            chara.status[0] = 0
             chara.rip+=1
         i+= 1
 
@@ -2175,7 +2180,8 @@ def select_enemy( enemy_data, floor ):
     
     if floor == 1:
 
-        enemy_id = random.randint(1,3)
+        enemy_id = [6,6,6,1,1,1,4,4,4,3,3,2,2,5]
+        offset = random.randint(0, len(enemy_id)-1)
 
         enemy_count = random.randint(1,3)
 
@@ -2183,7 +2189,7 @@ def select_enemy( enemy_data, floor ):
         enemy_group = []
 
         for i in range(enemy_count):
-            enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ] ) )
+            enemy_group.append( enemy.Enemy(enemy_data[ enemy_id[offset] ] ) )
         enemy_front.append(enemy_group)
               
         enemy_total.append(enemy_front)
@@ -2191,12 +2197,13 @@ def select_enemy( enemy_data, floor ):
 
     if floor == 2:
 
-        group_number = random.randint( 2, 3)
+        group_number = random.randint( 1, 2)
 
-        for group in range(1, group_number):
-            enemy_id = random.randint(6,10)
+        for group in range(0, group_number):
+            enemy_id = random.randint(11,16)
 
-            enemy_count = random.randint(1,4)
+            print enemy_id
+            enemy_count = random.randint(1,3)
 
             enemy_group = []
 
@@ -2210,13 +2217,13 @@ def select_enemy( enemy_data, floor ):
 
     if floor == 3:
 
-        group_number = random.randint(2,3)
+        group_number = random.randint(1,2)
     
-        for group in range(1,group_number):
+        for group in range(0,group_number):
 
-            enemy_id = random.randint(12,14)
+            enemy_id = random.randint(21,27)
 
-            enemy_count = random.randint(1,6)
+            enemy_count = random.randint(1,3)
 
             enemy_group = []
 
@@ -2224,31 +2231,18 @@ def select_enemy( enemy_data, floor ):
                 enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ]))
 
             enemy_front.append( enemy_group)
-
-        group_number = random.randint(2,2)
-        for group in range(1, group_number):
-            enemy_id = random.randint(12,14)
-
-            enemy_count = random.randint(1,4)
-
-            enemy_group = []
-
-            for i in range(enemy_count):
-                enemy_group.append( enemy.Enemy(enemy_data[ enemy_id ]))
-
-            enemy_back.append( enemy_group)
 
         enemy_total.append(enemy_front)
         enemy_total.append(enemy_back)
 
     if floor == 4:
-        group_number = random.randint(2,4) 
+        group_number = random.randint(1,2) 
     
-        for group in range(1,group_number):
+        for group in range(0,group_number):
 
-            enemy_id = random.randint(16,18)
+            enemy_id = random.randint(31,36)
 
-            enemy_count = random.randint(1,4)
+            enemy_count = random.randint(1,3)
 
             enemy_group = []
 
@@ -2257,11 +2251,11 @@ def select_enemy( enemy_data, floor ):
 
             enemy_front.append( enemy_group)
 
-        group_number = random.randint(2,3)
-        for group in range(1, group_number):
-            enemy_id = random.randint(16,18)
+        group_number = random.randint(0,1)
+        for group in range(0, group_number):
+            enemy_id = random.randint(31,33)
 
-            enemy_count = random.randint(1,3)
+            enemy_count = random.randint(1,2)
 
             enemy_group = []
 
@@ -2289,31 +2283,31 @@ def select_enemy( enemy_data, floor ):
 def calculate_hit_time( character ):
     
     if character.job == 0 or character.job == 3:
-        return int(character.level/3) + 1
+        return int(character.level/8) + 1
 
     elif character.job == 1:
-        return int(character.level/3) + 1
+        return int(character.level/8) + 1
 
     elif character.job == 2 or character.job == 4 or character.job == 5:
-        return int(character.level/5) + 1
+        return int(character.level/16) + 1
 
     elif character.job == 10 or character.job == 11 or character.job == 12:
-        return int(character.level/3) + 2
+        return int(character.level/6) + 2
         
     elif character.job == 13 or character.job == 14 or character.job == 15:
-        return int(character.level/2) + 1
+        return int(character.level/6) + 1
     
     elif character.job == 17 or character.job == 18:
-        return int(character.level/5) + 1
+        return int(character.level/12) + 1
         
     elif character.job == 16 or character.job == 19 or character.job == 20 or character.job == 21:
-        return int(character.level/3) + 1
+        return int(character.level/8) + 1
     
     elif character.job == 22 or character.job == 23 or character.job == 24:
-        return int(character.level/3) + 2
+        return int(character.level/8) + 2
     
     elif character.job == 25 or character.job == 26 or character.job == 27:
-        return int(character.level/3) + 1
+        return int(character.level/8) + 1
 
     
 def calculate_damage( chara, hit_times):

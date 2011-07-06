@@ -16,6 +16,7 @@ import tower
 import dungeon_search
 import math
 import encount_party
+import enemy
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 MENU=12
 
@@ -264,7 +265,7 @@ class Dungeon:
         y = coordinate[1]
 
         if self.space[y][x] != 1:
-            if ( game_self.party.torch >= 1 ):
+            if ( game_self.party.torch >= 1 ) or game_self.party.member[0].coordinate[2] == 5:
                 self.draw_dungeon_with_light(game_self, screen)
             else:
                 self.draw_dungeon_no_light(game_self, screen)
@@ -552,6 +553,21 @@ class Dungeon:
                 self.object[y][x] = 0
                 self.add_item_to_battle( game_self.party.member, game_self)
 
+            #battle with elevator guard
+            if self.object[y][x] == 14:
+                self.battle_encount( 100, game_self.party.member[0] )
+                self.object[y][x] = 0
+                enemyListBack = []
+                enemyList = []
+                enemy_group = []
+                enemy_group.append( enemy.Enemy(game_self.dungeon.enemy_data[ 9 ] ))
+                enemyList.append(  enemy_group )
+
+                battle.event_battle( game_self, enemyList, enemyListBack)
+                game_self.dungeon.battle.event_battle = 0
+
+                
+
         #warp on fourth floor
         if self.object[y][x] == 17 and game_self.party.member[0].coordinate == [8, 19, 4]:
             for chara in game_self.party.member:
@@ -570,11 +586,13 @@ class Dungeon:
             game_self.party.direction = 0
             game_self.tower = tower.Tower()
             game_self.dungeon = None
+            game_self.party.torch = 0
 
             for character in game_self.party.member:
                 character.face_shield = 0
                 character.battle_ac = 0
                 character.permanant_ac = 0
+                character.status[0] = 0
 
 
 
@@ -607,8 +625,7 @@ class Dungeon:
             max_percent = int(math.ceil(12 + 2*calculate_thief_level(game_self)))
 
             rare_percent = int(math.ceil(3 + 0.5*calculate_thief_level(game_self)))
-
-            
+          
 
             percent = random.randint(1,100)
             if percent <= max_percent:
@@ -626,6 +643,7 @@ class Dungeon:
             rare_items = [102, 152, 202, 216, 252, 302, 352, 402, 502, 552]
 
             max_percent = int(math.ceil(12 + 2*calculate_thief_level(game_self)))
+
             rare_percent = int(math.ceil(3 + 0.5*calculate_thief_level(game_self)))
             
             percent = random.randint(1,100)
@@ -677,6 +695,8 @@ class Dungeon:
                 self.battle.enemy_drop_items.append( items[item_number])
 
         
+        self.battle.drop_item_key= int(math.ceil(len(self.battle.enemy_drop_items)/4.0))
+
         pass
 
     def draw_dungeon_map(self, game_self, screen):

@@ -50,6 +50,9 @@ class Dungeon_message(window.Window):
         #"押しますか？"
         self.press_window = None
 
+        #"浸かりますか？"
+        self.swim_window = None
+
         self.key_press = False
 
         #need to press key once more to show more message
@@ -79,6 +82,8 @@ class Dungeon_message(window.Window):
             self.search_window.draw(screen, game_self, None)
         if self.press_window != None:
             self.press_window.draw(screen, game_self, None)
+        if self.swim_window != None:
+            self.swim_window.draw(screen, game_self, None)
 
     def dungeon_message_handler(self, game_self, event):
         """event handler for dungeon"""
@@ -88,6 +93,9 @@ class Dungeon_message(window.Window):
             return
         elif self.press_window != None and self.press_window.is_visible:
             self.press_window.confirm_window_handler(game_self, event, None)
+            return
+        elif self.swim_window != None and self.swim_window.is_visible:
+            self.swim_window.confirm_window_handler(game_self, event, None)
             return
 
         if event.type == KEYDOWN and (event.key == K_x or event.key ==K_z or event.key == K_SPACE or event.key == K_RETURN):
@@ -102,9 +110,13 @@ class Dungeon_message(window.Window):
                 game_self.dungeon.battle_encount( 100, game_self.party.member[0] )
                 enemyListBack = []
                 enemyList = []
-                enemy_group = []
-                enemy_group.append( enemy.Enemy(game_self.dungeon.enemy_data[ 19 ] ))
-                enemyList.append(  enemy_group )
+
+                group_number = random.randint(1, 3)
+
+                for group in range(0,group_number):
+                    enemy_group = []
+                    enemy_group.append( enemy.Enemy(game_self.dungeon.enemy_data[ 39 ] ))
+                    enemyList.append(  enemy_group )
 
                 battle.event_battle( game_self, enemyList, enemyListBack)
 
@@ -117,7 +129,7 @@ class Dungeon_message(window.Window):
                 enemyListBack = []
                 enemyList = []
                 enemy_group = []
-                enemy_group.append( enemy.Enemy(game_self.dungeon.enemy_data[ 21 ] ))
+                enemy_group.append( enemy.Enemy(game_self.dungeon.enemy_data[ 41 ] ))
                 enemyList.append(  enemy_group )
 
                 battle.event_battle( game_self, enemyList, enemyListBack)
@@ -144,6 +156,7 @@ class Dungeon_message(window.Window):
             self.search_window = None
             self.press_window = None
             self.key_press = False
+            self.swim_window = None
                 
 
 
@@ -164,6 +177,11 @@ class Dungeon_message(window.Window):
             self.search_window.is_visible = True
             self.key_press = True
 
+        if self.coordinate == [7,0,2]:
+            self.message = [u"部屋の中には、泉がある。"]
+            self.swim_window = system_notify.Confirm_window(Rect(190, 200, 200, 110), system_notify.Confirm_window.SWIM)
+            self.swim_window.is_visible = True
+            self.key_press = True
 
         if self.coordinate == [15,14,2]:
             self.message = [ u"目の前にスイッチがある"]
