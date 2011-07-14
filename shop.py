@@ -28,7 +28,7 @@ class Shop:
 
     BUY, SELL, CURSE, DONATE, BUY_HOUSE, BACK = 0, 1, 2, 3, 4, 5
     
-    def __init__(self):
+    def __init__(self, game_self):
         #set the menu item
         self.menu = self.BUY
 
@@ -52,18 +52,59 @@ class Shop:
         self.shop_window = None #shop_window.Shop_window(Rect(200, 50, 240, 380))
         self.sell_window = None #system_notify.System_notify_window(Rect(200,120,340, 240), system_notify.System_notify_window.SELL)
 
+        self.music = 0
+
         #see if temp file exists (before saving)
         #if not, check if saved file exist (after saving)
         #if not, place default shop data
-        try:
-            file = "Save/shop_item_temp.dat"
-            fp = open(file, "rb")
-        except IOError, (errno, msg):
 
+        if game_self.new_game == False:
             try:
-                file = "Save/shop_item.dat"
+                file = "Save/shop_item_temp.dat"
                 fp = open(file, "rb")
             except IOError, (errno, msg):
+
+                try:
+                    file = "Save/shop_item.dat"
+                    fp = open(file, "rb")
+                except IOError, (errno, msg):
+                    #it stores, item id, number left, ...
+                    self.stock = []
+                    sword_stock = [Shop_item(100,-1), Shop_item(109, 6), Shop_item(119, 1)]
+                    katana_stock = [Shop_item(150, -1), Shop_item(155, 6), Shop_item(164, 1)]
+                    blunt_stock = [Shop_item(200, -1), Shop_item(207, 6), Shop_item(212, 1), Shop_item(215, -1), Shop_item(218, 6), Shop_item(225,1)]
+                    gun_stock = [Shop_item(250, -1), Shop_item(258, 6), Shop_item(264, 1)]
+                    throw_stock = [Shop_item(300, -1), Shop_item(308, 6), Shop_item(316, 1)]
+                    shield_stock = [Shop_item(350, -1), Shop_item(354, 6), Shop_item(359, 1)]
+                    armor_stock = [Shop_item(400, -1), Shop_item(403, 6), Shop_item(408, 1), Shop_item(426, -1), Shop_item(428, 6)]
+                    helmet_stock = [Shop_item(500, -1), Shop_item(504, 6), Shop_item(508, 1)]
+                    gauntlet_stock = [Shop_item(550, -1), Shop_item(556, 6), Shop_item(563,1)]
+                    accessory_stock = [Shop_item(600,-1), Shop_item(601,1), Shop_item(602,1), Shop_item(603,1), Shop_item(604,1), Shop_item(605,1), Shop_item(606,1)]
+                    item_stock = [Shop_item(1,-1), Shop_item(2, 6), Shop_item(4,-1),Shop_item(5,-1), Shop_item(6,-1)]
+                    
+                    self.stock.append(sword_stock)
+                    self.stock.append(katana_stock)
+                    self.stock.append(blunt_stock)
+                    self.stock.append(gun_stock)
+                    self.stock.append(throw_stock)
+                    self.stock.append(shield_stock)
+                    self.stock.append(armor_stock)
+                    self.stock.append(helmet_stock)
+                    self.stock.append(gauntlet_stock)
+                    self.stock.append(accessory_stock)
+                    self.stock.append(item_stock)
+                else:
+                    save.load_shop_item(self, "Save/shop_item.dat")
+            else:
+                save.load_shop_item(self, "Save/shop_item_temp.dat")
+                print "saved on temp file"
+        #if playing in new game, don't read from shop_item.dat
+        else:
+            try:
+                file = "Save/shop_item_temp.dat"
+                fp = open(file, "rb")
+            except IOError, (errno, msg):
+
                 #it stores, item id, number left, ...
                 self.stock = []
                 sword_stock = [Shop_item(100,-1), Shop_item(109, 6), Shop_item(119, 1)]
@@ -90,12 +131,7 @@ class Shop:
                 self.stock.append(accessory_stock)
                 self.stock.append(item_stock)
             else:
-                save.load_shop_item(self, "Save/shop_item.dat")
-        else:
-            save.load_shop_item(self, "Save/shop_item_temp.dat")
-            print "saved on temp file"
-
-        self.music = 0
+                save.load_shop_item(self, "Save/shop_item_temp.dat")
 
     def update(self):
         if self.music == 0:

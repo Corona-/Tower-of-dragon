@@ -12,6 +12,8 @@ import character_make_window
 
 import string
 
+
+
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 CHARACTER_MAKE = 10
@@ -100,9 +102,7 @@ class Character_make:
                 game_self.character_make = Character_make()
                 game_self.game_state = CASTLE
                 return
-            #if it includes spaces, then also re-enter
-            #if string.count(self.fieldvalues[0], " "):
-            #if there is space at the front, re-enter
+            #if it start with space, then also re-enter
             if self.fieldvalues[0][0] == " ":
                 game_self.character_make = Character_make()
                 game_self.game_state = CASTLE

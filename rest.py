@@ -190,8 +190,6 @@ def level_up(self, character, rest_level, lv_change):
 
                                 if i > 0 and character.magic[i-1][0] == 1 and character.magic[i-1][1] == 1 and character.magic[i-1][2] == 1 and character.magic[i-1][3] == 1:
                                     learn = 0
-
-
                                     
                                 if learn < character.intelligence:
                                     character.max_magician_mp[i] += 1
@@ -225,11 +223,13 @@ def level_up(self, character, rest_level, lv_change):
                     if b == 0 and character.max_magician_mp[i] > 0:
                         if character.intelligence >= 10:
                             learn = random.randint(1, character.intelligence_max+45)
+                            
                             if learn < character.intelligence:
                                 character.magic[i][j] = 1
                                 learned = True
                         else:
                             learn = random.randint(1, 100)
+
                             if learn <= 15:
                                 character.magic[i][j] = 1
                                 learned = True                            

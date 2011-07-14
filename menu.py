@@ -35,6 +35,8 @@ class Menu:
         self.menu = self.ITEM
 
         self.menu_font = pygame.font.Font("ipag.ttf", 20)
+        self.small_font = pygame.font.Font("ipag.ttf", 15)
+
 
         self.item_font = self.menu_font.render(u"アイテムを見る", True, COLOR_WHITE)
         self.magic_font = self.menu_font.render(u"魔法を使う", True, COLOR_WHITE)
@@ -69,6 +71,15 @@ class Menu:
         title_window.draw(screen)
         
         screen.blit(menu_title_font, (35, 35))
+
+        time_font = u"プレイ時間:" + str(game_self.total_time/3600)+ u"時間" + str((game_self.total_time % 3600) / 60)+ u"分" + str(game_self.total_time % 60) + u"秒"
+        #draw time font
+        time_font = self.small_font.render( time_font, True, COLOR_WHITE)
+        time_window = window.Window(Rect(340,20, time_font.get_width()+40, 50))
+        time_window.draw(screen)
+        
+        screen.blit(time_font, (355, 35))
+        
 
 
         menu_window = window.Window(Rect(160,80,320,200))

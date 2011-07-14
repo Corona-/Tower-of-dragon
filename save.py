@@ -50,6 +50,15 @@ def save( self, game_self ):
 
 def load(self, game_self):
 
+    try:
+        file = "Save/data.dat"
+        fp = open( file, "rb")
+    except IOError, (errno, msg):
+        return
+
+    else:
+        fp.close()
+        
     load_character(game_self)
 
     load_donation(game_self)
@@ -499,6 +508,9 @@ def save_game_data(game_self):
     fp.write(struct.pack( "i", len(uname)))
     #store actual name
     fp.write(struct.pack( str(len(uname)) + "s", uname))
+
+    #store time
+    fp.write(struct.pack("i", game_self.total_time))
     
 
     #cut remaining space
@@ -517,12 +529,16 @@ def load_game_data(game_self):
     #load elappsed days
     game_self.party.days = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
 
-    #store the house level
+    #load the house level
     game_self.party.house = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
 
     #load party name
     name_length = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
     game_self.party.party_name = u"" + struct.unpack( str(name_length) + "s", fp.read(struct.calcsize("s")*name_length))[0]
+
+    #load time
+    game_self.total_time = struct.unpack("i", fp.read(struct.calcsize("i")))[0]
+
   
     fp.close()
 

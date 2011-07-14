@@ -521,7 +521,7 @@ class Character_select_window(window.Window):
             if game_self.party.member[self.menu].status != [0,0,0,0,0,0,0,0,0]:
                 self.not_movable.is_visible = True
             
-            elif game_self.party.member[self.menu].money > int(game_self.item_data[category_item[item_menu].id][2]) and len(game_self.party.member[self.menu].items) < 10:
+            elif game_self.party.member[self.menu].money >= int(game_self.item_data[category_item[item_menu].id][2]) and len(game_self.party.member[self.menu].items) < 10:
                 game_self.party.member[self.menu].money -= int(game_self.item_data[category_item[item_menu].id][2])
                 game_self.party.member[self.menu].items.append( item.Item( game_self.item_data[category_item[item_menu].id] ))
 
@@ -562,7 +562,7 @@ def shop_item_change( item_id, game_self, i ):
             else:
                 if item.id == item_id:
                     if item.stock == -1:
-                        return found
+                        return 101
                     item.stock += 1
                     found = 101
                     if item.stock > 99:
@@ -581,7 +581,7 @@ def add_new_shop_item( item_id, game_self ):
     
     new_item = shop.Shop_item( item_id, 1)
 
-    if item_id < 100:
+    if item_id <= 100:
         game_self.shop.stock[10].append(new_item)
     elif item_id < 150:
         game_self.shop.stock[0].append(new_item)
@@ -595,11 +595,13 @@ def add_new_shop_item( item_id, game_self ):
         game_self.shop.stock[4].append(new_item)        
     elif item_id < 400:
         game_self.shop.stock[5].append(new_item)        
-    elif item_id < 450:
-        game_self.shop.stock[6].append(new_item)        
     elif item_id < 500:
-        game_self.shop.stock[7].append(new_item)
+        game_self.shop.stock[6].append(new_item)        
     elif item_id < 550:
-        game_self.shop.stock[8].append(new_item)
+        game_self.shop.stock[7].append(new_item)
     elif item_id < 600:
+        game_self.shop.stock[8].append(new_item)
+    elif item_id < 700:
         game_self.shop.stock[9].append(new_item)
+
+

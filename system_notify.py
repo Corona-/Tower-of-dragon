@@ -323,7 +323,7 @@ class System_notify_window(window.Window):
                             payment = 200000
                         if game_self.party.house == 4:
                             payment = 500000
-                        if game_self.party.member[self.menu].money > payment:
+                        if game_self.party.member[self.menu].money >= payment:
                             game_self.party.house += 1
                             game_self.party.member[self.menu].money -= payment
                             self.house_reform_message = Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.REFORM_HOUSE)
@@ -333,7 +333,7 @@ class System_notify_window(window.Window):
                             self.inn_not_enough.is_visible = True
                         return
                     # buy a house with 10000                    
-                    if game_self.party.member[self.menu].money > 10000:
+                    if game_self.party.member[self.menu].money >= 10000:
                         game_self.party.house = 1
                         game_self.party.member[self.menu].money -= 10000
                         self.house_buy_message = Donate_finish_window(Rect(170, 160, 300, 50), Donate_finish_window.BUY_HOUSE)                
@@ -455,7 +455,7 @@ class System_notify_window(window.Window):
                             cost = 500*cure_character.level
 
                         
-                        if game_self.party.member[self.menu].money > cost:
+                        if game_self.party.member[self.menu].money >= cost:
                             game_self.party.member[self.menu].money-=cost
 
                             self.cured = False
@@ -1024,6 +1024,7 @@ class Confirm_window(window.Window):
             elif self.instruction == self.SAVE:
                 if self.menu == self.YES:
                     save.save( self, game_self)
+                    game_self.new_game = False
                     if game_self.inn != None:
                         game_self.inn.save_confirm.is_visible = False
                     if game_self.house != None:
@@ -1037,6 +1038,7 @@ class Confirm_window(window.Window):
             elif self.instruction == self.LOAD:
                 if self.menu == self.YES:
                     save.load( self, game_self)
+                    game_self.new_game = False
                     if game_self.inn != None:
                         game_self.inn.load_confirm.is_visible = False
                     if game_self.house != None:
@@ -2700,7 +2702,10 @@ class Target_select(window.Window):
 
         self.menu_font = pygame.font.Font("ipag.ttf", 20)
 
-        self.top_font = self.menu_font.render( u"誰に使いますか？", True, COLOR_WHITE) 
+        if self.instruction == self.USE_ITEM:
+            self.top_font = self.menu_font.render( u"誰に使いますか？", True, COLOR_WHITE) 
+        elif self.instruction == self.PASS_ITEM:
+            self.top_font = self.menu_font.render( u"誰に渡しますか？", True, COLOR_WHITE) 
 
     def update(self):
         pass
@@ -2738,14 +2743,15 @@ class Target_select(window.Window):
             game_self.cursor_se.play()
             self.menu -= 1
             if self.menu < 0:
-                self.menu = 0
+                self.menu = len(game_self.party.member)-1
                 
         #moves the cursor down
         elif event.type == KEYDOWN and event.key == K_DOWN:
             game_self.cursor_se.play()
             self.menu += 1
             if self.menu+1 > len(game_self.party.member):
-                self.menu = len(game_self.party.member)-1
+                self.menu = 0
+
 
 
         elif event.type == KEYDOWN and (event.key == K_z or event.key == K_SPACE or event.key == K_RETURN):

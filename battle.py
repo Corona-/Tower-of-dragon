@@ -315,6 +315,10 @@ class Battle:
 
                         print accuracy_total
 
+                        #if it never hits, make it 5
+                        if accuracy_total <= 0:
+                            accuracy_total = 5
+
                         if isinstance(battle_command.character.equip[0], item.Item) and accuracy_total > battle_command.character.equip[0].attack_probability:
                             accuracy_total = battle_command.character.equip[0].attack_probability
                         
@@ -336,6 +340,9 @@ class Battle:
                         accuracy_total = int( (19-accuracy1)*5)
 
                         print accuracy_total
+                                
+                        if accuracy_total <= 0:
+                            accuracy_total = 5
 
                         for attack in range(battle_command.character.attack_times):
                             accuracy_probability = random.randint(1,100)
@@ -1653,10 +1660,12 @@ class Battle:
                     game_self.party.member[ self.selected ].defend_ac = 0
 
                 else:
-                    #to end battle
-                    game_self.dungeon.battle_flag = 0
-                    game_self.dungeon.battle = None
-                    game_self.dungeon.music = 0
+                    pass
+                
+                    #if this is used, it end battle
+                    #game_self.dungeon.battle_flag = 0
+                    #game_self.dungeon.battle = None
+                    #game_self.dungeon.music = 0
 
 
         elif self.state == self.BATTLE:
@@ -1692,16 +1701,15 @@ class Battle:
                                 chara.coordinate[1] += 1
                     elif game_self.party.direction == 1:
                         for chara in game_self.party.member:
-                            if game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]] == 0 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 2 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]-1] == 4 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]] == 6 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]] == 8:
+                            if game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]] == 0 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]] == 2 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]] == 4 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]] == 6 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]] == 8:
                                 chara.coordinate[0] -= 1
                     elif game_self.party.direction == 2:
                         for chara in game_self.party.member:
-                            if game_self.dungeon.horizontal_wall[chara.coordinate[1]][chara.coordinate[0]] == 0 or game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 2 or game_self.dungeon.horizontal_wall[chara.coordinate[1]-1][chara.coordinate[0]] == 4 or game_self.dungeon.horizontal_wall[chara.coordinate[1]][chara.coordinate[0]] == 6 or game_self.dungeon.horizontal_wall[chara.coordinate[1]][chara.coordinate[0]] == 8:                        
+                            if game_self.dungeon.horizontal_wall[chara.coordinate[1]][chara.coordinate[0]] == 0 or game_self.dungeon.horizontal_wall[chara.coordinate[1]][chara.coordinate[0]] == 2 or game_self.dungeon.horizontal_wall[chara.coordinate[1]][chara.coordinate[0]] == 4 or game_self.dungeon.horizontal_wall[chara.coordinate[1]][chara.coordinate[0]] == 6 or game_self.dungeon.horizontal_wall[chara.coordinate[1]][chara.coordinate[0]] == 8:
                                 chara.coordinate[1] -= 1
                     elif game_self.party.direction == 3:
                         for chara in game_self.party.member:
-                            if game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 0 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 2 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 4 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 7 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 9:
-                                chara.coordinate[0] += 1
+                            if game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 0 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 2 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 4 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 7 or game_self.dungeon.vertical_wall[chara.coordinate[1]][chara.coordinate[0]+1] == 9:                                chara.coordinate[0] += 1
                         
                     return
 
@@ -1856,6 +1864,10 @@ class Battle:
                         for chara in game_self.party.member:
                             chara.battle_ac = 0
 
+                        
+                        #remove room guard from dungeon map
+                        game_self.dungeon.object[game_self.party.member[0].coordinate[1]][game_self.party.member[0].coordinate[0]] = 0
+
                     else:
                         #there are drop items
                         self.drop_item_key -= 1
@@ -2006,7 +2018,7 @@ class Battle:
                         if i!= 0:
                             to_delete.insert(0,i)
                 if isinstance(command.character, character.Character):
-                    if target == command.target:
+                    if target == command.target and command.magic_target == "PARTY_ONE":
                         if i != 0:
                             to_delete.insert(0,i)
                 i+=1

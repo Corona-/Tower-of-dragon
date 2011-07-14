@@ -85,6 +85,7 @@ class Temple_window(window.Window):
                 cost_font = 500*chara.level
             if chara.status == [0,0,0,0,0,0,0,0,0]:
                 cost_font = 0
+                status_font = self.menu_font.render( "NONE", True, COLOR_WHITE)
 
             screen.blit(status_font, (self.centerx-60, self.top+50+(i%10)*30))
 
@@ -257,11 +258,11 @@ class Curing_window(window.Window):
                         if character == chara:
                             del game_self.characters[i]
                         i += 1
-                    #change the window to -1 to not go over range
-                    if cure_window.menu+cure_window.page*10+1 > len(game_self.temple.temple_cure_window.to_cure):
-                        if cure_window.menu == 0:
-                            cure_window.page-=1
-                        else:
-                            cure_window.menu-=1
-                        
+                #change the window to -1 to not go over range
+                if cure_window.menu+cure_window.page*10+1 > len(game_self.temple.temple_cure_window.to_cure):
+                    if cure_window.menu == 0:
+                        cure_window.page-=1
+                    else:
+                        cure_window.menu-=1
+                    
 

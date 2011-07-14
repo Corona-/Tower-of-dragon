@@ -347,7 +347,8 @@ class Dungeon:
         theif_level = calculate_thief_level(game_self)
         
         #add this coordinate to visited coordinate
-        game_self.party.dungeon_visited[coordinate[2]][x][y] = theif_level
+        if game_self.party.dungeon_visited[coordinate[2]][x][y] < theif_level:
+            game_self.party.dungeon_visited[coordinate[2]][x][y] = theif_level
 
 
         encount = random.randint(1, 100)
@@ -550,13 +551,11 @@ class Dungeon:
             #battle with room guard
             if self.object[y][x] == 15:
                 self.battle_encount( 80, game_self.party.member[0] )
-                self.object[y][x] = 0
                 self.add_item_to_battle( game_self.party.member, game_self)
 
             #battle with elevator guard
             if self.object[y][x] == 14:
                 self.battle_encount( 100, game_self.party.member[0] )
-                self.object[y][x] = 0
                 enemyListBack = []
                 enemyList = []
                 enemy_group = []

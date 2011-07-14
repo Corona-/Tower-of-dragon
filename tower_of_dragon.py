@@ -22,6 +22,8 @@ import character
 import character_make
 import item
 
+import math
+
 import os
 
 TITLE, CITY, BAR, INN, SHOP, TEMPLE, CASTLE, TOWER, STATUS_CHECK, GAMEOVER = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
@@ -95,6 +97,13 @@ class tower_of_dragon:
         self.ground_temp = None
         self.space_temp = None
         self.object_temp = None
+
+        self.total_time = 0
+        self.current_time = 0
+        self.this_time = 0
+
+        #if true, don't read shop file for new game
+        self.new_game = False
         
         self.mainloop()
 
@@ -104,6 +113,7 @@ class tower_of_dragon:
         clock = pygame.time.Clock()
 
         while True:
+            
             clock.tick(60)
 
             self.update()
@@ -114,9 +124,25 @@ class tower_of_dragon:
             self.check_event()
 
 
+
+
+
+
+
      
     def update(self):
         """update game status"""
+
+        self.current_time = pygame.time.get_ticks()
+
+        if self.current_time > 1000+ 1000*self.this_time:
+
+            self.this_time += 1
+            self.current_time = 0
+
+            if self.game_state  != TITLE:
+                self.total_time += 1
+        
         if self.game_state == TITLE:
             self.title.update()
         elif self.game_state == CITY:

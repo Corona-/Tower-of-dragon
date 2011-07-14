@@ -186,7 +186,7 @@ def city_handler(self, event):
             else:
                 self.game_state = SHOP
                 self.city = None
-                self.shop = shop.Shop()
+                self.shop = shop.Shop(self)
         elif self.city.menu == City.TEMPLE:
             if len(self.party.member) == 0:
                 self.city.music = 1
